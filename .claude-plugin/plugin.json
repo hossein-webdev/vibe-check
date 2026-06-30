@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "vibe-check",
+  "displayName": "Vibe Check",
+  "description": "An adaptive production-readiness audit for vibe-coded (AI-generated) apps. The vibe-check skill profiles your app, then routes to focused skills for security, auth, scaling, data, AI/LLM cost, observability, deployment, reliability, compliance, API design, frontend quality, cost, and monetization — applying only the checks that fit your app.",
+  "version": "1.0.0",
+  "author": {
+    "name": "hossein-webdev",
+    "url": "https://github.com/hossein-webdev"
+  },
+  "homepage": "https://github.com/hossein-webdev/vibe-check",
+  "repository": "https://github.com/hossein-webdev/vibe-check",
+  "license": "MIT",
+  "keywords": [
+    "vibe-coding",
+    "production-readiness",
+    "security",
+    "scaling",
+    "deployment",
+    "observability",
+    "ai-engineering",
+    "skills"
+  ]
+}

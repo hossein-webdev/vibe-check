@@ -1,0 +1,14 @@
+{
+  "name": "vibe-check-marketplace",
+  "owner": {
+    "name": "hossein-webdev",
+    "url": "https://github.com/hossein-webdev"
+  },
+  "plugins": [
+    {
+      "name": "vibe-check",
+      "source": "./",
+      "description": "An adaptive production-readiness audit for vibe-coded apps — profiles your app, then runs only the checks that apply (security, auth, scaling, data, AI cost, observability, deployment, and more)."
+    }
+  ]
+}
