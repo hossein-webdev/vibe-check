@@ -30,6 +30,20 @@ patterns, adapt to the stack.
 - User added indexes and it's "still slow", or asks how to find the bottleneck.
 - User is prepping for launch or a traffic event.
 
+## Diagnose in order (before you spend on bigger infra)
+
+Bigger servers and read replicas are the expensive instinct. Check these three branches **in order** —
+the wrong branch costs money and fixes nothing:
+
+1. **Connections vs capacity.** ~90% of the time the database is fine but too many connections fight for
+   too few slots. A **connection pooler** (PgBouncer, Supavisor, or built-in managed pooling) fixes it
+   for ~$0. Adding a read replica *before* a pooler just doubles cost to solve a free problem.
+2. **Query vs volume.** Read the query stats (`pg_stat_statements`). The culprit is usually not the
+   slowest query but the *most frequent* one — a 40 ms query run 10k×/day burns ~400 s of DB time a day.
+   One index / cache / rewrite beats new hardware.
+3. **Read vs write.** ~80% of operations are reads, and a read replica only helps reads. If **writes**
+   are the bottleneck, replicas make contention *worse* — use queues, background jobs, and write-batching.
+
 ## How It Works (handle your first surge — about 30 minutes each)
 
 1. **Pool your database connections first.** If every request opens its own connection, a modest burst

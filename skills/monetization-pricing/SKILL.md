@@ -33,6 +33,10 @@ Skip if the app is free. Otherwise, freedom: **medium** — adapt to the busines
 2. **Secure what happens after payment.** Stripe processes the payment; you own the aftermath:
    - **verify webhook signatures** (never trust an unsigned webhook),
    - make fulfilment **idempotent** so a retry doesn't charge or grant twice,
+   - **never return `2xx` for a failed charge** — if your handler catches the error and answers `200`,
+     the provider marks it delivered and won't retry, so failed payments vanish silently (your error
+     tracker never sees it). Return non-2xx on failure so the provider retries, or capture it in a
+     dead-letter queue, and reconcile against the provider.
    - handle the full lifecycle: success, failure, refund, plan change.
 3. **Tie the model to value.** Align price with the value the customer receives; a **credit system** can
    simplify billing across features. **Track usage events from day one** so usage-based or credit pricing

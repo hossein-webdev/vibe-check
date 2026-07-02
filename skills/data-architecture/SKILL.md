@@ -40,11 +40,21 @@ Skip if there's no database. Otherwise, freedom: **medium** — recommend the pa
 4. **Migrations and backups are non-negotiable.** Editing schema directly in production with no
    migrations and no backups is a slow-motion disaster. Use versioned migrations and **tested** backups
    (restore drills: see `reliability-recovery`).
-5. **Pick the database for the job, not the hype:**
-   - **Firebase** for a fast prototype; **Supabase** for production Postgres you own.
-   - **Convex** for real-time, no-SQL, no-migrations convenience — know the trade-offs before committing.
-   - **Neon** (serverless Postgres) vs **PlanetScale** (serverless MySQL) — choose by team familiarity.
-   - An all-in-one platform is a great start; unbundle it when auth, the engine, or scale outgrow it.
+5. **Pick the database by workload, not hype** — decide on three axes (let the workload choose the
+   architecture, not the brand):
+   - **Read/write ratio.** Read-heavy and global → an **edge DB** like **Cloudflare D1** (SQLite
+     in-region, sub-millisecond reads). Write-heavy/concurrent → **PlanetScale** (horizontal sharding)
+     or **Neon** (autoscaling compute).
+   - **Schema changes under live traffic.** Prefer **branching** (Neon, PlanetScale) — copy prod, test
+     the migration, merge with zero downtime. Edge/SQLite (D1) locks differently; ask how each handles
+     migrations under traffic before committing.
+   - **Lock-in vs portability.** D1 is powerful *inside* the Cloudflare stack (Workers/R2/KV) but a
+     commitment; Neon/PlanetScale run standard Postgres/MySQL and are easier to leave. Know whether
+     you're choosing a database or a platform.
+   - Quick starts: **Firebase** for a throwaway prototype; **Supabase** for production Postgres you own
+     (unbundle when auth/engine/scale outgrow it); **Convex** for real-time/no-migrations convenience.
+   - Mind the ceilings: Neon scale-to-zero (cold-start latency); PlanetScale MySQL (no enforced FKs);
+     D1 (weak write concurrency).
 6. **Pick the ORM by preference:** **Prisma** for schema-driven, type-safe guardrails; **Drizzle** for
    lighter, closer-to-SQL control.
 7. **Plan for concurrent writes.** "Last write wins" silently drops data in collaborative documents —

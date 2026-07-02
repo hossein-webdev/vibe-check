@@ -43,6 +43,20 @@ Skip for a purely static site. Otherwise, freedom: **medium** — adapt the tool
 5. **Close the loop:** every production error should produce a log, an alert, and enough context to
    reproduce. If you can't answer "when did this start and who did it hit?", add more signal.
 
+## Catch the failures your code doesn't know about
+
+Error trackers only see errors your code *throws*. The costliest failures are silent — a handler that
+caught the error and returned success anyway, so every dashboard stays green while money leaks. Add:
+
+1. **Business-metric alerting.** Track payments, sign-ups, and checkouts **per hour** and alert on
+   *those*, not just CPU/uptime. When sign-ups look normal but payments drop to zero, the server is
+   healthy and the business is bleeding.
+2. **Synthetic transactions.** Run your critical path (sign up → add to cart → checkout → pay → confirm)
+   automatically every few minutes, so you catch a broken step before customers do.
+3. **Dead-letter queue for webhooks/events.** When an event returns `200` but the business logic
+   actually failed, a DLQ captures it instead of letting it vanish into a success response — the
+   silently-failed payment waits for you rather than disappearing.
+
 ## Examples
 
 ### Example 1: "It broke and I have no idea why"
