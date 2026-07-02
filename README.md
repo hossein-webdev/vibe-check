@@ -2,12 +2,13 @@
 
 **Your app runs. But does it survive real users?**
 
-Vibe Check is a set of Claude Code skills that take a vibe-coded (AI-generated) app from "works on my
-screen" to "holds up in production." It starts with one adaptive audit that figures out what your app
-actually *is*, then runs only the checks that apply and routes each gap to a focused skill.
+Vibe Check is a linter-grade production-readiness audit for vibe-coded (AI-generated) apps, packaged
+as Claude Code skills. One adaptive `audit` profiles what your app actually *is* — then checks only
+what applies, grades every area with cited evidence and stable rule IDs, computes a readiness score,
+and hands you a prioritized gap table plus a detailed finding card for every gap.
 
 No lectures, no one-size-fits-all checklist. A static landing page and a multi-tenant SaaS get very
-different advice.
+different audits — and a mature codebase gets the green report it deserves.
 
 ## Install
 
@@ -16,65 +17,81 @@ different advice.
 /plugin install vibe-check@vibe-check-marketplace
 ```
 
-Then restart Claude Code (or run `/plugin`) and you're set. Skills are namespaced under `vibe-check:`.
+Restart Claude Code (or run `/plugin`). Skills are namespaced under `vibe-check:`.
 
-> Prefer to copy manually? Drop the folders in [`skills/`](skills/) into `~/.claude/skills/` (global)
-> or your project's `.claude/skills/`. Each is a standalone `SKILL.md`.
+> Manual route: copy the folders in [`skills/`](skills/) into `~/.claude/skills/` or your project's
+> `.claude/skills/`.
 
-## Use it
-
-Start with the audit — it profiles your app and tells you what matters:
+## What an audit looks like
 
 ```text
-/vibe-check:audit
+# Vibe Check — myapp
+Profile:   Next.js · Postgres/Drizzle · OTP auth · AI workers · gateway payments · PaaS
+Readiness: 74/100 (Risky) · 1×P1 · 1×P2 · 3×Verify · 1×Light · 3×N/A
+
+## Gap table
+| Section (skill)      | Status   | Rule      | What you're missing            | Priority | Evidence               |
+|----------------------|----------|-----------|--------------------------------|----------|------------------------|
+| monetization-pricing | 🔴 Gap   | PAY-04    | Callback returns 200 on failed charge | P1 | api/payments/callback.ts:88 |
+| deployment-cicd      | 🟠 Gap   | DEPLOY-04 | `build` not run in CI          | P2       | .github/workflows/ci.yml |
+| observability        | 🟢 Solid | —         | structured + correlated logs   | —        | platform/logger.ts:46  |
+| auth-access          | ⚪ N/A   | —         | (no accounts in this app)      | —        | —                      |
+
+## Findings
+### [PAY-04] Failed charges acknowledged as success      Severity: P1 · Confidence: Confirmed
+Where:    api/payments/callback.ts:88
+Why it matters: the provider sees 200, never retries — failed payments vanish while dashboards stay green.
+Fix (30 min): return non-2xx on failure OR push the raw event to a dead-letter queue; reconcile daily.
+Verify:   simulate a failed charge → event lands in DLQ / provider retries; payments-per-hour alert fires.
 ```
-> "Built this with Lovable, launching to ~500 users next week. What am I missing?"
-> → profiles the app, marks what's N/A, and hands you a prioritized list routed to the right skills.
 
-Or jump straight to a skill when you already know the symptom:
+Run it with `/vibe-check:audit` — or just say *"is my app ready to launch?"*.
 
-```text
-/vibe-check:scaling-performance     # "it froze when a bunch of people signed up"
-/vibe-check:app-security            # "could someone steal my API keys?"
-/vibe-check:auth-access             # "can one user read another user's data?"
-/vibe-check:ai-engineering          # "my GPT feature bill is scary"
-```
+A bundled static scanner ([`skills/audit/scripts/scan.mjs`](skills/audit/scripts/scan.mjs), Node ≥18,
+zero deps, read-only) pre-collects the mechanical facts: tracked `.env` files, secret-pattern hits,
+framework/DB/auth/AI/payment signals, CI/tests/migrations presence. The audit verifies every hit in
+source before reporting — scanner facts, human-grade judgment.
 
-You can also just describe your problem in plain language — the matching skill activates on its own.
+## The skills (18)
 
-## The skills
+| Skill | Covers | Rules |
+|---|---|---|
+| **`audit`** | Adaptive scored audit; routes to everything below | — |
+| `production-readiness` | The last mile: 2-of-13-layers gap, owning AI code, docs, stage fit | PROD- |
+| `app-security` | RLS, service-role bypass, deps, headers, XSS, monoculture, AI supply chain | SEC- |
+| `secrets-management` | Client-exposed keys, hard-coding, vaults, rotation, git history | SEC-01..03 |
+| `auth-access` | AuthN vs authZ, JWT, sessions, RBAC, tenant isolation, providers | AUTH- |
+| `scaling-performance` | The scaling decision tree, pooling, caching, background jobs, query tuning | SCALE- |
+| `data-architecture` | Schema, tenancy, migrations/backups, storage, ORM, CRDTs | DATA- |
+| `database-selection` | Platform by workload: Neon/PlanetScale/D1/Supabase/Firebase/Convex + ceilings | DBS- |
+| `ai-engineering` | Output validation, evals, non-deterministic CI, agents, memory, pgvector | AI- |
+| `llm-cost-control` | The prompt bill: semantic caching, routing, spend caps, endpoint lockdown | LLM- |
+| `observability` | Structured logs, error tracking, business-metric alerts, synthetics, DLQs | OBS- |
+| `deployment-cicd` | Environments, pipelines that build, canary, flags, tested rollback | DEPLOY- |
+| `reliability-recovery` | Graceful failure, timed restore drills, third-party resilience | REL- |
+| `compliance-legal` | Privacy/terms, GDPR/CCPA, true deletion, SOC 2, app-store privacy | LEGAL- |
+| `api-architecture` | Backend boundary, contracts, versioning, changelogs | API- |
+| `frontend-mobile-quality` | Responsive, a11y, hostile-condition testing, deep links | FE- |
+| `cost-infrastructure` | Bill attribution, cost per user, hosting by stage, self-host vs managed | COST- |
+| `monetization-pricing` | Hosted checkout, webhook security, silent revenue loss, pricing structure | PAY- |
 
-| Skill | What it covers |
-|---|---|
-| **`audit`** | Adaptive production-readiness audit — profiles your app and routes to everything below |
-| `production-readiness` | The last-mile mindset: owning the generated code, the unglamorous remainder |
-| `app-security` | Exposed keys, secrets & rotation, row-level security, dependencies, headers, XSS |
-| `auth-access` | Authentication vs authorization, JWT/sessions, roles, multi-tenant isolation |
-| `scaling-performance` | Connection pooling, caching layers, background jobs, query tuning |
-| `data-architecture` | Schema design, multi-tenancy, migrations & backups, DB/ORM choice, storage |
-| `ai-engineering` | LLM cost control, output validation, evals, agent memory, vector stores |
-| `observability` | Structured logs, error tracking, uptime alerting |
-| `deployment-cicd` | Environments, branching, pipelines, canary, feature flags, rollback |
-| `reliability-recovery` | Graceful failure, tested backups/restores, dependency resilience |
-| `compliance-legal` | Privacy/terms, GDPR/CCPA, real deletion, SOC 2, app-store privacy |
-| `api-architecture` | A real backend boundary; API contracts, versioning, changelogs |
-| `frontend-mobile-quality` | Responsive, accessibility, performance, real-device bugs, deep links |
-| `cost-infrastructure` | Tracing the bill, cost-per-user, hosting choice, self-host vs managed |
-| `monetization-pricing` | Stripe integration, webhook security, pricing as a structural decision |
+Every rule ID is defined once, in its owning skill, with a fix playbook. The audit cites the IDs;
+re-audits diff against the saved report (`fixed / new / remaining` + score delta).
 
 ## Why "adaptive"?
 
-Not every app has every concern. The `audit` skill profiles your app first — backend or not, database
-or not, accounts, LLM calls, payments, mobile, expected traffic — and **skips what doesn't apply**
-instead of crying wolf. You get a short, prioritized list aimed at *your* app, ranked by what actually
-hurts if you ship it as-is.
+The audit profiles first — backend or not, database or not, accounts, LLM calls, payments, mobile,
+monorepo, hosting platform — and **skips what doesn't apply** instead of crying wolf. Detection is
+evidence-based (dependency classes, config files, route shapes), with adaptive rules: serverless →
+pooling/timeout emphasis; hand-rolled auth → strictest checks; client-side model call → automatic P1;
+mature app → mostly-green is the correct answer.
 
 ## Contributing
 
-Issues and PRs welcome — new checks, sharper examples, additional skills. Keep skills focused, written
-in plain language, and follow the existing `SKILL.md` shape (frontmatter + When to Use + How It Works +
-Examples + Do/Don't).
+Issues and PRs welcome. Keep skills focused and plain-spoken; follow the existing shape (frontmatter →
+Rules → When to Use → How It Works → Fix playbook → Examples → Do/Don't); every rule needs an ID, a
+failure severity, and a fix.
 
 ## License
 
-[MIT](LICENSE).
+[MIT](LICENSE)

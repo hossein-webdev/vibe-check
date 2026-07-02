@@ -1,5 +1,35 @@
 # Changelog
 
+## 2.0.0
+
+**Linter-grade audit.**
+- Stable **rule IDs** across the pack (SEC-, AUTH-, SCALE-, DATA-, DBS-, AI-, LLM-, OBS-, DEPLOY-,
+  REL-, LEGAL-, API-, FE-, COST-, PAY-, PROD-) — every rule defined once in its owning skill with a
+  `## Rules` table and severity-if-failed.
+- **Readiness score** (/100; P1 −25 · P2 −10 · Verify −3 · Light −1) with Solid/Risky/Ship-blocker bands.
+- **Finding cards**: every gap now reports Where/What/Why-it-matters/time-boxed Fix commands/Verify
+  step/Routes-to, with Confirmed/Likely/Verify confidence. Spec in `skills/audit/reference.md`.
+- **Static pre-scanner** `skills/audit/scripts/scan.mjs` (Node ≥18, zero deps, read-only): env
+  tracking, secret patterns, dependency classes (db/auth/ai/payments/queue/mobile/observability),
+  routes/workers/CI/tests/migrations, RLS + header mentions. Scanner reports facts; the audit
+  verifies before carding.
+- **Deep aspect detection + adaptive rules** (reference.md): serverless, monorepo (per-app audits),
+  hand-rolled auth strict mode, client-side AI call = auto-P1, SPA bundle rules, maturity calibration.
+- **Re-audit drift**: reports saved as `vibe-check-report.md`; re-runs diff fixed/new/remaining + score delta.
+
+**Three new sub-skills** (pack: 15 → 18): `secrets-management` (from app-security),
+`database-selection` (from data-architecture), `llm-cost-control` (from ai-engineering) — parents
+slimmed and route to them.
+
+**Content + structure.**
+- `production-readiness`: the 2-of-13-layers framing, the ~2× vulnerability stat, concrete scale
+  tiers (1k/10k/100k users).
+- `app-security`: monoculture risk (template-cloned apps share exploitable flaws) + a 30-minute
+  3-check starter before the full list.
+- Every domain skill: `## Rules` table + `## Fix playbook` with real commands + `metadata.version`.
+- Checklist format for `compliance-legal` and the monetization webhook path; observability/scaling
+  sections restructured into single flows.
+
 ## 1.2.0
 
 - `scaling-performance`: added the ordered scaling decision tree — diagnose connections → queries →

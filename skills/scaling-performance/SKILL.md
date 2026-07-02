@@ -2,93 +2,105 @@
 name: scaling-performance
 description: >
   Keeps an app responsive as usage grows — the point where something fine for ten people slows to a
-  crawl for a hundred and falls over at a thousand. Covers database connection pooling, caching layers
-  (browser/CDN/application/Redis), moving heavy work to background jobs with idempotency, query tuning
-  with the query planner, and splitting/scaling the database. Activates when the user mentions a slow
-  app, scaling, crashes under load, timeouts, surviving a sign-up spike, connection limits, caching,
-  background jobs, or slow queries. Applies to apps with a backend or database expecting real traffic.
+  crawl for a hundred and falls over at a thousand. Covers the ordered scaling decision tree
+  (connections → queries → reads/writes) before spending on infrastructure, database connection
+  pooling, caching layers (browser/CDN/application/Redis), moving heavy work to background jobs with
+  idempotency, and query tuning with the query planner. Activates when the user mentions a slow app,
+  scaling, crashes under load, timeouts, surviving a sign-up spike, connection limits, caching,
+  background jobs, or slow queries. Applies to apps with a backend or database expecting real
+  traffic.
 user-invokable: true
 metadata:
   category: scaling-performance
+  version: "2.0.0"
 ---
 
 # Scaling & Performance
 
-Generated code is usually tuned for "returns the right answer," not "returns it quickly when lots of
-people ask at once." A query that's instant on a handful of rows can take many seconds on a large
-table, and a request pattern that's fine for one user can saturate the database when fifty hit it
-together. The app looks broken; really it's just out of headroom.
+Generated code is tuned for "returns the right answer", not "returns it fast when everyone asks at
+once". A query that's instant on 100 rows can take 30 seconds on 100,000; a burst of sign-ups can
+freeze an app whose database is merely out of connection slots. The expensive instinct — bigger
+servers, more replicas — usually solves the wrong problem. Diagnose in order first.
 
-Skip if the app is static or genuinely low-traffic. Otherwise, freedom: **medium** — recommended
-patterns, adapt to the stack.
+Skip if the app is static or genuinely low-traffic. Freedom: **medium**. Serverless platform
+detected → weight pooling and background-jobs checks up (functions multiply connections).
+
+## Rules
+
+| ID | Check | If it fails |
+|---|---|---|
+| SCALE-01 | Database connections pooled (PgBouncer/Supavisor/managed pooling) | P1 under real traffic |
+| SCALE-02 | Diagnosis follows the tree: connections → queries → reads/writes, before infra spend | P2 (cost) |
+| SCALE-03 | Hot reads cached at the right layer (browser/CDN/app/query) | P2 |
+| SCALE-04 | Cache invalidation, stampede protection, layer coherence handled where Redis exists | P2 |
+| SCALE-05 | Heavy work in background workers with idempotency keys | P2 (P1 if payments retry) |
+| SCALE-06 | Query tuning driven by the planner (`EXPLAIN ANALYZE` / `pg_stat_statements`), not guesses | P3 |
+| SCALE-07 | Read/write split correct: replicas only for read bottlenecks; writes get queues/batching | P2 |
 
 ## When to Use This Skill
 
 - The app is slow, or "fine for me, slow for users", or crashes under load.
-- A sign-up spike froze it, or users hit a blank/spinning screen, or requests time out.
+- A sign-up spike froze it, users hit a blank/spinning screen, requests time out.
 - User mentions connection limits/pooling, caching, Redis, background jobs, or queues.
 - User added indexes and it's "still slow", or asks how to find the bottleneck.
-- User is prepping for launch or a traffic event.
 
-## Diagnose in order (before you spend on bigger infra)
+## How It Works — one flow, diagnose then fix
 
-Bigger servers and read replicas are the expensive instinct. Check these three branches **in order** —
-the wrong branch costs money and fixes nothing:
+**Branch 1 — connections vs capacity (SCALE-01/02).** ~90% of "database is dying" is connection
+exhaustion: 200 requests fighting for 50 slots while the database itself is fine. A **connection
+pooler** fixes it for ~$0 (PgBouncer, Supavisor, or the platform's built-in). Adding a read replica
+*before* a pooler doubles your bill to solve a free problem. Fix: enable pooling; size the pool to
+the platform limit; on serverless, use a pooled connection string.
 
-1. **Connections vs capacity.** ~90% of the time the database is fine but too many connections fight for
-   too few slots. A **connection pooler** (PgBouncer, Supavisor, or built-in managed pooling) fixes it
-   for ~$0. Adding a read replica *before* a pooler just doubles cost to solve a free problem.
-2. **Query vs volume.** Read the query stats (`pg_stat_statements`). The culprit is usually not the
-   slowest query but the *most frequent* one — a 40 ms query run 10k×/day burns ~400 s of DB time a day.
-   One index / cache / rewrite beats new hardware.
-3. **Read vs write.** ~80% of operations are reads, and a read replica only helps reads. If **writes**
-   are the bottleneck, replicas make contention *worse* — use queues, background jobs, and write-batching.
+**Branch 2 — query vs volume (SCALE-06).** Read `pg_stat_statements`: the culprit is usually not
+the slowest query but the **most frequent** one — 40 ms × 10,000 runs/day is 400 s of daily DB time.
+`EXPLAIN ANALYZE` the top offenders; one index, one cache, or one rewrite beats new hardware.
 
-## How It Works (handle your first surge — about 30 minutes each)
+**Branch 3 — read vs write (SCALE-07).** ~80% of operations are reads, and replicas help **only
+reads**. If writes are the bottleneck, replicas worsen contention — you need **queues, background
+jobs, write batching**.
 
-1. **Pool your database connections first.** If every request opens its own connection, a modest burst
-   exhausts the limit and the app stalls. A connection pool reuses a small set. This is the single most
-   common cause of "great in the demo, dead at launch."
-2. **Add caching in layers** (no change to business logic):
-   - **browser** cache for static assets,
-   - **CDN/edge** cache for shared responses,
-   - **application** cache for frequent identical responses,
-   - **query** cache for repeated reads.
-   The same data is often fetched over and over — cache the hot paths. If you add **Redis**, you now
-   have a second copy of the truth, so plan for **invalidation**, **stampede protection**, and keeping
-   the layers **consistent**.
-3. **Push slow work into the background.** Long operations inside the request cause timeouts; hand them
-   to **workers**, and use **idempotency keys** so a retry doesn't run the job (or the charge) twice.
-4. **Tune queries with evidence.** Adding indexes blind rarely helps. Read the **query plan** first,
-   find the real hotspot, then index or restructure.
-5. **Scale the database when one instance isn't enough** (very large tables, multi-second queries):
-   shard by tenant, add read replicas, or move to a serverless engine (see `data-architecture`).
-6. **Mind the request-fan-out limit.** Too many simultaneous calls can freeze an app that demoed fine —
-   the fix is structural (batching, queues, caching), not a one-line patch.
+**Then the standing fixes:**
+- **Cache in layers (SCALE-03/04):** browser (static) → CDN/edge (shared responses) → application
+  (frequent identical responses) → query cache (repeated reads). Adding Redis creates a second
+  source of truth: plan invalidation, stampede protection, and coherence, or you'll serve stale data.
+- **Background jobs (SCALE-05):** long work inside the request causes timeouts; hand it to workers
+  with **idempotency keys** so a retry never runs the job — or the charge — twice.
+
+## Fix playbook
+
+```text
+Sign-up spike froze the app [SCALE-01]:
+ 1. Enable pooling (Supavisor/PgBouncer/platform pooler); use the pooled connection string.
+ 2. Cache the hottest reads (app + query layer).
+ 3. Move heavy work to a worker with idempotency keys.
+"Added indexes, still slow" [SCALE-06]:
+ 1. SELECT * FROM pg_stat_statements ORDER BY total_exec_time DESC LIMIT 10;
+ 2. EXPLAIN ANALYZE the top entries; fix the actual hotspot (seq scan? bad join? missing index?).
+Write contention [SCALE-07]:
+ 1. Queue writes (pg-boss/BullMQ); batch where semantics allow. Replicas won't help — skip them.
+```
 
 ## Examples
 
-### Example 1: "A wave of sign-ups froze the app"
-**Action**: Classic connection exhaustion.
+### Example 1: "50 people signed up and the app froze"
 **Output**:
 ```
-First-surge fixes (~30 min each):
-1. Enable connection pooling — you're hitting the connection limit.
-2. Cache the hottest reads (application + query cache).
-3. Move heavy work to a background worker with idempotency keys.
+Branch 1 first [SCALE-01]: you're out of connection slots, not capacity. Pooler (~30 min, ~$0),
+then cache hot reads, then background-job the heavy work. No replicas yet — wrong branch.
 ```
 
-### Example 2: "Added indexes, still slow"
-**Action**: Stop guessing; read the plan.
+### Example 2: "Should I add a read replica? DB feels slow"
 **Output**:
 ```
-Run the query planner on the slow query → read it (sequential scan? bad join?) → index/restructure the
-actual hotspot. Then cache the repeated reads.
+Walk the tree [SCALE-02]: pooling on? → pg_stat_statements top-10 → is the bottleneck reads or
+writes? Replicas only pay off at branch 3 with a proven READ bottleneck [SCALE-07]. Skipping the
+tree is how a $0 fix becomes a five-figure infra bill.
 ```
 
 ## Do / Don't
 
-- **Do** pool connections and cache hot reads before anything else.
-- **Do** read the query plan before adding indexes.
-- **Don't** run heavy work inside the request — use background workers + idempotency.
-- **Don't** assume "fine in the demo" means it scales.
+- **Do** diagnose in order: connections → queries → reads/writes. Pooler before replica, always.
+- **Do** cache hot reads and background heavy work with idempotency.
+- **Don't** buy infrastructure before `pg_stat_statements` has spoken.
+- **Don't** add replicas for a write bottleneck — they make it worse.

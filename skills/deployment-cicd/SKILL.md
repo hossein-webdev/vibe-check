@@ -2,79 +2,103 @@
 name: deployment-cicd
 description: >
   Turns risky, manual releases into boring, repeatable ones. Covers separate dev/staging/prod
-  environments, a simple branching strategy, a CI/CD pipeline, safe-release techniques (canary,
-  feature flags, one-click rollback), automated PR review, and choosing compute (Vercel/Railway/VPS).
-  Activates when the user mentions deploying, shipping, staging, environments, branching, CI/CD,
-  pipelines, canary releases, feature flags, rollback, testing in production, or hitting a function
-  timeout. Applies to anything that gets redeployed; depth scales with team size.
+  environments, a simple branching strategy, a CI/CD pipeline that actually builds, safe-release
+  techniques (canary, feature flags, one-click rollback), automated PR review, and choosing compute
+  (Vercel/Railway/VPS). Activates when the user mentions deploying, shipping, staging, environments,
+  branching, CI/CD, pipelines, canary releases, feature flags, rollback, testing in production, or
+  hitting a function timeout. Applies to anything that gets redeployed; depth scales with team size.
 user-invokable: true
 metadata:
   category: deployment-cicd
+  version: "2.0.0"
 ---
 
 # Deployment, CI/CD & Environments
 
-When deploys are manual, the same push can behave differently each time — environment variables,
-dependencies, and timing all drift. A lot of generated projects run dev, staging, and production from
-one machine and test changes straight in production. The goal is to make releasing **boring**: small,
-repeatable, and reversible.
+When deploys are manual, the same push behaves differently each time — env vars, dependencies, and
+timing drift. Many generated projects run everything from one machine and test changes in
+production. The goal is releases so boring they're forgettable: small, repeatable, reversible.
 
-Applies to almost every app; the depth scales with the team. Freedom: **medium** — adapt to your platform.
+Freedom: **medium** — adapt to the platform; depth scales with team.
+
+## Rules
+
+| ID | Check | If it fails |
+|---|---|---|
+| DEPLOY-01 | Separate dev / staging / prod environments exist | P2 |
+| DEPLOY-02 | `main` = production; short-lived feature branches | P3 |
+| DEPLOY-03 | CI runs tests + lint on every push/PR | P2 |
+| DEPLOY-04 | CI runs the production **build** (broken builds can't reach main) | P2 |
+| DEPLOY-05 | Releases use canary and/or feature flags (no big-bang) | P2 at scale |
+| DEPLOY-06 | One-click rollback exists and has been **tested** | P1 near launch |
+| DEPLOY-07 | Pipeline fast enough to deploy often (parallel test/lint) | P3 |
+| DEPLOY-08 | Compute fits the workload (no free-tier timeout fights) | P2 |
+| DEPLOY-09 | Automated PR review gate (CodeRabbit/Sourcery/LLM action) | P3 |
 
 ## When to Use This Skill
 
-- User mentions deploying, shipping, releasing, or going live.
-- User mentions environments, staging, branching, CI/CD, or pipelines.
-- User mentions canary releases, feature flags, rollback, or testing in production.
-- User hits a platform limit (e.g. a serverless function timeout) or "works locally, fails in CI".
-- User pushes straight to the main branch with no safety net.
+- User mentions deploying, shipping, releasing, environments, staging, branching, CI/CD.
+- User mentions canary, feature flags, rollback, or testing in production.
+- User hits a platform limit (function timeout) or "works locally, fails in CI".
+- User pushes straight to main with no safety net.
 
 ## How It Works
 
-1. **Separate environments.** Stand up **dev / staging / production** (about half an hour): a branch
-   strategy plus free preview/staging URLs. Stop testing changes in production.
-2. **Keep branching simple.** `main` is always production; feature branches are short-lived; add
-   staging/release branches only when you actually need them.
-3. **Build a pipeline.** Without version control and automated tests you're releasing on hope. Automate
-   **build → test/lint → deploy → rollback**, and keep it fast — a slow pipeline pushes teams to deploy
-   rarely, so run tests and lint in parallel.
-4. **Release safely:**
-   - **canary** — ship to a small slice first, watch error rates, then promote (or auto-roll-back),
-   - **feature flags** — turn things on/off without redeploying,
-   - **one-click rollback** — a typo shouldn't take everyone down,
-   - a short pre-release pass: secrets in place, fallbacks configured, output validated, **rollback tested**.
-5. **Add automated PR review** — a tool like CodeRabbit or Sourcery, or a custom action that calls an
-   LLM, gating merges to catch security/logic issues and reduce debt you don't fully understand.
-6. **Match compute to the stage.** Free tiers have hard limits (for example, short serverless function
-   timeouts) that block real work — move to a platform that fits, and split front-end from back-end when
-   you outgrow it (costs: see `cost-infrastructure`).
-7. **"Works locally, fails in CI"** usually comes down to three things: stale environment variables,
-   mismatched database state, or timing/resource limits. Reconcile those.
+1. **Separate environments (DEPLOY-01).** Dev / staging / prod in ~30 min: branch strategy + free
+   preview URLs. Stop testing in production.
+2. **Simple branching (DEPLOY-02).** `main` is always production; feature branches are short-lived;
+   add staging/release branches only when genuinely needed.
+3. **A pipeline that builds (DEPLOY-03/04).** Automate build → test/lint → deploy → rollback. Run
+   the **production build in CI** — "we build locally before pushing" is honor-based, and a broken
+   build reaching `main` blocks everyone. Keep it fast (DEPLOY-07): parallelize test/lint; a 45-min
+   pipeline trains teams to deploy weekly.
+4. **Release safely (DEPLOY-05/06).** Canary to a small slice, watch error rates, then promote (or
+   auto-rollback). Feature flags toggle behavior without redeploys. **Test the rollback** — a typo
+   shouldn't take everyone down while you google the undo.
+5. **Automated PR review (DEPLOY-09).** CodeRabbit / Sourcery / a custom LLM action, gating merges —
+   catches security/logic issues and the tech debt you don't fully understand.
+6. **Compute fits the stage (DEPLOY-08).** Free tiers have hard ceilings (short function timeouts).
+   Long/heavy work → a platform without the cap, or a background worker (→ `scaling-performance`);
+   split front-end from back-end when you outgrow one box.
+7. **"Works locally, fails in CI"** = stale env vars, mismatched DB state, or timing/resource
+   limits. Reconcile those three before blaming the tests.
+
+## Fix playbook
+
+```yaml
+# DEPLOY-04: make CI build (GitHub Actions step)
+- run: npm ci
+- run: npm run lint & npm run typecheck & wait   # DEPLOY-07 parallel
+- run: npm test
+- run: npm run build                              # the missing step
+```
+```text
+No rollback [DEPLOY-06]:
+ 1. Platform: enable instant rollback (Vercel/Railway keep prior deploys) — find the button NOW.
+ 2. Drill it once on staging; write the two-line runbook where the team will find it at 2am.
+Big-bang releases [DEPLOY-05]:
+ 1. Add a flags lib (or env-var flags to start); ship dark, enable for 5%, watch, widen.
+```
 
 ## Examples
 
 ### Example 1: "I push to main and hope"
-**Action**: Install the safety net.
 **Output**:
 ```
-Make releases boring:
-1. Add a staging environment; keep main = production.
-2. Pipeline: build → test/lint (parallel) → deploy → rollback.
-3. Release with a canary + feature flags + one-click rollback.
-4. Pre-release pass, including a tested rollback.
+[DEPLOY-01] staging via preview URLs · [DEPLOY-03/04] CI: lint+test+BUILD · [DEPLOY-05/06] canary
++ flags + a rollback you've actually tested. Releases should be boring.
 ```
 
-### Example 2: "My function keeps timing out at a few seconds"
-**Action**: Platform fit, not a bug.
+### Example 2: "My function times out at 10 seconds"
 **Output**:
 ```
-That's the free-tier function limit, not a bug. Move long/heavy work to a platform without that cap
-(or to a background worker → scaling-performance), and split front-end from back-end.
+[DEPLOY-08] That's the platform ceiling, not a bug. Move long work to a worker/other compute
+(Railway/Render/Fly), split front-end from back-end. Free tier is training wheels.
 ```
 
 ## Do / Don't
 
-- **Do** keep environments separate and `main` = production.
-- **Do** release with a canary, feature flags, and a tested rollback.
-- **Don't** test changes in production or tolerate a slow serial pipeline.
-- **Don't** treat a free-tier limit as a bug — move to fitting compute.
+- **Do** keep main = production, run the build in CI, and test the rollback.
+- **Do** release with canary + flags once real users exist.
+- **Don't** test features in production or accept a serial 45-minute pipeline.
+- **Don't** fight a free-tier timeout — graduate the compute.

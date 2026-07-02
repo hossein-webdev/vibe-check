@@ -3,71 +3,100 @@ name: monetization-pricing
 description: >
   Helps an app charge money correctly: integrating Stripe (hosted checkout plus the billing portal)
   instead of building billing from scratch, securing the events after payment (verifying webhook
-  signatures, preventing duplicate charges), choosing a pricing model tied to customer value with a
-  credit system, and treating pricing as a structural decision. Activates when the user mentions
-  Stripe, billing, checkout, webhooks, a pricing model, a credit system, or how to price the product.
-  Applies only to apps that charge money.
+  signatures, idempotent fulfilment, never returning 2xx for a failed charge), choosing a pricing
+  model tied to customer value with a credit system, and treating pricing as a structural decision.
+  Activates when the user mentions Stripe, billing, checkout, webhooks, payment callbacks, a pricing
+  model, a credit system, silent revenue loss, or how to price the product. Applies only to apps
+  that charge money.
 user-invokable: true
 metadata:
   category: monetization-pricing
+  version: "2.0.0"
 ---
 
 # Monetization & Pricing
 
-Charging money is its own area. Building billing from scratch is wasted effort, and a price chosen late
-is often really a structural decision in disguise.
+Charging money is its own engineering area, and its failure mode is uniquely quiet: payment bugs
+don't crash — they *smile and lose money*. A webhook that returns success on a failed charge shows
+green dashboards while revenue leaks for hours. Treat the money path with checklist discipline.
 
-Skip if the app is free. Otherwise, freedom: **medium** — adapt to the business.
+Skip if the app is free. Freedom: **low on the webhook path** (money), medium on pricing strategy.
+
+## Rules
+
+| ID | Check | If it fails |
+|---|---|---|
+| PAY-01 | Billing integrated (hosted checkout + portal), not hand-built | P2 |
+| PAY-02 | Webhook signatures verified — unsigned events rejected | P1 |
+| PAY-03 | Fulfilment idempotent — a retried event can't double-charge or double-grant | P1 |
+| PAY-04 | Failed charge never returns 2xx — provider retries or a DLQ captures it | P1 |
+| PAY-05 | Full lifecycle handled: success, failure, refund, plan change | P2 |
+| PAY-06 | Pricing decided from cost-to-serve + tiering (structural, not a guess) | P3 |
+| PAY-07 | Usage events tracked from day one (enables usage/credit pricing later) | P3 |
 
 ## When to Use This Skill
 
-- The app is adding payments/subscriptions, or the user mentions Stripe, checkout, or a billing portal.
-- User mentions webhooks, signature verification, or duplicate charges.
+- The app is adding payments/subscriptions, or mentions Stripe, checkout, a billing portal.
+- User mentions webhooks, payment callbacks, signature verification, or duplicate charges.
+- User reports revenue oddities with green dashboards (silent payment failure).
 - User is choosing a pricing model, tiers, usage-based pricing, or a credit system.
-- User asks "how should I price this?" or is setting a price point.
 
-## How It Works
+## Checklist — the money path (run in order)
 
-1. **Integrate billing, don't build it.** Use **Stripe hosted checkout** plus the **billing portal**
-   for subscriptions, upgrades, and cancellations — that removes most custom billing code.
-2. **Secure what happens after payment.** Stripe processes the payment; you own the aftermath:
-   - **verify webhook signatures** (never trust an unsigned webhook),
-   - make fulfilment **idempotent** so a retry doesn't charge or grant twice,
-   - **never return `2xx` for a failed charge** — if your handler catches the error and answers `200`,
-     the provider marks it delivered and won't retry, so failed payments vanish silently (your error
-     tracker never sees it). Return non-2xx on failure so the provider retries, or capture it in a
-     dead-letter queue, and reconcile against the provider.
-   - handle the full lifecycle: success, failure, refund, plan change.
-3. **Tie the model to value.** Align price with the value the customer receives; a **credit system** can
-   simplify billing across features. **Track usage events from day one** so usage-based or credit pricing
-   is accurate later.
-4. **Treat pricing as structure.** A price that shuts out a large part of your market is usually a
-   structural issue — cost-to-serve, tiering, regional pricing — not just a number. Work out your
-   cost-to-serve and tiers before you set the price.
+### 1. Don't build billing (PAY-01)
+- [ ] **Stripe hosted checkout** + **billing portal** for subscriptions, upgrades, cancellations —
+      removes most custom billing code (and most custom billing bugs).
+
+### 2. The webhook path — where revenue silently dies (PAY-02..05)
+- [ ] **Verify the signature** on every event; reject unsigned/invalid (never trust a bare POST).
+- [ ] **Idempotent fulfilment**: key on the event/payment id; a retried event must not grant or
+      charge twice.
+- [ ] **Never return 2xx for a failed charge.** If your handler catches an error and answers `200`,
+      the provider marks it delivered and won't retry — failed payments vanish silently and your
+      error tracker sees nothing. Return non-2xx on failure so the provider retries, or capture the
+      event in a **dead-letter queue** (→ `observability` OBS-08); reconcile against the provider's
+      dashboard on a schedule.
+- [ ] **Handle the whole lifecycle**: success, failure, refund, plan change, cancellation.
+
+### 3. Pricing as structure (PAY-06, PAY-07)
+- [ ] Price from **value delivered** and **cost-to-serve**; a **credit system** can simplify billing
+      across features. A price that shuts out half your market is usually a tiering/architecture
+      problem, not a number problem.
+- [ ] **Track usage events from day one** — you can't price on usage you never measured
+      (pairs with `llm-cost-control` metering).
+
+## Fix playbook
+
+```text
+Webhook audit [PAY-02..04] — read the handler and check three lines:
+ 1. constructEvent(payload, sig, secret) present? → missing = PAY-02 P1.
+ 2. Fulfilment keyed on event.id (processed-events table / unique constraint)? → no = PAY-03 P1.
+ 3. catch block: does it return 200? → yes = PAY-04 P1. Change to 4xx/5xx (provider retries)
+    or push the raw event to a DLQ before acking. Then add payments/hour alerting (OBS-06).
+Reconciliation:
+ daily job: provider's succeeded payments vs your fulfilled orders → alert on any diff.
+```
 
 ## Examples
 
 ### Example 1: "How do I add subscriptions?"
-**Action**: Stripe-first, secure the webhooks.
 **Output**:
 ```
-1. Stripe hosted checkout + billing portal — don't hand-roll the billing UI.
-2. Verify webhook signatures; make fulfilment idempotent (no duplicate charges/grants).
-3. Handle the lifecycle: payment success/failure, refunds, plan changes.
+[PAY-01] Stripe hosted checkout + portal. [PAY-02/03] verify signatures + idempotent fulfilment.
+[PAY-04] failure path returns non-2xx (or DLQs). [PAY-05] handle refunds + plan changes.
 ```
 
-### Example 2: "Is this price right?"
-**Action**: Reframe as structure + value.
+### Example 2: "Revenue dropped but every dashboard is green"
 **Output**:
 ```
-If the price shuts out much of your market, that's a structure/tiering problem, not just a number.
-Know your cost-to-serve per user, then design tiers (maybe a credit model) around the value delivered.
-Track usage events now so you can price accurately later.
+Classic PAY-04: a handler catching errors and returning 200 — provider sees success, never
+retries, nothing throws. Fix the failure path, add a DLQ, alert on payments/hour, reconcile
+against the provider daily.
 ```
 
 ## Do / Don't
 
-- **Do** use hosted checkout and verify webhook signatures.
-- **Do** track usage from day one and tie price to value.
-- **Don't** build custom billing or trust an unsigned webhook.
-- **Don't** set a price before you understand cost-to-serve and tiering.
+- **Do** use hosted checkout; verify signatures; key fulfilment on event ids.
+- **Do** reconcile your orders against the provider on a schedule.
+- **Don't** return 2xx for a failed charge — that's how revenue disappears silently.
+- **Don't** hand-build billing or price before knowing cost-to-serve.

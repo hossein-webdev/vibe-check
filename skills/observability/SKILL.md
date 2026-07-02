@@ -1,86 +1,106 @@
 ---
 name: observability
 description: >
-  Adds logging, error tracking, monitoring, and alerting so problems surface to you before they reach
-  users. Covers structured logs with correlation IDs and sensible levels, error tracking (Sentry),
-  product analytics (PostHog), and uptime alerting (BetterStack). Activates when the user mentions
-  logging, missing logs, structured logs, correlation IDs, error tracking, Sentry/PostHog/BetterStack,
-  monitoring, uptime, alerts, or "I only hear about crashes when a user emails me". Applies to any app
-  with a backend that can fail server-side.
+  Adds logging, error tracking, monitoring, and alerting so problems surface to you before they
+  reach users — including the failures your code doesn't know about: business-metric alerting,
+  synthetic transactions, and dead-letter queues for webhooks that returned 200 but failed. Covers
+  structured logs with correlation IDs and levels, error tracking (Sentry), product analytics
+  (PostHog), and uptime alerting (BetterStack). Activates when the user mentions logging, missing
+  logs, structured logs, correlation IDs, error tracking, Sentry/PostHog/BetterStack, monitoring,
+  uptime, alerts, silent failures, or "I only hear about crashes when a user emails me". Applies to
+  any app with a backend that can fail server-side.
 user-invokable: true
 metadata:
   category: observability
+  version: "2.0.0"
 ---
 
 # Observability & Monitoring
 
-Generated apps tend to ship with the happy path and nothing to see by — no logs, no traces, no
-breadcrumbs. Something breaks, you open the logs, and there's nothing there. The result is finding out
-about an outage hours later from a support email instead of an alert. Reloading the page is not a way
-to debug.
+Generated apps ship the happy path and nothing to see by — no logs, no traces, no breadcrumbs.
+Something breaks, you open the logs, there's nothing there, and you learn about the 2am outage from
+a 9am support email. And the costliest failures are the ones your code never threw: dashboards green,
+revenue gone. Instrument for both.
 
-Skip for a purely static site. Otherwise, freedom: **medium** — adapt the tools to your stack.
+Skip for a purely static site. Freedom: **medium** — adapt tools to the stack.
+
+## Rules
+
+| ID | Check | If it fails |
+|---|---|---|
+| OBS-01 | Error tracking wired (Sentry or equivalent) with release/user context | P1 near launch |
+| OBS-02 | Uptime alerting pages a human (BetterStack or equivalent) | P2 |
+| OBS-03 | Logs are structured objects, not concatenated strings | P2 |
+| OBS-04 | Correlation ID per request, attached to every log line | P2 |
+| OBS-05 | Disciplined log levels (debug/info/warn/error) | P3 |
+| OBS-06 | Business-metric alerting (payments/signups/checkouts per hour) | P2 (P1 if revenue flows) |
+| OBS-07 | Synthetic transaction runs the critical path every few minutes | P3 |
+| OBS-08 | Dead-letter queue captures events that returned 200 but failed | P2 (P1 for payment webhooks) |
 
 ## When to Use This Skill
 
 - User says "there are no logs", "I can't tell what broke", or "it just stopped working".
-- User hears about crashes from users, not from alerts.
-- User mentions logging, structured logs, correlation IDs, or log levels.
-- User mentions Sentry, PostHog, BetterStack, monitoring, uptime, or alerting.
-- User is nearing launch with no error tracking.
+- User hears about crashes from users, not alerts — or reports "dashboards green, revenue down".
+- User mentions logging, structured logs, correlation IDs, log levels, or silent failures.
+- User mentions Sentry, PostHog, BetterStack, monitoring, uptime, alerting, or DLQs.
 
-## How It Works (about three tools, roughly an hour — no DevOps hire)
+## How It Works
 
-1. **Error tracking — Sentry.** The moment something throws, you get the stack trace, the release, and
-   the affected user. Add this first; a page reload tells you none of that.
-2. **Product analytics — PostHog.** See what users actually do and where they fall off.
-3. **Uptime alerting — BetterStack.** Get paged when the app goes down instead of learning it later.
-   Decide who is alerted and how.
-4. **Make logs structured and searchable:**
-   - log **objects**, not concatenated strings,
-   - attach a **correlation ID** per request so one user's path is traceable across services,
-   - use real **levels** (debug/info/warn/error) so the noise is filterable.
-5. **Close the loop:** every production error should produce a log, an alert, and enough context to
-   reproduce. If you can't answer "when did this start and who did it hit?", add more signal.
+### Layer 1 — see the errors your code throws (~3 tools, ~1 hour)
+1. **Error tracking — Sentry (OBS-01).** Stack trace, release, affected user, the moment it throws.
+2. **Product analytics — PostHog.** What users do, where they fall off.
+3. **Uptime alerting — BetterStack (OBS-02).** A pager tells you, not a customer. Decide who's paged.
 
-## Catch the failures your code doesn't know about
+### Layer 2 — make logs answer questions (OBS-03..05)
+- Log **objects**, not strings; attach a **correlation ID** per request so one user's path is
+  traceable end-to-end; use real **levels** so noise filters out.
+- Close the loop: every production error yields a log + an alert + enough context to reproduce.
+  If you can't answer "when did it start and who did it hit?", add signal.
 
-Error trackers only see errors your code *throws*. The costliest failures are silent — a handler that
-caught the error and returned success anyway, so every dashboard stays green while money leaks. Add:
+### Layer 3 — catch the failures your code doesn't know about (OBS-06..08)
+Error trackers only see thrown errors. A handler that catches, swallows, and returns success keeps
+every dashboard green while money leaks:
+- **Business-metric alerting (OBS-06):** track payments/signups/checkouts **per hour**; alert on
+  those. Signups normal + payments zero = healthy server, bleeding business.
+- **Synthetic transactions (OBS-07):** run signup → cart → checkout → pay → confirm automatically
+  every few minutes; a broken step pages you before customers hit it.
+- **Dead-letter queue (OBS-08):** when an event returns `200` but the business logic failed, a DLQ
+  keeps it waiting for you instead of vanishing into a success response (pairs with
+  `monetization-pricing` PAY-04).
 
-1. **Business-metric alerting.** Track payments, sign-ups, and checkouts **per hour** and alert on
-   *those*, not just CPU/uptime. When sign-ups look normal but payments drop to zero, the server is
-   healthy and the business is bleeding.
-2. **Synthetic transactions.** Run your critical path (sign up → add to cart → checkout → pay → confirm)
-   automatically every few minutes, so you catch a broken step before customers do.
-3. **Dead-letter queue for webhooks/events.** When an event returns `200` but the business logic
-   actually failed, a DLQ captures it instead of letting it vanish into a success response — the
-   silently-failed payment waits for you rather than disappearing.
+## Fix playbook
+
+```text
+Flying blind [OBS-01..03] (~1 hour):
+ 1. npx @sentry/wizard@latest -i nextjs   (or platform equivalent)
+ 2. BetterStack monitor on / + status page; page on 2 consecutive fails.
+ 3. Structured logger (pino): logger.info({orderId, userId}, "order created")
+Can't trace one user's request [OBS-04]:
+ 1. Middleware mints/propagates x-request-id; include it on every log object + response header.
+Silent revenue failure [OBS-06/08]:
+ 1. Emit business events (payment_succeeded, signup) → per-hour counters → alert on deltas.
+ 2. Wrap webhook handlers: catch → push raw event to DLQ table/queue → alert on DLQ depth > 0.
+```
 
 ## Examples
 
 ### Example 1: "It broke and I have no idea why"
-**Action**: Diagnose the missing telemetry; install the trio.
 **Output**:
 ```
-You're flying blind. Add (~1 hour):
-1. Sentry — errors with stack traces + release/user context.
-2. BetterStack — uptime alerts so a pager tells you, not a customer.
-3. PostHog — see where users actually fail.
-Then structure your logs: objects + correlation IDs + levels.
+[OBS-01/02] Sentry + BetterStack today (~1h), PostHog for behavior.
+[OBS-03/04] Structured logs + correlation IDs so the next incident is greppable end-to-end.
 ```
 
-### Example 2: "I get a log line but can't follow one user's request"
-**Action**: Add correlation IDs.
+### Example 2: "Dashboards were green but revenue dropped 40%"
 **Output**:
 ```
-Stamp each request with a correlation_id and include it on every log object. Now a single user's
-journey is searchable end-to-end, and the error events tie back to it.
+Classic silent failure — nothing threw. [OBS-06] alert on payments/hour, [OBS-07] synthetic
+checkout every 5 min, [OBS-08] DLQ so a 200-but-failed webhook waits for you instead of vanishing.
 ```
 
 ## Do / Don't
 
-- **Do** add error tracking and uptime alerting before launch — hear it from a pager, not a customer.
-- **Do** log structured objects with correlation IDs and real levels.
-- **Don't** lean on page reloads or unstructured console output.
-- **Don't** launch blind; silent downtime is the default otherwise.
+- **Do** wire error tracking + uptime paging before launch; structure logs with correlation IDs.
+- **Do** monitor business metrics — the server being healthy doesn't mean the business is.
+- **Don't** rely on page reloads or unstructured console output.
+- **Don't** assume no errors = no failures; the expensive ones never throw.
