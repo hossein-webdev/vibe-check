@@ -19,6 +19,10 @@ A common generated shortcut is letting the front-end talk straight to the databa
 secrets, skips validation, and lets the client run whatever it likes. The fix is a real backend
 layer between client and data, with APIs designed to be consumed without breaking.
 
+This skill owns **where the API sits** (boundary, contracts policy, rate-limit architecture). The
+surface itself — naming, status codes, pagination, error shapes, idempotency — is the deep-dive in
+`api-design` (APID-01..09).
+
 Skip if the app is purely static/client-side. Freedom: **medium**.
 
 ## Rules

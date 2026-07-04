@@ -10,7 +10,7 @@ description: >
   is hardening something built with Lovable, Cursor, Bolt, v0, Replit, or similar. Routes gaps to
   production-readiness, app-security, secrets-management, auth-access, scaling-performance,
   data-architecture, database-selection, ai-engineering, llm-cost-control, observability,
-  deployment-cicd, reliability-recovery, compliance-legal, api-architecture,
+  deployment-cicd, reliability-recovery, compliance-legal, api-architecture, api-design,
   frontend-mobile-quality, cost-infrastructure, and monetization-pricing.
 user-invokable: true
 metadata:
@@ -75,6 +75,7 @@ in a component is not.
 | Reliability & recovery | User data held or uptime promised | `reliability-recovery` |
 | Compliance & legal | Personal data / B2B / app store | `compliance-legal` |
 | API & backend boundary | A backend/API the client calls | `api-architecture` |
+| API surface design | Endpoints consumed by clients/partners (naming, codes, pagination, versioning) | `api-design` |
 | Frontend & mobile quality | There's a UI (deep links only if mobile) | `frontend-mobile-quality` |
 | Cost & infrastructure | Infra usage is non-trivial | `cost-infrastructure` |
 | Monetization & billing | The app charges money | `monetization-pricing` |

@@ -4,10 +4,10 @@
 
 ### Your app runs. But does it survive real users?
 
-**A linter-grade production-readiness audit for vibe-coded (AI-generated) apps — packaged as 18 Claude Code skills.**
+**A linter-grade production-readiness audit for vibe-coded (AI-generated) apps — packaged as 19 Claude Code skills.**
 
-[![Version](https://img.shields.io/badge/version-2.1.0-blue)](CHANGELOG.md)
-[![Skills](https://img.shields.io/badge/skills-18-8A2BE2)](#-the-skills)
+[![Version](https://img.shields.io/badge/version-2.2.0-blue)](CHANGELOG.md)
+[![Skills](https://img.shields.io/badge/skills-19-8A2BE2)](#-the-skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-plugin-D97757)](https://code.claude.com/docs/en/plugins)
 [![Node](https://img.shields.io/badge/scanner-Node%20%E2%89%A518%2C%20zero%20deps-339933)](skills/audit/scripts/scan.mjs)
@@ -117,7 +117,7 @@ flowchart LR
 
 ## 🧰 The skills
 
-The `audit` router + 17 focused skills. Every rule ID is defined once, in its owning skill, with a
+The `audit` router + 18 focused skills. Every rule ID is defined once, in its owning skill, with a
 fix playbook — the audit cites them; you can also invoke any skill directly (`/vibe-check:app-security`).
 
 | Skill | Covers | Rules |
@@ -137,6 +137,7 @@ fix playbook — the audit cites them; you can also invoke any skill directly (`
 | 🧯 [`reliability-recovery`](skills/reliability-recovery/SKILL.md) | Graceful failure, timed restore drills, third-party resilience | `REL` |
 | 📜 [`compliance-legal`](skills/compliance-legal/SKILL.md) | Privacy/terms, GDPR/CCPA, true deletion, SOC 2, app-store privacy | `LEGAL` |
 | 🧱 [`api-architecture`](skills/api-architecture/SKILL.md) | Backend boundary, contracts, versioning, layered rate limiting | `API` |
+| ✏️ [`api-design`](skills/api-design/SKILL.md) | The surface: naming, status codes, pagination, error shapes, idempotency | `APID` |
 | 📱 [`frontend-mobile-quality`](skills/frontend-mobile-quality/SKILL.md) | Responsive, a11y, hostile-condition testing, deep links | `FE` |
 | 💰 [`cost-infrastructure`](skills/cost-infrastructure/SKILL.md) | Bill attribution, cost per user, hosting by stage | `COST` |
 | 🧾 [`monetization-pricing`](skills/monetization-pricing/SKILL.md) | Hosted checkout, webhook security, silent revenue loss, pricing | `PAY` |

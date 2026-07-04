@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.2.0
+
+- New skill: **`api-design`** (APID-01..09) — the API surface itself: resource naming, semantic
+  status codes (never 200 for failures — ties into PAY-04 for webhooks), one standard error shape,
+  cursor/offset pagination, filtering/sorting conventions, rate-limit headers, versioning +
+  deprecation policy (Sunset, max 2 live versions), idempotency keys, request-id echoing.
+  Child of `api-architecture` (which keeps the boundary/architecture side). Pack: 18 → 19 skills.
+- `audit`: new matrix row routing API-surface concerns to `api-design`.
+
 ## 2.1.0
 
 Four new lessons folded in:
