@@ -1,5 +1,20 @@
 # Changelog
 
+## 2.1.0
+
+Four new lessons folded in:
+- `observability`: "monitoring that isn't theater" — outside-in health checks from multiple regions
+  (OBS-09), logs+metrics+traces correlated via OpenTelemetry with a <60s trace target (OBS-10), and
+  SLOs with error budgets that gate release pace (OBS-11), incl. the uptime math (99% = 3d15h/yr).
+- `api-architecture`: 3-layer rate limiting as architecture (API-06) — hard limits (safety net),
+  adaptive limits (token bucket/sliding window under load), tiered limits as the pricing model.
+- `monetization-pricing`: tiered rate limits as pricing architecture (free tier proves value,
+  restriction creates the upgrade).
+- `reliability-recovery`: REL-05 — the generator never raises backup strategy on its own; the
+  default AI-built app is one DB/one region/no schedule/no retention/no tested restore.
+- `deployment-cicd`: DEPLOY-08 expanded with concrete platform ceilings — concurrency caps,
+  execution-time limits, bandwidth caps, silent function-size deploy failures.
+
 ## 2.0.0
 
 **Linter-grade audit.**

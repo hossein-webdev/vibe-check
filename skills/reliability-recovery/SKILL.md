@@ -29,6 +29,7 @@ Skip for throwaway or no-data apps. Freedom: **medium**.
 | REL-02 | A restore has been **performed and timed**; recovery targets (data-loss window, downtime budget) defined and met | P1 with user data |
 | REL-03 | Third-party calls wrapped: timeout + retry/backoff + circuit breaker + fallback | P2 |
 | REL-04 | Availability planned: health checks, alerting, written recovery steps | P2 |
+| REL-05 | Backup schedule + retention policy exist; single-DB/single-region risk is a conscious decision | P1 with user data |
 
 ## When to Use This Skill
 
@@ -44,6 +45,12 @@ Skip for throwaway or no-data apps. Freedom: **medium**.
 2. **A backup isn't real until restored (REL-02).** Schedule backups *and* run restore drills.
    Define how much data you can afford to lose and how long recovery may take — then prove both by
    timing an actual restore. An untested backup is a hope, not a plan.
+   **Know why this gap exists (REL-05):** the generator built the schema, the API, even the deploy —
+   but it will **never raise backup strategy on its own**, because nobody asked. The default
+   AI-built app is one database, one provider, one region, no schedule, no retention, no tested
+   restore — and if that database fails tonight, users wake up to empty accounts. You lose the data
+   they put inside, not the app. Ask the data question explicitly: schedule, retention policy, and
+   whether single-region/single-provider is a risk you're consciously accepting.
 3. **Survive third parties (REL-03).** Upstream APIs change, rate-limit, and kill free tiers. Every
    external call gets a **timeout**, **retries with backoff**, a **circuit breaker** so a dead
    dependency can't queue you to death, and a **fallback** so one vendor can't take you down.

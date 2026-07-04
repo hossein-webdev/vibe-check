@@ -36,6 +36,9 @@ Skip for a purely static site. Freedom: **medium** — adapt tools to the stack.
 | OBS-06 | Business-metric alerting (payments/signups/checkouts per hour) | P2 (P1 if revenue flows) |
 | OBS-07 | Synthetic transaction runs the critical path every few minutes | P3 |
 | OBS-08 | Dead-letter queue captures events that returned 200 but failed | P2 (P1 for payment webhooks) |
+| OBS-09 | Outside-in health checks from multiple regions (not server self-report) | P2 |
+| OBS-10 | Logs + metrics + traces correlated by request id (OpenTelemetry) — full trace in <60s | P3 |
+| OBS-11 | SLOs defined with an error budget that gates release pace | P3 (P2 at scale) |
 
 ## When to Use This Skill
 
@@ -67,6 +70,25 @@ every dashboard green while money leaks:
 - **Dead-letter queue (OBS-08):** when an event returns `200` but the business logic failed, a DLQ
   keeps it waiting for you instead of vanishing into a success response (pairs with
   `monetization-pricing` PAY-04).
+
+### Layer 4 — monitoring that isn't theater (OBS-09..11)
+
+The "we have monitoring" test is three questions; most rooms go quiet on all three:
+
+1. **"If the app goes down right now, how do you find out?" (OBS-09).** If the answer is a customer
+   email, that's alert theater. Real monitoring is **outside-in**: external health checks from
+   **multiple regions** — a server asking itself "am I OK?" will report healthy while users in
+   another region can't reach it.
+2. **"Can you trace one failing request in under 60 seconds?" (OBS-10).** Teams have logs, metrics,
+   and dashboards — unconnected. The three pillars only work **correlated by a request id**: the log
+   says *what*, the metric says *how often*, the trace says *where*. **OpenTelemetry** is the
+   vendor-neutral protocol that ties them across services — instrumentation you keep when you switch
+   vendors.
+3. **"Do you have SLOs?" (OBS-11).** "99% uptime" sounds great until you do the math: **3 days 15
+   hours down per year**. 99.9% = 8h45m; 99.99% = 52 minutes. SLOs turn vague expectations into
+   commitments with an **error budget**: budget burning → slow releases; budget healthy → ship fast.
+
+Monitoring is not a dashboard you built — it's a system that calls *you*.
 
 ## Fix playbook
 
@@ -102,5 +124,7 @@ checkout every 5 min, [OBS-08] DLQ so a 200-but-failed webhook waits for you ins
 
 - **Do** wire error tracking + uptime paging before launch; structure logs with correlation IDs.
 - **Do** monitor business metrics — the server being healthy doesn't mean the business is.
+- **Do** check health from outside, multiple regions — self-reports lie.
 - **Don't** rely on page reloads or unstructured console output.
 - **Don't** assume no errors = no failures; the expensive ones never throw.
+- **Don't** quote "99% uptime" without doing the math (that's 3.6 days a year down).

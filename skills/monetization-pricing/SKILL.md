@@ -62,6 +62,9 @@ Skip if the app is free. Freedom: **low on the webhook path** (money), medium on
 - [ ] Price from **value delivered** and **cost-to-serve**; a **credit system** can simplify billing
       across features. A price that shuts out half your market is usually a tiering/architecture
       problem, not a number problem.
+- [ ] For API/usage products, **tiered rate limits are the pricing architecture** (→
+      `api-architecture` API-06): the free tier generous enough to prove value, restrictive enough
+      to create the upgrade. If free can do everything paid can, that's not a limit — it's a charity.
 - [ ] **Track usage events from day one** — you can't price on usage you never measured
       (pairs with `llm-cost-control` metering).
 

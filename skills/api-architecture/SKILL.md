@@ -30,6 +30,7 @@ Skip if the app is purely static/client-side. Freedom: **medium**.
 | API-03 | Every endpoint has a contract (inputs, outputs, errors) | P2 |
 | API-04 | API versioned from day one (e.g. /v1) | P2 once consumed externally |
 | API-05 | Changes tracked in a changelog consumers can follow | P3 |
+| API-06 | Rate limiting layered: hard limits + adaptive limits (+ tiered where monetized) | P2 |
 
 ## When to Use This Skill
 
@@ -47,6 +48,17 @@ Skip if the app is purely static/client-side. Freedom: **medium**.
 3. **Design APIs to be consumed (API-03..05):** a contract per endpoint (inputs/outputs/errors);
    **version from day one** so changes don't break existing clients; a changelog so consumers can
    track what changed and when.
+4. **Rate limiting is architecture, not a number on an endpoint (API-06).** Three layers — most
+   builders ship only the first:
+   - **Hard limits**: fixed requests per window → `429`. A safety net against abuse, not a UX — a
+     power user hitting the wall for being productive is being punished for loving your product.
+   - **Adaptive limits**: token bucket / sliding window that **tightens under load and relaxes when
+     healthy** — protects the experience, not just the server.
+   - **Tiered limits as the business model**: free / pro / enterprise quotas — the rate limit *is*
+     the pricing architecture (→ `monetization-pricing` PAY-06). A free tier that allows everything
+     isn't a limit, it's a charity.
+   Combined: hard protects the system, adaptive protects the experience, tiered protects the
+   business. Build it as architecture from day one.
 
 ## Fix playbook
 

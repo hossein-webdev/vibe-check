@@ -57,9 +57,17 @@ Freedom: **medium** — adapt to the platform; depth scales with team.
    shouldn't take everyone down while you google the undo.
 5. **Automated PR review (DEPLOY-09).** CodeRabbit / Sourcery / a custom LLM action, gating merges —
    catches security/logic issues and the tech debt you don't fully understand.
-6. **Compute fits the stage (DEPLOY-08).** Free tiers have hard ceilings (short function timeouts).
-   Long/heavy work → a platform without the cap, or a background worker (→ `scaling-performance`);
-   split front-end from back-end when you outgrow one box.
+6. **Compute fits the stage (DEPLOY-08).** "Serverless scales automatically" — *within the plan
+   boundaries you never read*, and you find them on launch day. Read the ceilings **before** you
+   need them:
+   - **concurrency caps** — hobby tiers allow ~10 concurrent executions: the 11th cold-starts, the
+     50th errors, precisely when traffic spikes;
+   - **execution time** — e.g. 10 s hobby / 60 s pro, while an AI feature needs 15–20 s;
+   - **bandwidth caps** — 100 GB disappears in a week for an image-heavy app;
+   - **function size** — a bundle over the ~50 MB ceiling can fail the deploy *silently*.
+   Every platform (Vercel, Netlify, Lambda, Cloudflare Workers) markets infinite scale and has
+   different walls. Long/heavy work → a platform without the cap, or a background worker
+   (→ `scaling-performance`); split front-end from back-end when you outgrow one box.
 7. **"Works locally, fails in CI"** = stale env vars, mismatched DB state, or timing/resource
    limits. Reconcile those three before blaming the tests.
 
