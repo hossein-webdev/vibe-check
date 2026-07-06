@@ -3,7 +3,7 @@ name: production-readiness
 description: >
   Closes the gap between an app that demos well and one that holds up for real users. Most AI-built
   apps ship about two layers (a UI and a database) of the dozen-plus a real product needs — and
-  AI-generated code carries roughly twice the vulnerabilities. Activates when a build "works for me
+  AI-generated code carries 2-3x the vulnerabilities. Activates when a build "works for me
   but breaks for everyone else", is stuck at the "almost done" stage, when the owner can't explain
   or maintain AI-generated code, when a developer is being brought in to take it over, or when
   someone asks what unglamorous work is left before launch. Covers the last mile of shipping,
@@ -20,8 +20,8 @@ Here's the shape of the problem: a production system is a **stack of a dozen-plu
 API boundary, schema, auth, deployment, compute, CI, security, caching, scaling, monitoring,
 recovery. Most AI-built apps ship exactly **two** of them: a front-end and a database. The missing
 layers are what separate a demo from a product. And the code in the two layers you have isn't free
-either: **AI-generated code carries roughly twice the vulnerabilities** of reviewed code — the job
-isn't generating software anymore, it's *hardening* it.
+either: **AI-generated code carries two to three times the vulnerabilities** of reviewed code (recent
+measurements put it around 2.7×) — the job isn't generating software anymore, it's *hardening* it.
 
 This skill is that posture — ownership and discipline. The `audit` skill maps which layers you're
 missing; the domain skills fill them.
@@ -104,4 +104,4 @@ why handed-over AI codebases feel hostile.
 - **Do** treat the unglamorous 20% as the main work; make the owner able to explain every file.
 - **Do** match effort to stage (1k features / 10k operations / 100k architecture).
 - **Don't** mistake "the happy path works" for "ready" — you may have 2 of 13 layers.
-- **Don't** ship AI code unreviewed; it carries ~2× the vulnerabilities.
+- **Don't** ship AI code unreviewed; it carries 2–3× the vulnerabilities.

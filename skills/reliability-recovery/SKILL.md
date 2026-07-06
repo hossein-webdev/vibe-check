@@ -42,9 +42,16 @@ Skip for throwaway or no-data apps. Freedom: **medium**.
 
 1. **Fail softly (REL-01).** Wrap risky operations so failure degrades instead of locking the UI —
    a retry, a fallback value, or a clear message beats an endless spinner.
-2. **A backup isn't real until restored (REL-02).** Schedule backups *and* run restore drills.
-   Define how much data you can afford to lose and how long recovery may take — then prove both by
-   timing an actual restore. An untested backup is a hope, not a plan.
+2. **A backup isn't real until restored (REL-02).** Backup strategy is three decisions, and skipping
+   any of them makes your users unprotected:
+   - **Frequency.** A daily backup means accepting up to **24 hours of lost data** — for an app that
+     takes payments, that's 24 hours of unrecoverable revenue. **Point-in-time recovery** captures
+     every transaction continuously, and on managed databases it's *a setting* — turn it on.
+   - **Location.** A backup on the same server as the database isn't a backup — it's a second copy
+     of the same risk. Store **cross-region / off-site**, so it survives whatever kills the primary.
+   - **Test the restore.** Restore to a test environment **monthly at minimum**; verify the data and
+     that the app runs against it. The worst moment to discover a broken backup is the outage that
+     needed it. An untested backup is a guess, not a plan.
    **Know why this gap exists (REL-05):** the generator built the schema, the API, even the deploy —
    but it will **never raise backup strategy on its own**, because nobody asked. The default
    AI-built app is one database, one provider, one region, no schedule, no retention, no tested
@@ -61,9 +68,10 @@ Skip for throwaway or no-data apps. Freedom: **medium**.
 
 ```text
 Restore never tested [REL-02]:
- 1. Restore the latest backup to a scratch database — time it.
- 2. Write down: data-loss window (backup frequency) + measured restore time.
- 3. If either misses your target: raise backup frequency / rehearse the procedure.
+ 1. Enable point-in-time recovery on the managed DB (it's a setting) — kills the 24h-loss window.
+ 2. Confirm backups replicate cross-region/off-site (same-server "backup" = same risk twice).
+ 3. Restore the latest backup to a scratch database — time it; repeat monthly.
+ 4. Write down: data-loss window + measured restore time; fix whichever misses your target.
 Third-party fragility [REL-03] (per external call):
  timeout(5s) → retry ×2-3 with exponential backoff + jitter → circuit breaker (open after N fails)
  → fallback (cached value / degraded feature / honest error).

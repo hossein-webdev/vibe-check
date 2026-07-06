@@ -64,6 +64,20 @@ jobs, write batching**.
 - **Cache in layers (SCALE-03/04):** browser (static) → CDN/edge (shared responses) → application
   (frequent identical responses) → query cache (repeated reads). Adding Redis creates a second
   source of truth: plan invalidation, stampede protection, and coherence, or you'll serve stale data.
+- **Caching is a business decision (SCALE-04): decide what's allowed to be wrong, and for how long.**
+  Nobody plans a caching strategy — an app gets slow, someone adds Redis, everyone moves on; six
+  months later a customer's upgraded plan still shows free tier and receipts don't match page prices.
+  Three decisions to make *on purpose*:
+  1. **Staleness budget per data class** — company address: cache forever; blog content: an hour;
+     **pricing, permissions, inventory, account status: never stale** — stale pricing leaks money on
+     every transaction, stale permissions mean a deactivated user still has access, and none of it
+     shows up as errors — it shows up as support tickets and refunds.
+  2. **Who clears the cache when data changes** — prefer **event-driven invalidation** (data changes
+     → cache clears immediately) over TTL timers; with a timer, the data is wrong for the timer's
+     entire duration.
+  3. **What happens when the cache itself fails** — an expiring hot key can send thousands of
+     simultaneous requests at the database (**stampede**); it never shows in testing and always
+     shows on your biggest day. Use stampede protection (locking / single-flight refresh).
 - **Background jobs (SCALE-05):** long work inside the request causes timeouts; hand it to workers
   with **idempotency keys** so a retry never runs the job — or the charge — twice.
 

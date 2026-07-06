@@ -34,6 +34,7 @@ Freedom: **medium** — adapt to the platform; depth scales with team.
 | DEPLOY-07 | Pipeline fast enough to deploy often (parallel test/lint) | P3 |
 | DEPLOY-08 | Compute fits the workload (no free-tier timeout fights) | P2 |
 | DEPLOY-09 | Automated PR review gate (CodeRabbit/Sourcery/LLM action) | P3 |
+| DEPLOY-10 | CI quota managed: usage alert at ~75%, path-based conditional pipelines, self-hosted-runner escape hatch | P2 for teams |
 
 ## When to Use This Skill
 
@@ -70,6 +71,16 @@ Freedom: **medium** — adapt to the platform; depth scales with team.
    (→ `scaling-performance`); split front-end from back-end when you outgrow one box.
 7. **"Works locally, fails in CI"** = stale env vars, mismatched DB state, or timing/resource
    limits. Reconcile those three before blaming the tests.
+8. **Mind the CI quota trapdoor (DEPLOY-10).** Free CI minutes cover a solo project; add a teammate,
+   integration tests, and a staging step and usage multiplies — the allocation dies **mid-sprint**,
+   the pipeline stops, code ships untested, and overage pricing turns a free tool into a four-figure
+   bill. Every CI platform has a free tier and a trapdoor under it:
+   - **alert at ~75%** of the monthly allocation (check usage weekly) — an alert buys time, a
+     stopped pipeline buys none;
+   - **path-based conditional pipelines** — a README change doesn't need integration tests; run only
+     the stages matching the changed files (full-suite-on-every-push is wasteful, not thorough);
+   - **self-hosted runners** as the escape hatch — a ~$20/month box runs unlimited minutes (you
+     manage it), versus paying per-minute overage.
 
 ## Fix playbook
 

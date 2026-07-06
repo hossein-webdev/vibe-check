@@ -1,5 +1,22 @@
 # Changelog
 
+## 2.3.0
+
+Five new lessons folded in:
+- `reliability-recovery`: REL-02 expanded into the three backup decisions — frequency
+  (point-in-time recovery is a setting, turn it on; daily = accepting 24h of loss), location
+  (same-server backup = the same risk twice; go cross-region/off-site), and monthly restore drills.
+- `deployment-cicd`: new DEPLOY-10 — the CI free-tier quota trapdoor (minutes die mid-sprint,
+  overage turns free into four figures): usage alert at ~75%, path-based conditional pipelines,
+  self-hosted runners as the escape hatch.
+- `app-security`: SEC-10 expanded — assistant-context prompt injection is proven (critical RCE via a
+  poisoned PR description); everything an AI assistant reads (repo, comments, issues, PRs) is an
+  injection surface.
+- `scaling-performance`: SCALE-04 expanded — caching as a business decision: staleness budget per
+  data class (pricing/permissions/inventory/account status: never stale), event-driven invalidation
+  over TTL timers, expiry-stampede protection.
+- `production-readiness`: vulnerability stat refreshed to 2–3× (latest measurement ~2.7×).
+
 ## 2.2.0
 
 - New skill: **`api-design`** (APID-01..09) — the API surface itself: resource naming, semantic

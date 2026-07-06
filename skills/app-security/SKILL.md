@@ -90,6 +90,13 @@ beats none.
 - [ ] Mitigate: **isolation** (nothing unvetted touches production), **review** (if you can't read
       every line you feed the AI, don't feed it), **rotation** (a used resource turns out
       compromised → rotate secrets immediately).
+- [ ] **Treat everything your AI assistant *reads* as an injection surface** — not just what you
+      paste. This is proven, not theoretical: a major AI coding assistant shipped a critical RCE
+      (CVSS 9.6) triggered by a hidden prompt injection in a **pull-request description** — the
+      assistant read it as context and executed code on the developer's machine. Repo files,
+      comments, issues, PR descriptions: if an outsider can write it and your AI reads it, your AI
+      can be weaponized. Review external contributions before letting an assistant ingest them, and
+      keep assistants patched.
 
 ## Fix playbook
 
