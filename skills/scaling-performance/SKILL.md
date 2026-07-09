@@ -79,7 +79,16 @@ jobs, write batching**.
      simultaneous requests at the database (**stampede**); it never shows in testing and always
      shows on your biggest day. Use stampede protection (locking / single-flight refresh).
 - **Background jobs (SCALE-05):** long work inside the request causes timeouts; hand it to workers
-  with **idempotency keys** so a retry never runs the job — or the charge — twice.
+  with **idempotency keys** so a retry never runs the job — or the charge — twice. The generated
+  anti-pattern is the **synchronous chain**: a 12-second checkout where the user stares at a spinner
+  while the app sends a receipt email. Split it:
+  1. **Respond the moment the core action succeeds** (payment confirmed → confirmation returned);
+     everything else — email, analytics, fulfillment kicks — goes to the queue.
+  2. **The queue retries independently** — a failed receipt email must not fail the checkout the
+     user already saw succeed.
+  3. **Monitor the queue** — a job failing silently in a queue is *worse* than failing in the
+     request; log every failed job and alert on failure spikes (→ `observability`, and dead-letter
+     queues in OBS-08).
 
 ## Fix playbook
 

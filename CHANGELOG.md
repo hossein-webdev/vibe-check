@@ -1,5 +1,19 @@
 # Changelog
 
+## 2.4.0
+
+Four new lessons folded in:
+- `compliance-legal`: new LEGAL-06 — cyber liability insurance once you hold others' data
+  (~$200–600/yr vs a five-figure breach; underwriters require security basics, making the security
+  audit an insurance prerequisite); new LEGAL-07 — platform ToS liability caps (provider exposure =
+  your last invoice); LEGAL-01 extended — the privacy policy must match what the app actually does.
+- `observability`: new OBS-12 — session replays wired to error events + rage-click detection
+  ("watch what happened instead of asking"); intro reframed around the **discovery gap** (60s vs 6h
+  = the day's revenue + trust cost).
+- `scaling-performance`: SCALE-05 extended with the respond-then-queue pattern — confirm the moment
+  the core action succeeds, queue the rest with independent retries, and monitor the queue (silent
+  queue failures are worse than request failures).
+
 ## 2.3.0
 
 Five new lessons folded in:

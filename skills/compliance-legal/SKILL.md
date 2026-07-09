@@ -30,6 +30,8 @@ these are requirements, not preferences.
 | LEGAL-03 | Deletion truly removes data across **every** related table (not a soft-delete flag) | P2 |
 | LEGAL-04 | SOC 2 evidence collection started early (access controls, audit logging, change mgmt) | P2 if selling B2B |
 | LEGAL-05 | App-store privacy package ready (disclosures, permission justifications, policy link) | P2 if store-bound |
+| LEGAL-06 | Cyber liability insurance in place once you hold others' data (underwriters require security basics) | P2 at launch |
+| LEGAL-07 | Platform ToS read: you know each provider's liability cap and your exposure above it | P3 |
 
 ## When to Use This Skill
 
@@ -43,8 +45,24 @@ these are requirements, not preferences.
 
 ### Baseline documents (LEGAL-01, LEGAL-02)
 - [ ] **Privacy policy** and **terms of service** published before data collection starts.
+- [ ] **The policy matches what the app actually does.** A template copied from the internet that
+      talks about cookies — while the app collects emails, payments, and usage data — is a
+      compliance violation waiting for its first GDPR deletion request against a database that was
+      never built for deletion. Draft the policy from your real data inventory.
 - [ ] **Opt-out** flow (CCPA) and **deletion request** flow (GDPR/CCPA) exist and work end-to-end.
 - [ ] Consent captured where required; retention periods defined.
+
+### Protect the business itself (LEGAL-06, LEGAL-07)
+- [ ] **Cyber liability insurance** once you hold other people's data — a breach on an uninsured
+      platform means notification, remediation, legal fees, and damages out of *your* pocket (the
+      LLC won't always shield you). Coverage runs roughly $200–600/year for a small SaaS versus a
+      five-figure breach. Note: **underwriters require security basics before covering you** —
+      vulnerability scans, access controls, encryption at rest — so the security audit
+      (→ `app-security`) is an insurance prerequisite, not just hygiene.
+- [ ] **Read your platforms' terms of service.** Most include limitation-of-liability clauses that
+      cap the provider's exposure at *what you paid them last month* — their $25 versus your $10k
+      loss when their outage eats your data. Know each cap, and cover the gap with backups
+      (→ `reliability-recovery`) and insurance, because the platform won't.
 
 ### True deletion (LEGAL-03)
 - [ ] Every table holding user data is mapped (the deletion inventory).

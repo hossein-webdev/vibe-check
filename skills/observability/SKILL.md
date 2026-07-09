@@ -22,6 +22,13 @@ Something breaks, you open the logs, there's nothing there, and you learn about 
 a 9am support email. And the costliest failures are the ones your code never threw: dashboards green,
 revenue gone. Instrument for both.
 
+The number that prices all of this is the **discovery gap** — the time between a failure starting
+and you knowing. At 60 seconds the blast radius is a few transactions and a quick apology; at six
+hours it's the day's revenue, refund fees on money you never received, support hours, and the trust
+cost (a meaningful share of customers who hit a payment issue never come back — and the ones who
+complain tell others). Monitoring isn't a dashboard; it's the distance between something breaking
+and you knowing about it.
+
 Skip for a purely static site. Freedom: **medium** — adapt tools to the stack.
 
 ## Rules
@@ -39,6 +46,7 @@ Skip for a purely static site. Freedom: **medium** — adapt tools to the stack.
 | OBS-09 | Outside-in health checks from multiple regions (not server self-report) | P2 |
 | OBS-10 | Logs + metrics + traces correlated by request id (OpenTelemetry) — full trace in <60s | P3 |
 | OBS-11 | SLOs defined with an error budget that gates release pace | P3 (P2 at scale) |
+| OBS-12 | Session replays wired to error events; rage-clicks flagged as UX failures | P3 |
 
 ## When to Use This Skill
 
@@ -89,6 +97,17 @@ The "we have monitoring" test is three questions; most rooms go quiet on all thr
    commitments with an **error budget**: budget burning → slow releases; budget healthy → ship fast.
 
 Monitoring is not a dashboard you built — it's a system that calls *you*.
+
+### Layer 5 — watch what users experienced (OBS-12)
+
+"Everything stopped working" is a cry for help, not a bug report. Stop asking users to describe
+bugs — watch what happened:
+1. **Session replays** — every click, scroll, and error recorded; when a bug report arrives you
+   watch the session instead of interrogating the reporter.
+2. **Wire replays to error tracking** — an exception in Sentry carries its replay automatically:
+   the error and the user experience that caused it, side by side, no reproducing.
+3. **Flag rage clicks** — the same button hit seven times in three seconds is a stuck user; surface
+   it as a UX failure *before* it becomes a support ticket.
 
 ## Fix playbook
 
