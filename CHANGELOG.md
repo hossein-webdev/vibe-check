@@ -1,5 +1,19 @@
 # Changelog
 
+## 2.5.0
+
+Four new lessons folded in:
+- `auth-access`: full **token lifecycle** added to AUTH-04 — silent background refresh before the
+  ~60-min expiry, state-preserving reauth on refresh failure, refresh-token rotation on every use;
+  AUTH-08 extended with **tenant-breach anatomy** — cache keys must include tenant context, and
+  cross-tenant reads must alert the moment they happen (you must answer "how long / who else"
+  immediately).
+- `production-readiness`: new **PROD-05** — the support system ships with the product: per-feature
+  support playbooks (same sprint), real-time production signals, and T1/T2/T3 tiers defined before
+  the first customer. The support gap kills more launches than bad code.
+- `api-architecture`: API-02 expanded — trust nothing at the boundary: schema-validate every route
+  (reject/strip), sanitize every string, middleware rate-pattern awareness (50 req/s = probing).
+
 ## 2.4.0
 
 Four new lessons folded in:

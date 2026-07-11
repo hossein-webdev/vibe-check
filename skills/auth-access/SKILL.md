@@ -57,6 +57,13 @@ every check below at maximum strictness — assume nothing.**
 - [ ] Treat generated auth as unverified: no plain-text passwords, strong hashing, sane tokens.
 - [ ] JWTs: reject `none`, pin the algorithm, require expiry — closes the usual forgery paths.
 - [ ] Sessions expire and rotate; **logout invalidates server-side**, not just a client delete.
+- [ ] **Handle the full token lifecycle**, not just the initial login (the generated OAuth gap that
+      dumps users to a login screen mid-work every hour):
+      - **silent refresh** — renew the access token in the background before its ~60-minute expiry;
+      - **graceful refresh failure** — when the refresh token expires, reauthenticate with **state
+        preserved** (no blank page, lost draft, or cleared cart — return the user where they were);
+      - **rotate refresh tokens on every use** — a stolen token that works forever is a permanent
+        backdoor; a rotated one works once, and reuse flags the compromise.
 
 ### 3. Authorization — the part that gets skipped (AUTH-05..07)
 - [ ] Logged-in ≠ allowed. As user A, fetch user B's record by id. If data returns, that's a breach.
@@ -67,6 +74,13 @@ every check below at maximum strictness — assume nothing.**
 ### 4. Multi-tenant isolation (AUTH-08)
 - [ ] Isolation is a decision, not the ORM default. Back it with **RLS** so an app bug can't cross
       tenants (→ `app-security` SEC-04).
+- [ ] **Know the breach anatomy** — "I'm seeing someone else's dashboard" starts with something
+      tiny (a missing WHERE clause, or a **cache key that omits tenant context** serving the wrong
+      tenant's data) and cascades into legal duty (notify the exposed tenant; HIPAA fines; GDPR
+      filing within 72 hours) and trust damage that outlives the fix. Two implications:
+      - **cache keys always include the tenant id** — app-layer filtering is undone by a shared cache;
+      - **monitor for cross-tenant reads** and alert the moment one happens — you must be able to
+        answer "how long?" and "who else?" immediately; learning it from a customer is too late.
 
 ### 5. Machine-to-machine (AUTH-09)
 - [ ] Services prove their own identity; a leaked service token is high blast radius — scope

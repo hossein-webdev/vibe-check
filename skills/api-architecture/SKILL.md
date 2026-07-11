@@ -49,6 +49,14 @@ Skip if the app is purely static/client-side. Freedom: **medium**.
    move to the server. The client renders data and gathers input — nothing trust-sensitive.
 2. **Add the backend boundary (API-01).** Client → your API → database, never client → database.
    Auth checks, rate limits, and validation live at the boundary (→ `auth-access`, `app-security`).
+   **At that boundary, trust nothing (API-02)** — the generated default processes whatever arrives:
+   - **schema-validate every route** before business logic: wrong type → reject, missing field →
+     reject, unexpected field → **strip**; a non-conforming request never reaches the database;
+   - **sanitize every string input** — a script tag in a form field is confusion or an attack,
+     either way it must not execute;
+   - **rate-pattern awareness in middleware**, per user and per endpoint — 50 hits/second on one
+     endpoint isn't usage, it's probing; catch it before business logic sees it (limiting
+     architecture: API-06).
 3. **Design APIs to be consumed (API-03..05):** a contract per endpoint (inputs/outputs/errors);
    **version from day one** so changes don't break existing clients; a changelog so consumers can
    track what changed and when.

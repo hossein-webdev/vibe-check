@@ -36,6 +36,7 @@ Freedom: **high** — principles to adapt, not rigid steps.
 | PROD-02 | Owner can explain every file; misleading names fixed; dead generated code removed | P2 |
 | PROD-03 | Non-obvious knowledge written down (decisions+why, env/secrets setup, shortcuts) | P2 |
 | PROD-04 | Effort matches stage (features → operations → architecture as users grow) | P3 |
+| PROD-05 | Support system exists before the first customer: per-feature playbooks + tiered escalation | P2 at launch |
 
 ## When to Use This Skill
 
@@ -66,7 +67,18 @@ Freedom: **high** — principles to adapt, not rigid steps.
    - **~10,000 users** → reliability and operational practice dominate,
    - **~100,000 users** → architecture is the job.
    Don't build for 100k while you have 100 — and don't stay in feature-mode once people depend on you.
-6. **Dispatch the specifics.** Run `audit` to see which layers apply; this skill sets the posture,
+6. **Build the support system with the product (PROD-05).** The AI built the app; nobody told it to
+   build the support system — and at 2am when a paying customer can't log in, that gap kills more
+   launches than bad code:
+   - **a support playbook ships with every feature, same sprint** — login: password resets, expired
+     tokens, locked accounts; payments: failed charges, missed webhooks, subscription issues. These
+     are minimum production deliverables, not afterthoughts;
+   - **wire real-time production signals** so known issues with documented fixes can be resolved
+     automatically and unknown ones arrive packaged with context;
+   - **define the tiers before the first customer**: T1 automated resolution (most volume never
+     reaches you), T2 assisted triage (context packaged, you decide, the playbook grows), T3
+     incident response (who's notified, what's locked down, how customers are told).
+7. **Dispatch the specifics.** Run `audit` to see which layers apply; this skill sets the posture,
    the domain skills do the work.
 
 ## Fix playbook

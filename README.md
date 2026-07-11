@@ -6,7 +6,7 @@
 
 **A linter-grade production-readiness audit for vibe-coded (AI-generated) apps — packaged as 19 Claude Code skills.**
 
-[![Version](https://img.shields.io/badge/version-2.4.0-blue)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-2.5.0-blue)](CHANGELOG.md)
 [![Skills](https://img.shields.io/badge/skills-19-8A2BE2)](#-the-skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-plugin-D97757)](https://code.claude.com/docs/en/plugins)
