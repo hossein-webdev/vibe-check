@@ -1,5 +1,23 @@
 # Changelog
 
+## 2.6.0
+
+Five new lessons folded in:
+- `auth-access`: new AUTH-10 — enterprise SSO as a procurement gate: SAML 2.0/OIDC done properly
+  (handshake, assertions, attribute mapping, sessions) and multi-tenant SSO with per-tenant IdP
+  configuration, built before the IT checklist arrives.
+- `app-security`: SEC-07 expanded — CSP script-source lockdown: audit every external resource,
+  run report-only for a week, then enforce a whitelist (a dozen unapproved script domains is an
+  attack surface, not a feature).
+- `deployment-cicd`: new DEPLOY-11 — runbooks per failure scenario + automated metric-driven
+  rollback; release section reframed around decoupling deploy (technical) from release (business)
+  — the "any day is deploy day" architecture.
+- `monetization-pricing`: PAY-06 expanded — price against the quantified pain (not what feels
+  fair), the one-sentence sale (pain → resolution), and finding first customers where the
+  complaints live.
+- `database-selection`: new DBS-05 — migration timing by math: the 10×-with-optimization test, the
+  architecturally-impossible test, and workaround-cost vs migration-cost.
+
 ## 2.5.0
 
 Four new lessons folded in:

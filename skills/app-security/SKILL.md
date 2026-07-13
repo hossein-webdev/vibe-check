@@ -73,6 +73,15 @@ beats none.
 
 ### Headers & input (SEC-07, SEC-08)
 - [ ] CORS + CSP configured so the browser's defenses are actually on.
+- [ ] **Lock down script sources with CSP** — a generated app typically loads scripts from a dozen+
+      domains you never approved (analytics, fonts, widgets, pixels), and one compromised CDN can
+      hijack every session. The workflow:
+      1. **Audit** every external resource (scripts, styles, fonts, images, iframes) — if you can't
+         explain why it's there, it shouldn't be;
+      2. **Report-only first** — enable CSP in report-only mode, collect violations for a week, see
+         what would break;
+      3. **Then enforce** — whitelist exactly the domains allowed to load scripts; the browser
+         blocks the rest before execution.
 - [ ] All input validated/escaped — assume generated code does **not** defend XSS.
 
 ### Prove it (SEC-09)

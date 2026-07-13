@@ -3,7 +3,7 @@
   "name": "vibe-check",
   "displayName": "Vibe Check",
   "description": "A linter-grade production-readiness audit for vibe-coded (AI-generated) apps. The audit skill profiles your app (with a bundled static scanner), checks only what applies, grades with stable rule IDs and cited evidence, computes a readiness score, and outputs a gap table plus detailed finding cards with exact fixes — routing to 17 focused skills for security, secrets, auth, scaling, data, database selection, AI reliability, LLM cost, observability, deployment, reliability, compliance, API design, frontend quality, infra cost, and monetization.",
-  "version": "2.5.0",
+  "version": "2.6.0",
   "author": {
     "name": "hossein-webdev",
     "url": "https://github.com/hossein-webdev"

@@ -32,6 +32,7 @@ Freedom: **medium** — a decision framework, not a single right answer.
 | DBS-02 | A schema-change-under-traffic strategy exists (branch/test/merge or equivalent) | P2 |
 | DBS-03 | Lock-in is a conscious decision (know whether you chose a database or a platform) | P3 |
 | DBS-04 | The platform's known ceiling isn't in your growth path (or an exit is planned) | P2 |
+| DBS-05 | Migration timing decided by math (workaround cost vs migration cost), not frustration | P3 |
 
 ## When to Use This Skill
 
@@ -67,6 +68,24 @@ Freedom: **medium** — a decision framework, not a single right answer.
 | Neon | Serverless Postgres, branching, scale-to-zero | Cold-start latency after idle — felt in latency-sensitive apps |
 | PlanetScale | Serverless MySQL, HTTP connections (no pool ceiling), zero-downtime deploy requests | MySQL: no DB-enforced foreign keys; different query mindset |
 | Cloudflare D1 | Read-heavy, globally distributed, edge-native | Weak concurrent-write performance; ecosystem commitment |
+
+### When to migrate off (DBS-05) — math, not frustration
+
+One of the most expensive decisions in a product's life, wrong in both directions:
+- **Staying too long:** connection limits maxed, pricing tiers jumping, and every workaround
+  (pooler, aggressive caching, query contortions) is technical debt with a monthly payment — hours
+  spent fighting the platform instead of building.
+- **Moving too early:** migration is real coordination — schema, data transfer, connection strings
+  across services, ORM reconfig, re-testing every query — two weeks spent solving a problem you
+  didn't have yet.
+
+Three questions decide it:
+1. Can the current platform handle **10× the load with optimization alone**? → stay and optimize.
+2. Is a capability you need **architecturally impossible** here? → migrate; optimization can't fix
+   a missing capability.
+3. Do **workaround-hours × your rate exceed the migration cost**? → run the numbers; when the math
+   says go, go **decisively** — milestones, rollback points, verification checklists. A slow,
+   half-committed migration is the most expensive kind.
 
 ### Decision procedure
 

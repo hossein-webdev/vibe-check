@@ -35,6 +35,7 @@ Freedom: **medium** — adapt to the platform; depth scales with team.
 | DEPLOY-08 | Compute fits the workload (no free-tier timeout fights) | P2 |
 | DEPLOY-09 | Automated PR review gate (CodeRabbit/Sourcery/LLM action) | P3 |
 | DEPLOY-10 | CI quota managed: usage alert at ~75%, path-based conditional pipelines, self-hosted-runner escape hatch | P2 for teams |
+| DEPLOY-11 | Runbooks exist per failure scenario; rollback is automated on degraded metrics, not manual | P2 near launch |
 
 ## When to Use This Skill
 
@@ -53,9 +54,20 @@ Freedom: **medium** — adapt to the platform; depth scales with team.
    the **production build in CI** — "we build locally before pushing" is honor-based, and a broken
    build reaching `main` blocks everyone. Keep it fast (DEPLOY-07): parallelize test/lint; a 45-min
    pipeline trains teams to deploy weekly.
-4. **Release safely (DEPLOY-05/06).** Canary to a small slice, watch error rates, then promote (or
-   auto-rollback). Feature flags toggle behavior without redeploys. **Test the rollback** — a typo
-   shouldn't take everyone down while you google the undo.
+4. **Release safely (DEPLOY-05/06/11).** The test of your deploy architecture: *what could go wrong
+   that you couldn't fix remotely in 30 minutes?* (Fear of Friday deploys is an architecture
+   confession, not a scheduling preference.)
+   - **Feature flags decouple deploying from releasing** — deployment is a technical event, release
+     is a business decision. Ship dark, enable for 5%, flip the flag on trouble: no rollback, no
+     redeploy, one toggle.
+   - **Canary with automatic shift-back** — 5% of traffic on the new version, monitoring watching
+     error rates/latency; on degradation, traffic shifts back **automatically**. No humans in the
+     loop at 2am.
+   - **Automated rollback (DEPLOY-11)** — "someone remotes in and reverts manually" is a prayer,
+     not a plan. The system detects the failure, halts the rollout, reverts to last-known-good.
+     **Test the rollback** either way — a typo shouldn't take everyone down while you google the undo.
+   - **Runbooks (DEPLOY-11)** — a step-by-step guide per failure scenario, written in daylight.
+     Judgment at 3am is unreliable; process isn't.
 5. **Automated PR review (DEPLOY-09).** CodeRabbit / Sourcery / a custom LLM action, gating merges —
    catches security/logic issues and the tech debt you don't fully understand.
 6. **Compute fits the stage (DEPLOY-08).** "Serverless scales automatically" — *within the plan

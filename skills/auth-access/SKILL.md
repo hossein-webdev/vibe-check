@@ -37,6 +37,7 @@ every check below at maximum strictness — assume nothing.**
 | AUTH-07 | RBAC modeled permissions-first (roles = permission bundles) | P2 |
 | AUTH-08 | Tenant isolation is a deliberate strategy, backed by RLS | P1 if B2B |
 | AUTH-09 | Service-to-service credentials scoped + rotated | P2 |
+| AUTH-10 | Enterprise SSO ready (SAML 2.0/OIDC, per-tenant IdP config) | P2 if selling to enterprise |
 
 ## When to Use This Skill
 
@@ -82,7 +83,17 @@ every check below at maximum strictness — assume nothing.**
       - **monitor for cross-tenant reads** and alert the moment one happens — you must be able to
         answer "how long?" and "who else?" immediately; learning it from a customer is too late.
 
-### 5. Machine-to-machine (AUTH-09)
+### 5. Enterprise SSO — the procurement gate (AUTH-10)
+- [ ] If you sell to companies, **SSO is a gate, not a feature request**: line one of the IT
+      procurement checklist is "SAML/OIDC support?", and Google sign-in + email/password doesn't
+      count. Employees authenticate through the corporate IdP (Okta, Azure AD, Google Workspace) or
+      IT doesn't approve the purchase.
+- [ ] Implement **SAML 2.0 / OIDC** properly — handshake, assertion validation, attribute mapping,
+      session management — *before* the checklist arrives, not after.
+- [ ] Design **multi-tenant SSO** from the start: every customer brings a different IdP. One
+      integration pattern, per-tenant credentials and configuration.
+
+### 6. Machine-to-machine (AUTH-09)
 - [ ] Services prove their own identity; a leaked service token is high blast radius — scope
       narrowly and rotate.
 

@@ -62,6 +62,16 @@ Skip if the app is free. Freedom: **low on the webhook path** (money), medium on
 - [ ] Price from **value delivered** and **cost-to-serve**; a **credit system** can simplify billing
       across features. A price that shuts out half your market is usually a tiering/architecture
       problem, not a number problem.
+- [ ] **Price against the pain, not your comfort.** Most builders pick what "feels fair" ($20/mo).
+      Do the customer's math instead: a user losing 3 hours/week at $50/hour burns ~$7,200/year on
+      the problem — a tool that removes it is worth $150/month, not $20. Quantify the pain in the
+      customer's currency, then price a fraction of it.
+- [ ] **The sale is one sentence** — pain + resolution ("You spend three hours a week on
+      scheduling; this does it in ten minutes"). Nobody reads a 12-feature list. If the product
+      can't be stated as pain → resolution in one sentence, the pricing page isn't the problem.
+- [ ] **Your first customers live where the complaints are** — not among your builder followers.
+      Find the niche communities and threads where people complain about the problem you solve;
+      that's the acquisition channel the product was born from.
 - [ ] For API/usage products, **tiered rate limits are the pricing architecture** (→
       `api-architecture` API-06): the free tier generous enough to prove value, restrictive enough
       to create the upgrade. If free can do everything paid can, that's not a limit — it's a charity.
