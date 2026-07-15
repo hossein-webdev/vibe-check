@@ -32,6 +32,7 @@ these are requirements, not preferences.
 | LEGAL-05 | App-store privacy package ready (disclosures, permission justifications, policy link) | P2 if store-bound |
 | LEGAL-06 | Cyber liability insurance in place once you hold others' data (underwriters require security basics) | P2 at launch |
 | LEGAL-07 | Platform ToS read: you know each provider's liability cap and your exposure above it | P3 |
+| LEGAL-08 | Pre-revenue document set complete: ToS, privacy policy, DPA, refund policy, MSA (B2B) | P2 before first payment |
 
 ## When to Use This Skill
 
@@ -64,9 +65,29 @@ these are requirements, not preferences.
       loss when their outage eats your data. Know each cap, and cover the gap with backups
       (→ `reliability-recovery`) and insurance, because the platform won't.
 
+### The pre-revenue document set (LEGAL-08)
+Before accepting the first payment, six documents — none of them code, all of them protecting the
+business under the code. AI can draft each one, but only directed with *your* specifics (a
+downloaded template protects nobody):
+- [ ] **Terms of Service** — what users may do, your liability boundaries, what happens when things
+      go wrong.
+- [ ] **Privacy policy** — matching reality (LEGAL-01 above).
+- [ ] **DPA (data processing agreement)** — required by GDPR when you process data on behalf of
+      another business; enterprise customers ask for it every time.
+- [ ] **Refund policy** — payment processors require one; customer trust depends on it.
+- [ ] **MSA (master service agreement)** — for B2B: SLAs, uptime guarantees, response times, and
+      what happens when it breaks.
+- [ ] **Cyber liability insurance** (LEGAL-06 above) — the document set's backstop.
+
 ### True deletion (LEGAL-03)
-- [ ] Every table holding user data is mapped (the deletion inventory).
-- [ ] Deletion cascades across all of them — profile, orders, logs, analytics links, backups policy.
+"Delete" is a business process, not a button — the generator built login, not deletion:
+- [ ] **Cascade map first**: chart every table relationship touching the user (orders, messages,
+      uploads, payments, sessions, tickets) *before* the first deletion request arrives.
+- [ ] **Soft-delete with a retention window**: deactivate immediately, retain ~30 days for
+      compliance review, then **automatic** hard delete — no manual cleanup.
+- [ ] **Report on demand**: you can generate a complete report of everything held on a user and
+      confirm removal within the regulatory window — if you can't produce that report, you have
+      legal exposure you don't know about.
 - [ ] The flow is documented and tested with a real account.
 
 ### Enterprise readiness (LEGAL-04)

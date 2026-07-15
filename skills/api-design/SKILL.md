@@ -13,7 +13,7 @@ user-invokable: true
 metadata:
   category: api-architecture
   parent: api-architecture
-  version: "2.2.0"
+  version: "2.7.0"
 ---
 
 # API Design
@@ -39,6 +39,7 @@ are not optional.
 | APID-07 | Versioned path (`/v1`) + deprecation policy (max 2 live versions, sunset dates) | P2 once consumed externally |
 | APID-08 | Unsafe operations accept an idempotency key (retries can't double-execute) | P2 (P1 for payments) |
 | APID-09 | Request id accepted/echoed (`X-Request-Id`) for tracing and support | P3 |
+| APID-10 | API is machine-consumable: structured, self-describing, ideally MCP-exposed for AI-assistant integration | P3 (P2 for platform/API products) |
 
 ## When to Use This Skill
 
@@ -98,6 +99,18 @@ endpoint — consumers write one error handler, not one per route.
   version.
 - Keep **at most two live versions**; deprecate with notice + a `Sunset` header, then `410 Gone`.
 - Publish the contract + a changelog per change (`api-architecture` API-03/05).
+
+### 7. Design for machine consumers (APID-10)
+The newest consumer of your API isn't a developer reading docs — it's an **AI assistant told to
+"integrate with this service."** MCP (Model Context Protocol) adoption has crossed tens of millions
+of monthly SDK downloads with thousands of indexed servers; assistants integrate with an
+MCP-speaking service in minutes and route around ones that need an integration team.
+- Return **structured, self-describing data** — an API that dumps raw JSON and expects the client
+  to figure it out is invisible to machine consumers.
+- Publish a machine-readable contract (OpenAPI at minimum; an **MCP server** for first-class
+  assistant integration) so tools can discover capabilities without human reading.
+- Treat discoverability as a distribution channel: the builder who never reads documentation still
+  picks the product their assistant could wire up in five minutes.
 
 ## Fix playbook
 

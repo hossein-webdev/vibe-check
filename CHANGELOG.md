@@ -1,5 +1,21 @@
 # Changelog
 
+## 2.7.0
+
+Five new lessons folded in:
+- `api-design`: new **APID-10** — design for machine consumers: structured, self-describing
+  responses and MCP exposure; AI assistants integrate MCP-speaking services in minutes and route
+  around the rest. Discoverability is now a distribution channel. (Global mirror synced.)
+- `compliance-legal`: new **LEGAL-08** — the pre-revenue document set (ToS, privacy policy, DPA,
+  refund policy, MSA + insurance backstop); LEGAL-03 rebuilt as a process — cascade map first,
+  soft-delete with a ~30-day retention window then automatic hard delete, and a
+  full data report producible on demand within the regulatory window.
+- `data-architecture`: new **DATA-08** — keep downstream systems in agreement via change data
+  capture: real-time events instead of polling, routed by type, with dead-letter handling.
+- `observability`: new **OBS-13** — the support inbox as a monitoring tool: root-cause triage
+  (3× same cause = engineering bug), the three buckets (UX / observability gap / wrong design),
+  and the weekly 30-minute review.
+
 ## 2.6.0
 
 Five new lessons folded in:

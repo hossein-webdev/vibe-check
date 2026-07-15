@@ -35,6 +35,7 @@ Freedom: **medium** — recommend the pattern, adapt to the stack.
 | DATA-05 | Backups exist (restore testing → reliability-recovery REL-02) | P1 |
 | DATA-06 | Platform fits the workload | → `database-selection` (DBS-01..04) |
 | DATA-07 | Concurrent-write conflict strategy chosen (CRDTs where merging must be automatic) | P2 if collaborative |
+| DATA-08 | Downstream consumers synced via change data capture (events, routed by type, with a DLQ) — not polling | P3 (P2 with search/analytics/notifications) |
 
 ## When to Use This Skill
 
@@ -60,6 +61,16 @@ Freedom: **medium** — recommend the pattern, adapt to the stack.
    closer to SQL, more control. Either beats raw string queries from a generator.
 6. **Concurrent writes (DATA-07).** "Last write wins" silently drops data in collaborative docs —
    pick a conflict strategy up front; use **CRDTs** where merging must be automatic.
+7. **Keep downstream systems in agreement (DATA-08).** The database changed; the search index shows
+   the old name, analytics shows yesterday, the alert never fired — three dependent systems and
+   none of them heard. The pattern:
+   - **Change data capture** — every insert/update/delete fires an event in real time; no polling,
+     no five-minute cron;
+   - **route events by type** — search gets product updates, not login events; each consumer
+     receives only what it needs;
+   - **dead-letter failed events** — a missed event means a system believes nothing changed when
+     everything did; capture, retry, alert (→ `observability` OBS-08).
+   The database is the source of truth; CDC is how everything else agrees with it.
 
 ## Fix playbook
 

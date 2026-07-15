@@ -47,6 +47,7 @@ Skip for a purely static site. Freedom: **medium** — adapt tools to the stack.
 | OBS-10 | Logs + metrics + traces correlated by request id (OpenTelemetry) — full trace in <60s | P3 |
 | OBS-11 | SLOs defined with an error budget that gates release pace | P3 (P2 at scale) |
 | OBS-12 | Session replays wired to error events; rage-clicks flagged as UX failures | P3 |
+| OBS-13 | Support tickets triaged by root cause weekly; repeated causes escalate to engineering | P3 |
 
 ## When to Use This Skill
 
@@ -108,6 +109,21 @@ bugs — watch what happened:
    the error and the user experience that caused it, side by side, no reproducing.
 3. **Flag rage clicks** — the same button hit seven times in three seconds is a stuck user; surface
    it as a UX failure *before* it becomes a support ticket.
+
+### Layer 6 — the support inbox is a monitoring tool (OBS-13)
+
+Dashboards track **server** health; the support inbox tracks **user** health — it's the only signal
+that captures what users actually experienced. Twelve "something's wrong with my account" tickets
+against a green 99%-uptime dashboard is a bug report, not a service queue:
+1. **Categorize every ticket by root cause, not symptom.** The same cause three times in a week is
+   a product bug that needs an engineering fix, not a support macro.
+2. **Three buckets, three owners:** *user error* → UX/onboarding fix; *platform error* (users see
+   it, monitoring can't) → an observability gap — add that monitor; *business-logic error* (the
+   code did exactly what it was told; the design was wrong) → the hardest, because nothing ever
+   threw.
+3. **Weekly 30-minute review:** group the last 7 days by root cause — five "wrong dashboard data"
+   tickets point at caching; three "payment failed" tickets point at a webhook returning 200
+   (PAY-04). Read it like a dashboard, treat it like a task list.
 
 ## Fix playbook
 
