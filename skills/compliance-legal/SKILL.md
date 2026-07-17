@@ -33,6 +33,7 @@ these are requirements, not preferences.
 | LEGAL-06 | Cyber liability insurance in place once you hold others' data (underwriters require security basics) | P2 at launch |
 | LEGAL-07 | Platform ToS read: you know each provider's liability cap and your exposure above it | P3 |
 | LEGAL-08 | Pre-revenue document set complete: ToS, privacy policy, DPA, refund policy, MSA (B2B) | P2 before first payment |
+| LEGAL-09 | Security-questionnaire answers prepared + a public security page (before the questionnaire arrives) | P2 if selling B2B |
 
 ## When to Use This Skill
 
@@ -89,6 +90,18 @@ downloaded template protects nobody):
       confirm removal within the regulatory window — if you can't produce that report, you have
       legal exposure you don't know about.
 - [ ] The flow is documented and tested with a real account.
+
+### The security questionnaire (LEGAL-09)
+The buyer's security team evaluates you **before** the contract — and a failed questionnaire ends
+deals with silence, not rejection:
+- [ ] **Answers prepared in advance**: encryption at rest and in transit, vulnerability-scan
+      cadence, date of the last pen test, a shareable incident-response plan, data residency.
+- [ ] **Audit → fix → pen test → re-audit** — never start with the pen test. A full-stack
+      production audit (→ the `audit` skill) finds what's broken before you pay someone to attack
+      it; the pen test validates the fixes; the re-audit confirms they held. The audit scorecard +
+      pen-test report together answer more procurement questions than any sales deck.
+- [ ] **A public security page** — encryption posture, audit cadence, pen-test schedule, IR plan,
+      how to report a vulnerability. Costs nothing, answers half the questionnaire preemptively.
 
 ### Enterprise readiness (LEGAL-04)
 - [ ] SOC 2 understood as a **trust report with a long runway** — not a feature you add in a week.

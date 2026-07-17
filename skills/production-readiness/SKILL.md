@@ -77,7 +77,13 @@ Freedom: **high** — principles to adapt, not rigid steps.
      automatically and unknown ones arrive packaged with context;
    - **define the tiers before the first customer**: T1 automated resolution (most volume never
      reaches you), T2 assisted triage (context packaged, you decide, the playbook grows), T3
-     incident response (who's notified, what's locked down, how customers are told).
+     incident response (who's notified, what's locked down, how customers are told);
+   - **know where automation stops (the 70/30 split)**: playbooks auto-resolve roughly 70% — but
+     the 30% that decides whether customers stay needs human judgment: the billing dispute where
+     the customer is right and the system disagrees (check the dashboard, find the duplicate,
+     refund, acknowledge); the feature request disguised as a bug report (works as designed, read
+     the intent); the angry email that isn't about the stated issue (read the history, pick up the
+     phone). Build the 70% precisely to buy time for the 30% — that's where trust is earned.
 7. **Dispatch the specifics.** Run `audit` to see which layers apply; this skill sets the posture,
    the domain skills do the work.
 

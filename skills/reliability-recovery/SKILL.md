@@ -30,6 +30,7 @@ Skip for throwaway or no-data apps. Freedom: **medium**.
 | REL-03 | Third-party calls wrapped: timeout + retry/backoff + circuit breaker + fallback | P2 |
 | REL-04 | Availability planned: health checks, alerting, written recovery steps | P2 |
 | REL-05 | Backup schedule + retention policy exist; single-DB/single-region risk is a conscious decision | P1 with user data |
+| REL-06 | Post-mortem discipline: template ready before the first incident, blameless review within 48h, incident library | P3 (P2 with paying users) |
 
 ## When to Use This Skill
 
@@ -63,6 +64,15 @@ Skip for throwaway or no-data apps. Freedom: **medium**.
    dependency can't queue you to death, and a **fallback** so one vendor can't take you down.
 4. **Plan availability (REL-04).** Define "up", add health checks + alerting (→ `observability`),
    and write the recovery steps *before* you need them at 2am.
+5. **Learn from every incident (REL-06).** The first incident arrives when you least expect it;
+   having no process for *after* is the real failure:
+   - **Template before trouble** — a five-field post-mortem (what happened / impact / root cause /
+     blast radius / what fixed it / what prevents it) written calmly, not mid-panic;
+   - **The blameless 48-hour rule** — every incident gets its review within 48 hours; the question
+     is never *who* broke it but *what process let it reach production*. Auto-schedule the review
+     when an incident is logged, or the same failure repeats on a cycle;
+   - **The incident library** — post-mortems accumulate into a searchable knowledge base consulted
+     when similar patterns appear. The same root cause should never produce the same outage twice.
 
 ## Fix playbook
 

@@ -85,6 +85,10 @@ beats none.
 - [ ] All input validated/escaped — assume generated code does **not** defend XSS.
 
 ### Prove it (SEC-09)
+- [ ] **Order matters: audit first, pen test second.** Run the full production audit (→ `audit`),
+      fix what it surfaces, *then* pen test to validate the fixes and catch what they missed — and
+      re-audit after. Paying someone to attack known-broken infrastructure wastes the engagement;
+      the audit scorecard + pen-test report also double as procurement evidence (→ LEGAL-09).
 - [ ] Run **OWASP ZAP** (free, one container) against the app — it tests the common vulnerability
       classes; **Burp Suite** for deeper work. First scans routinely surface ~10+ real issues.
 - [ ] Remember the monoculture: if your app came from a common template, attackers already have the

@@ -1,5 +1,21 @@
 # Changelog
 
+## 2.8.0
+
+Three new lessons folded in:
+- `compliance-legal`: new **LEGAL-09** — security-questionnaire readiness: answers prepared before
+  the questionnaire arrives (encryption, scan cadence, pen-test date, IR plan, data residency), the
+  audit → fix → pen test → re-audit pipeline, and a public security page that answers half the
+  questionnaire for free.
+- `app-security`: SEC-09 ordering — audit first, pen test second (attacking known-broken
+  infrastructure wastes the engagement); the two artifacts double as procurement evidence.
+- `reliability-recovery`: new **REL-06** — post-mortem discipline: five-field template before the
+  first incident, the blameless 48-hour rule, and an incident library so the same root cause never
+  causes the same outage twice.
+- `production-readiness`: PROD-05 extended with the **70/30 split** — playbooks auto-resolve ~70%;
+  the human 30% (customer-is-right disputes, feature-requests-as-bugs, the email that isn't about
+  the stated issue) is where trust is earned.
+
 ## 2.7.0
 
 Five new lessons folded in:
