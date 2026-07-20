@@ -50,6 +50,14 @@ Skip while usage is trivial. Model/API spend → `llm-cost-control`. Freedom: **
 4. **Self-hosted vs managed, deliberately (COST-04).** One costs money, the other costs time. Weigh
    team capacity to operate it, uptime needs, and required control — don't self-host to save cash
    you'll repay in operations hours.
+5. **Serverless vs containers is a maturity decision, not a technology one.** Serverless charges a
+   per-unit premium to manage *nothing* — the right deal early, when your time is worth more than
+   the premium. Containers cost less per unit but someone must monitor, scale, and deploy them; if
+   that someone is also the founder/sales/support, the ops burden costs more in lost focus than the
+   premium costs in dollars. **Run the gap analysis**: serverless cost at current usage vs
+   equivalent container cost + ops hours per week. The usual production answer is **hybrid** —
+   serverless for request/response, containers for background processing, dedicated compute for
+   scheduled jobs: split by workload type, not by tutorial (→ `scaling-performance` SCALE-05).
 
 ## Fix playbook
 

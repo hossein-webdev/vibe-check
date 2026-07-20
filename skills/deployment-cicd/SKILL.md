@@ -47,7 +47,10 @@ Freedom: **medium** — adapt to the platform; depth scales with team.
 ## How It Works
 
 1. **Separate environments (DEPLOY-01).** Dev / staging / prod in ~30 min: branch strategy + free
-   preview URLs. Stop testing in production.
+   preview URLs. Stop testing in production. Staging only counts if it **mirrors production** —
+   same schema, same services, same environment variables (a staging that differs is a rehearsal
+   on the wrong stage). Gate on it: tests run against staging, **pass = automatic promotion,
+   fail = production never sees it**.
 2. **Simple branching (DEPLOY-02).** `main` is always production; feature branches are short-lived;
    add staging/release branches only when genuinely needed.
 3. **A pipeline that builds (DEPLOY-03/04).** Automate build → test/lint → deploy → rollback. Run

@@ -1,5 +1,18 @@
 # Changelog
 
+## 2.9.0
+
+Three new lessons folded in:
+- `api-design`: new **APID-11** — return only what the client needs: opaque identifiers instead of
+  sequential/internal IDs (enumeration via incrementing is one API call away), explicit response
+  shapes instead of `SELECT *`-to-JSON, and the API as the first impression technical buyers judge.
+  (Global mirror synced.)
+- `deployment-cicd`: DEPLOY-01 tightened — staging only counts if it mirrors production (schema,
+  services, env vars), with tests gating automatic promotion.
+- `cost-infrastructure`: serverless vs containers as a maturity decision — the convenience-premium
+  vs ops-burden gap analysis, and the hybrid answer (serverless request/response, containers for
+  background work, dedicated for scheduled jobs).
+
 ## 2.8.0
 
 Three new lessons folded in:

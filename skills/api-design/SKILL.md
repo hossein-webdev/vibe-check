@@ -13,7 +13,7 @@ user-invokable: true
 metadata:
   category: api-architecture
   parent: api-architecture
-  version: "2.7.0"
+  version: "2.9.0"
 ---
 
 # API Design
@@ -40,6 +40,7 @@ are not optional.
 | APID-08 | Unsafe operations accept an idempotency key (retries can't double-execute) | P2 (P1 for payments) |
 | APID-09 | Request id accepted/echoed (`X-Request-Id`) for tracing and support | P3 |
 | APID-10 | API is machine-consumable: structured, self-describing, ideally MCP-exposed for AI-assistant integration | P3 (P2 for platform/API products) |
+| APID-11 | Responses minimized: no internal/sequential IDs, no fields the client doesn't need | P1 if PII leaks / P2 otherwise |
 
 ## When to Use This Skill
 
@@ -100,7 +101,20 @@ endpoint — consumers write one error handler, not one per route.
 - Keep **at most two live versions**; deprecate with notice + a `Sunset` header, then `410 Gone`.
 - Publish the contract + a changelog per change (`api-architecture` API-03/05).
 
-### 7. Design for machine consumers (APID-10)
+### 7. Return only what the client needs (APID-11)
+Every endpoint is a door, and the generated default leaves it wide open — returning every field,
+every internal ID, every relationship. An attacker doesn't hack the database; they call the API and
+read the response:
+- **Sequential/internal IDs enable enumeration** — increment the number, walk every user. Expose
+  opaque identifiers (UUIDs), never raw database keys.
+- **Strip everything the client doesn't render** — a user endpoint returning email + phone +
+  billing address to any caller is a breach that required one request and JSON literacy. Explicit
+  response shapes (DTOs/serializers), never `SELECT *` piped to JSON.
+- **Your API is a first impression** — technical buyers evaluating an integration judge it before
+  any sales call. Unfiltered responses and sequential IDs read as immaturity, and they don't tell
+  you; they pick the competitor whose API looks intentional.
+
+### 8. Design for machine consumers (APID-10)
 The newest consumer of your API isn't a developer reading docs — it's an **AI assistant told to
 "integrate with this service."** MCP (Model Context Protocol) adoption has crossed tens of millions
 of monthly SDK downloads with thousands of indexed servers; assistants integrate with an
