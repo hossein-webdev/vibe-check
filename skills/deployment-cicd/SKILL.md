@@ -136,3 +136,7 @@ Big-bang releases [DEPLOY-05]:
 - **Do** release with canary + flags once real users exist.
 - **Don't** test features in production or accept a serial 45-minute pipeline.
 - **Don't** fight a free-tier timeout — graduate the compute.
+
+---
+
+<sub>(c) 2026 hossein-webdev - https://github.com/hossein-webdev/vibe-check - Licensed CC BY-NC-SA 4.0: attribution required, non-commercial, share-alike.</sub>

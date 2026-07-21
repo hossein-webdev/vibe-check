@@ -166,3 +166,7 @@ consistency, not cleverness.
 - **Do** paginate every list, standardize one error shape, and version from `/v1`.
 - **Don't** put verbs in URLs or invent a new response format per endpoint.
 - **Don't** let a retried request execute twice — idempotency keys on anything unsafe.
+
+---
+
+<sub>(c) 2026 hossein-webdev - https://github.com/hossein-webdev/vibe-check - Licensed CC BY-NC-SA 4.0: attribution required, non-commercial, share-alike.</sub>

@@ -113,3 +113,7 @@ restored fail at the worst possible moment.
 - **Do** write the 2am recovery steps in daylight.
 - **Don't** count an untested backup as a backup.
 - **Don't** let one dependency's failure freeze the whole app.
+
+---
+
+<sub>(c) 2026 hossein-webdev - https://github.com/hossein-webdev/vibe-check - Licensed CC BY-NC-SA 4.0: attribution required, non-commercial, share-alike.</sub>

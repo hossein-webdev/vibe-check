@@ -150,3 +150,7 @@ logging, change management) and give the prospect a timeline — scrambling read
 - **Do** treat deletion as a cross-table cascade with a tested proof.
 - **Don't** soft-delete and call it "deleted".
 - **Don't** wait for the deal to start SOC 2 evidence — by then it's too late.
+
+---
+
+<sub>(c) 2026 hossein-webdev - https://github.com/hossein-webdev/vibe-check - Licensed CC BY-NC-SA 4.0: attribution required, non-commercial, share-alike.</sub>

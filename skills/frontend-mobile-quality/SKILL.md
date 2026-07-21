@@ -87,3 +87,7 @@ screen-reader pass, Lighthouse mobile, and apostrophe/non-Latin input tests. Fix
 - **Do** test older devices, throttled networks, unusual input.
 - **Don't** judge quality by how it looks on your machine.
 - **Don't** ship mobile without configured deep links.
+
+---
+
+<sub>(c) 2026 hossein-webdev - https://github.com/hossein-webdev/vibe-check - Licensed CC BY-NC-SA 4.0: attribution required, non-commercial, share-alike.</sub>

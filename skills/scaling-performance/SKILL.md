@@ -127,3 +127,7 @@ tree is how a $0 fix becomes a five-figure infra bill.
 - **Do** cache hot reads and background heavy work with idempotency.
 - **Don't** buy infrastructure before `pg_stat_statements` has spoken.
 - **Don't** add replicas for a write bottleneck — they make it worse.
+
+---
+
+<sub>(c) 2026 hossein-webdev - https://github.com/hossein-webdev/vibe-check - Licensed CC BY-NC-SA 4.0: attribution required, non-commercial, share-alike.</sub>

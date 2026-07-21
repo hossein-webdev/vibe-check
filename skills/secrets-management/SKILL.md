@@ -102,3 +102,7 @@ No — the file lives in history. [SEC-03]:
 - **Do** keep secrets server-side, in a manager, short-lived where possible.
 - **Don't** put real secrets in `NEXT_PUBLIC_*` / `VITE_*` / client code — ever.
 - **Don't** confuse untracking a file with revoking its contents.
+
+---
+
+<sub>(c) 2026 hossein-webdev - https://github.com/hossein-webdev/vibe-check - Licensed CC BY-NC-SA 4.0: attribution required, non-commercial, share-alike.</sub>

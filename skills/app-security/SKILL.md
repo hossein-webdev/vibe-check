@@ -150,3 +150,7 @@ Your app likely shares a template with thousands of others — the scan finds th
 - **Do** run at least one ZAP scan — the monoculture means your holes are already catalogued.
 - **Don't** query user data with the service role; don't trust generated input handling.
 - **Don't** feed the AI anything you haven't read (prompts are supply chain now).
+
+---
+
+<sub>(c) 2026 hossein-webdev - https://github.com/hossein-webdev/vibe-check - Licensed CC BY-NC-SA 4.0: attribution required, non-commercial, share-alike.</sub>

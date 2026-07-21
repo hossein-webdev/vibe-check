@@ -102,3 +102,7 @@ Move to a dedicated store only when scale/latency measurements say so.
 - **Do** start multi-agent with one orchestrator; add memory deliberately.
 - **Don't** exact-match model output in CI.
 - **Don't** ship raw model output to users — or a model call in client code (→ llm-cost-control).
+
+---
+
+<sub>(c) 2026 hossein-webdev - https://github.com/hossein-webdev/vibe-check - Licensed CC BY-NC-SA 4.0: attribution required, non-commercial, share-alike.</sub>

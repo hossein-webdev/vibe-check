@@ -107,3 +107,7 @@ Breaking changes get a new version, not a silent edit.
 - **Do** document contracts and changes.
 - **Don't** let the front-end query the database directly.
 - **Don't** ship breaking API changes without a version bump and a changelog entry.
+
+---
+
+<sub>(c) 2026 hossein-webdev - https://github.com/hossein-webdev/vibe-check - Licensed CC BY-NC-SA 4.0: attribution required, non-commercial, share-alike.</sub>

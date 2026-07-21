@@ -163,3 +163,7 @@ checkout every 5 min, [OBS-08] DLQ so a 200-but-failed webhook waits for you ins
 - **Don't** rely on page reloads or unstructured console output.
 - **Don't** assume no errors = no failures; the expensive ones never throw.
 - **Don't** quote "99% uptime" without doing the math (that's 3.6 days a year down).
+
+---
+
+<sub>(c) 2026 hossein-webdev - https://github.com/hossein-webdev/vibe-check - Licensed CC BY-NC-SA 4.0: attribution required, non-commercial, share-alike.</sub>

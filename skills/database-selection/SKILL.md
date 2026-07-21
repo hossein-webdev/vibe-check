@@ -131,3 +131,7 @@ bottleneck here because writes stay in Postgres.
 - **Do** know each platform's ceiling before you hit it.
 - **Don't** pick by hype or tutorial momentum.
 - **Don't** confuse choosing a database with choosing an ecosystem — both are fine, but know which.
+
+---
+
+<sub>(c) 2026 hossein-webdev - https://github.com/hossein-webdev/vibe-check - Licensed CC BY-NC-SA 4.0: attribution required, non-commercial, share-alike.</sub>

@@ -131,3 +131,7 @@ Own the data / self-host → BetterAuth (you run UI + reliability). Never hand-r
 - **Do** explicitly test cross-user and cross-tenant access.
 - **Don't** rely on hidden UI as a permission; don't trust generated auth unverified.
 - **Don't** ship never-expiring tokens or client-only logout.
+
+---
+
+<sub>(c) 2026 hossein-webdev - https://github.com/hossein-webdev/vibe-check - Licensed CC BY-NC-SA 4.0: attribution required, non-commercial, share-alike.</sub>

@@ -152,3 +152,7 @@ Bottom line: fix the webhook failure path before anything else — it silently e
 - **Do** end with the score header, gap table, and finding cards — every run, same shape.
 - **Don't** present unverified suspicions as gaps — downgrade to 🔎 Verify.
 - **Don't** nitpick a mature app to look thorough; green is a valid audit result.
+
+---
+
+<sub>(c) 2026 hossein-webdev - https://github.com/hossein-webdev/vibe-check - Licensed CC BY-NC-SA 4.0: attribution required, non-commercial, share-alike.</sub>

@@ -113,3 +113,7 @@ against the provider daily.
 - **Do** reconcile your orders against the provider on a schedule.
 - **Don't** return 2xx for a failed charge — that's how revenue disappears silently.
 - **Don't** hand-build billing or price before knowing cost-to-serve.
+
+---
+
+<sub>(c) 2026 hossein-webdev - https://github.com/hossein-webdev/vibe-check - Licensed CC BY-NC-SA 4.0: attribution required, non-commercial, share-alike.</sub>

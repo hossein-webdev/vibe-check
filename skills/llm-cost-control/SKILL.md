@@ -97,3 +97,7 @@ Never call the model from the browser [LLM-06] — that publishes your key and y
 - **Do** meter token cost per user/feature from day one.
 - **Don't** leave an AI endpoint public and uncapped.
 - **Don't** ever ship a provider key or model call in client code.
+
+---
+
+<sub>(c) 2026 hossein-webdev - https://github.com/hossein-webdev/vibe-check - Licensed CC BY-NC-SA 4.0: attribution required, non-commercial, share-alike.</sub>

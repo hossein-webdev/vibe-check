@@ -123,3 +123,7 @@ why handed-over AI codebases feel hostile.
 - **Do** match effort to stage (1k features / 10k operations / 100k architecture).
 - **Don't** mistake "the happy path works" for "ready" — you may have 2 of 13 layers.
 - **Don't** ship AI code unreviewed; it carries 2–3× the vulnerabilities.
+
+---
+
+<sub>(c) 2026 hossein-webdev - https://github.com/hossein-webdev/vibe-check - Licensed CC BY-NC-SA 4.0: attribution required, non-commercial, share-alike.</sub>

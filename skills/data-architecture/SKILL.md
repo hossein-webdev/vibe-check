@@ -108,3 +108,7 @@ Keeps the DB fast, backups small, and images cached at the edge.
 - **Do** keep files in object storage; version every schema change.
 - **Don't** edit production schema by hand or store blobs in rows.
 - **Don't** leave conflict handling to "last write wins" in collaborative features.
+
+---
+
+<sub>(c) 2026 hossein-webdev - https://github.com/hossein-webdev/vibe-check - Licensed CC BY-NC-SA 4.0: attribution required, non-commercial, share-alike.</sub>

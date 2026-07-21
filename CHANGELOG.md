@@ -1,5 +1,17 @@
 # Changelog
 
+## 3.0.0
+
+**License change (the reason for the major bump):**
+- Relicensed from MIT to **CC BY-NC-SA 4.0**: visible attribution to hossein-webdev required,
+  no commercial use, derivatives must carry the same license. Versions prior to v3.0.0 remain
+  available under MIT for those versions only.
+- Every SKILL.md now carries an attribution/license footer (skills travel as single files; the
+  notice travels with them).
+- `plugin.json` license updated to `CC-BY-NC-SA-4.0`; README badge + license section updated.
+
+No content/rule changes in this release.
+
 ## 2.9.0
 
 Three new lessons folded in:

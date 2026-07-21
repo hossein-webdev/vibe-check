@@ -6,9 +6,9 @@
 
 **A linter-grade production-readiness audit for vibe-coded (AI-generated) apps — packaged as 19 Claude Code skills.**
 
-[![Version](https://img.shields.io/badge/version-2.9.0-blue)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-3.0.0-blue)](CHANGELOG.md)
 [![Skills](https://img.shields.io/badge/skills-19-8A2BE2)](#-the-skills)
-[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![License: CC BY-NC-SA 4.0](https://img.shields.io/badge/license-CC%20BY--NC--SA%204.0-lightgrey)](LICENSE)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-plugin-D97757)](https://code.claude.com/docs/en/plugins)
 [![Node](https://img.shields.io/badge/scanner-Node%20%E2%89%A518%2C%20zero%20deps-339933)](skills/audit/scripts/scan.mjs)
 
@@ -171,7 +171,8 @@ Issues and PRs welcome. House style:
 
 ## License
 
-[MIT](LICENSE) — use it, fork it, ship safer apps.
+[CC BY-NC-SA 4.0](LICENSE) — use it freely, credit **hossein-webdev**, keep it non-commercial, and
+share adaptations under the same license. (Versions before v3.0.0 remain MIT for those versions.)
 
 <div align="center">
 <sub>Built for the era where anyone can generate an app — and everyone still has to run one.</sub>

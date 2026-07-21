@@ -94,3 +94,7 @@ capacity genuinely exists.)
 - **Do** match hosting to stage and revisit as you grow.
 - **Don't** pick hosting by hype or self-host purely to shrink the invoice.
 - **Don't** treat infrastructure as fixed — it scales with usage.
+
+---
+
+<sub>(c) 2026 hossein-webdev - https://github.com/hossein-webdev/vibe-check - Licensed CC BY-NC-SA 4.0: attribution required, non-commercial, share-alike.</sub>
