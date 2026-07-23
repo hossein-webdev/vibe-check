@@ -125,7 +125,7 @@ Interpreting output — the scanner reports **facts, not findings**; you judge:
 | DBS- | database-selection | | APID- | api-design |
 | AI- | ai-engineering | | FE- | frontend-mobile-quality |
 | LLM- | llm-cost-control | | COST- | cost-infrastructure |
-| — | — | | PAY- | monetization-pricing |
+| SOL- | solidity-security | | PAY- | monetization-pricing |
 
 Every rule ID is defined exactly once, in a `## Rules` table inside its owning skill. The audit cites
 IDs; the owning skill carries the full check + fix playbook.

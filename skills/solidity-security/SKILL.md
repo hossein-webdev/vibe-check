@@ -298,3 +298,7 @@ Fix: add `nonReentrant` to `claim()` as well, or reset `pending` before the exte
 | Use EIP-1967 slots in upgradeable contracts | Let implementation variables collide with proxy slots |
 | Record balance delta for deposits (fee-on-transfer safe) | Trust the `amount` parameter as what was received |
 | Write Foundry fuzz tests for arithmetic and invariants | Rely on human review for precision-loss bugs |
+
+---
+
+<sub>(c) 2026 hossein-webdev - https://github.com/hossein-webdev/vibe-check - Licensed CC BY-NC-SA 4.0: attribution required, non-commercial, share-alike.</sub>

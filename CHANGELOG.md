@@ -1,5 +1,17 @@
 # Changelog
 
+## 3.1.0
+
+- New skill: **`solidity-security`** (SOL-01..10) — a smart-contract / EVM audit covering the
+  vulnerability classes that recur in competitive audit findings: reentrancy (incl. cross-function),
+  access control (tx.origin trap), oracle manipulation (spot vs TWAP, Chainlink staleness),
+  arithmetic precision, unchecked return values (SafeERC20), flash-loan surface, MEV/front-running,
+  signature replay (EIP-712), proxy safety (EIP-1967), and dangerous token integrations
+  (fee-on-transfer, rebase, pausable, ERC-777). Self-contained, no external calls; fix playbook with
+  paste-able Solidity. Community contribution via PR #2. Pack: 19 → 20 skills.
+- `audit`: new matrix row routing smart-contract concerns to `solidity-security`; `SOL-` added to
+  the rule-ID namespace table.
+
 ## 3.0.0
 
 **License change (the reason for the major bump):**

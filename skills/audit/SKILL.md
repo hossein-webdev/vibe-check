@@ -76,6 +76,7 @@ in a component is not.
 | Compliance & legal | Personal data / B2B / app store | `compliance-legal` |
 | API & backend boundary | A backend/API the client calls | `api-architecture` |
 | API surface design | Endpoints consumed by clients/partners (naming, codes, pagination, versioning) | `api-design` |
+| Smart-contract security | The app includes Solidity / EVM smart contracts | `solidity-security` |
 | Frontend & mobile quality | There's a UI (deep links only if mobile) | `frontend-mobile-quality` |
 | Cost & infrastructure | Infra usage is non-trivial | `cost-infrastructure` |
 | Monetization & billing | The app charges money | `monetization-pricing` |
