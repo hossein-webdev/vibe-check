@@ -34,6 +34,7 @@ these are requirements, not preferences.
 | LEGAL-07 | Platform ToS read: you know each provider's liability cap and your exposure above it | P3 |
 | LEGAL-08 | Pre-revenue document set complete: ToS, privacy policy, DPA, refund policy, MSA (B2B) | P2 before first payment |
 | LEGAL-09 | Security-questionnaire answers prepared + a public security page (before the questionnaire arrives) | P2 if selling B2B |
+| LEGAL-10 | Retention obligations mapped: law-required records kept (separate from user-controlled data), with an audit trail | P1 in regulated sectors |
 
 ## When to Use This Skill
 
@@ -90,6 +91,22 @@ downloaded template protects nobody):
       confirm removal within the regulatory window — if you can't produce that report, you have
       legal exposure you don't know about.
 - [ ] The flow is documented and tested with a real account.
+
+### Retention — the flip side of deletion (LEGAL-10)
+Deletion and retention coexist and can conflict: some records you're **legally required to keep**
+(financial services, healthcare, tax, some legal agreements often demand retention up to ~7 years
+after the relationship ends), so a hard delete on request can *break the law*. A generator lumps all
+data together unless told not to:
+- [ ] **Separate the two categories.** User-controlled data → anonymize/delete on request;
+      law-required records → a separate retention layer, locked, with an expiration date attached.
+- [ ] **Map a retention schedule to your actual obligations** — it varies by industry, jurisdiction,
+      and record type (payment records ≠ user communications). This requires research specific to
+      your business; nothing decides it for you.
+- [ ] **Keep an audit trail** proving what was retained vs anonymized, when the clock started, and
+      when it expires — when a regulator asks (and in regulated sectors they will), a policy without
+      logs is a promise with no proof.
+- [ ] Reconcile with the deletion flow above: a GDPR/CCPA deletion request must purge the
+      user-controlled data while leaving the legally-mandated records in the retention layer.
 
 ### The security questionnaire (LEGAL-09)
 The buyer's security team evaluates you **before** the contract — and a failed questionnaire ends

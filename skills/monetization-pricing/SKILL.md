@@ -33,6 +33,8 @@ Skip if the app is free. Freedom: **low on the webhook path** (money), medium on
 | PAY-05 | Full lifecycle handled: success, failure, refund, plan change | P2 |
 | PAY-06 | Pricing decided from cost-to-serve + tiering (structural, not a guess) | P3 |
 | PAY-07 | Usage events tracked from day one (enables usage/credit pricing later) | P3 |
+| PAY-08 | Dispute defense ready: published refund policy, chargeback-rate alerts, response workflow | P1 (a freeze halts all payouts) |
+| PAY-09 | Dunning built: staggered retries, failed-payment email sequence, grace period before cancel | P2 |
 
 ## When to Use This Skill
 
@@ -58,7 +60,29 @@ Skip if the app is free. Freedom: **low on the webhook path** (money), medium on
       dashboard on a schedule.
 - [ ] **Handle the whole lifecycle**: success, failure, refund, plan change, cancellation.
 
-### 3. Pricing as structure (PAY-06, PAY-07)
+### 3. Protect the revenue from disputes (PAY-08)
+Your first chargeback can **freeze the entire payment-processor balance** — rent, payroll, servers —
+so this exists before the first dispute, not after:
+- [ ] A **published refund policy** matching your real terms, linked from checkout and visible
+      before payment. With no published policy, the processor sides with the customer every time.
+- [ ] **Chargeback-rate alerts** — processors let your dispute rate climb silently until it crosses
+      their threshold, then act (fines, holds, termination). Monitor the trend so you fix the cause
+      before they do.
+- [ ] A **dispute-response workflow** prepared in advance — a template preloaded with transaction
+      logs, delivery confirmations, and refund-policy screenshots. You get *days*, not weeks, to
+      respond with evidence; panicking from zero loses winnable disputes.
+
+### 4. Recover failed payments — dunning (PAY-09)
+An expired card fails a renewal, the app does nothing, and the subscription dies silently — the
+customer never knows. Lock the back door:
+- [ ] **Staggered retries** over 7–14 days (not one-and-done) to catch temporary declines and cards
+      that were reissued in that window. Stripe supports smart retries natively — enable them.
+- [ ] A **failed-payment email sequence** ("your payment failed → update your card") — recovers
+      ~30–40% of failed charges; the customer usually just doesn't know.
+- [ ] A **grace period** (7–14 days active) before cancellation, not an instant cutoff on first
+      failure.
+
+### 5. Pricing as structure (PAY-06, PAY-07)
 - [ ] Price from **value delivered** and **cost-to-serve**; a **credit system** can simplify billing
       across features. A price that shuts out half your market is usually a tiering/architecture
       problem, not a number problem.

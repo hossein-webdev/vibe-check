@@ -1,5 +1,17 @@
 # Changelog
 
+## 3.2.0
+
+Three new lessons folded in:
+- `monetization-pricing`: new **PAY-08** — dispute defense before the first chargeback (published
+  refund policy, chargeback-rate alerts, a prepared response workflow; a dispute can freeze the whole
+  processor balance); new **PAY-09** — dunning (staggered retries, failed-payment email sequence,
+  grace period before cancel; recovers 30–40% of failed charges).
+- `compliance-legal`: new **LEGAL-10** — retention obligations, the flip side of deletion: some
+  records are legally required to be kept (regulated sectors, up to ~7 years), so separate
+  user-controlled data from law-required records, map a schedule to your obligations, and keep an
+  audit trail.
+
 ## 3.1.0
 
 - New skill: **`solidity-security`** (SOL-01..10) — a smart-contract / EVM audit covering the
