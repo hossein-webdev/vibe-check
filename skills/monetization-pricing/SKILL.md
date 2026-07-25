@@ -35,6 +35,7 @@ Skip if the app is free. Freedom: **low on the webhook path** (money), medium on
 | PAY-07 | Usage events tracked from day one (enables usage/credit pricing later) | P3 |
 | PAY-08 | Dispute defense ready: published refund policy, chargeback-rate alerts, response workflow | P1 (a freeze halts all payouts) |
 | PAY-09 | Dunning built: staggered retries, failed-payment email sequence, grace period before cancel | P2 |
+| PAY-10 | Transactional email actually delivers: SPF/DKIM, sending domain split from marketing, inbox-placement monitoring | P2 (P1 once charging — a missing receipt reads as fraud) |
 
 ## When to Use This Skill
 
@@ -82,7 +83,22 @@ customer never knows. Lock the back door:
 - [ ] A **grace period** (7–14 days active) before cancellation, not an instant cutoff on first
       failure.
 
-### 5. Pricing as structure (PAY-06, PAY-07)
+### 5. Make the receipt arrive (PAY-10)
+The charge lands, the confirmation email doesn't, and a customer is staring at a bank line from a
+company they barely know with no proof of purchase — that's a chargeback and a cancellation, not a
+support ticket. Deliverability is infrastructure the generator never configured:
+- [ ] **SPF and DKIM on the sending domain** — without them, mail providers treat your receipts the
+      way they treat phishing. It "works" in development because your test inbox doesn't care; the
+      customer's provider does.
+- [ ] **Split transactional from marketing sending** — one domain (or subdomain) for receipts,
+      password resets, and alerts; another for newsletters. Otherwise marketing spam complaints
+      poison the reputation that carries your receipts and password resets.
+- [ ] **Monitor where mail actually lands** — a log line saying *delivered* only means a mail server
+      accepted it, not that a human inbox received it. Track inbox placement and spam-complaint
+      rates yourself; customers report deliverability failures via chargebacks, not emails
+      (pairs with `observability` OBS-06 business-metric alerting).
+
+### 6. Pricing as structure (PAY-06, PAY-07)
 - [ ] Price from **value delivered** and **cost-to-serve**; a **credit system** can simplify billing
       across features. A price that shuts out half your market is usually a tiering/architecture
       problem, not a number problem.

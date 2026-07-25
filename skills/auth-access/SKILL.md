@@ -31,7 +31,7 @@ every check below at maximum strictness — assume nothing.**
 | AUTH-01 | A dedicated auth provider is used (or hand-rolled auth fully verified) | P2 (P1 if hand-rolled + unverified) |
 | AUTH-02 | No plain-text passwords; strong hashing | P1 |
 | AUTH-03 | JWT: `alg:none` rejected, algorithm pinned, expiry enforced | P1 |
-| AUTH-04 | Sessions expire + rotate; logout invalidates server-side | P2 |
+| AUTH-04 | Sessions expire + rotate; logout invalidates server-side; concurrent-session cap; instant revocation on credential change | P2 (P1 for financial/health data) |
 | AUTH-05 | Cross-user access explicitly tested (A cannot fetch B's record) | P1 |
 | AUTH-06 | Access enforced at the API layer, not by hiding UI | P1 |
 | AUTH-07 | RBAC modeled permissions-first (roles = permission bundles) | P2 |
@@ -58,6 +58,17 @@ every check below at maximum strictness — assume nothing.**
 - [ ] Treat generated auth as unverified: no plain-text passwords, strong hashing, sane tokens.
 - [ ] JWTs: reject `none`, pin the algorithm, require expiry — closes the usual forgery paths.
 - [ ] Sessions expire and rotate; **logout invalidates server-side**, not just a client delete.
+- [ ] **Manage the session, not just the login.** Frameworks default to sessions that effectively
+      never end, and the generator keeps the default — so a login from six months ago (or the laptop
+      lost at a café) still has full access right now:
+      - **Pick a lifetime from data sensitivity** — financial or health data: hours; low-risk
+        content: days. That's an engineering decision you make, not a default you inherit.
+      - **Cap concurrent sessions per user** — one account live on fifteen devices is invisible
+        otherwise, and stolen credentials ride an existing session while the real user notices
+        nothing.
+      - **Revoke instantly on credential change** — a password change must kill *every* active
+        session for that user immediately, not at the next token refresh. Otherwise the reset is a
+        false sense of security while the attacker keeps their session.
 - [ ] **Handle the full token lifecycle**, not just the initial login (the generated OAuth gap that
       dumps users to a login screen mid-work every hour):
       - **silent refresh** — renew the access token in the background before its ~60-minute expiry;

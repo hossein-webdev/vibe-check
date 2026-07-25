@@ -35,6 +35,7 @@ these are requirements, not preferences.
 | LEGAL-08 | Pre-revenue document set complete: ToS, privacy policy, DPA, refund policy, MSA (B2B) | P2 before first payment |
 | LEGAL-09 | Security-questionnaire answers prepared + a public security page (before the questionnaire arrives) | P2 if selling B2B |
 | LEGAL-10 | Retention obligations mapped: law-required records kept (separate from user-controlled data), with an audit trail | P1 in regulated sectors |
+| LEGAL-11 | Sales-tax/VAT exposure mapped; tax collected at checkout; remittance calendar in place | P1 once selling across jurisdictions |
 
 ## When to Use This Skill
 
@@ -119,6 +120,23 @@ deals with silence, not rejection:
       pen-test report together answer more procurement questions than any sales deck.
 - [ ] **A public security page** — encryption posture, audit cadence, pen-test schedule, IR plan,
       how to report a vulnerability. Costs nothing, answers half the questionnaire preemptively.
+
+### Sales tax / VAT (LEGAL-11)
+Selling a digital subscription to a customer in another state or country can create a tax obligation
+*there* — in the US it's called economic **nexus**, and the generator never raises it because it
+doesn't know the term or your footprint. The letter from a revenue department is the usual first
+notice:
+- [ ] **Map exposure** — pull the customer list by jurisdiction and compare against each one's
+      threshold. They differ wildly (roughly $100k in revenue in some states, ~200 transactions in
+      others, the first dollar of digital goods in a few; VAT/GST rules elsewhere have their own
+      registration triggers).
+- [ ] **Collect at checkout** — Stripe Tax and its equivalents are built into the processor you
+      already use, but stay **off** unless you enable them. Wiring it up is an afternoon; unwinding
+      years of uncollected obligations is not.
+- [ ] **Keep a remittance calendar** — collecting without remitting is a liability, not an oversight.
+      Every jurisdiction sets its own filing frequency, deadlines, and late penalties.
+- [ ] **Verify against your own jurisdictions** — thresholds and digital-goods rules change; treat
+      this checklist as the prompt to confirm, not as tax advice.
 
 ### Enterprise readiness (LEGAL-04)
 - [ ] SOC 2 understood as a **trust report with a long runway** — not a feature you add in a week.

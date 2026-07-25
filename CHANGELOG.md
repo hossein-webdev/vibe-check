@@ -1,5 +1,20 @@
 # Changelog
 
+## 3.3.0
+
+Three new lessons folded in:
+- `auth-access`: AUTH-04 expanded into full **session management** — pick a session lifetime from
+  data sensitivity (hours for financial data, days for low-risk content) instead of the framework's
+  forever-default, cap concurrent sessions per user, and revoke every session instantly on a
+  credential change (otherwise a password reset is a false sense of security).
+- `monetization-pricing`: new **PAY-10** — transactional email deliverability: SPF/DKIM on the
+  sending domain, transactional sending split from marketing, and inbox-placement monitoring
+  (a "delivered" log line only means a mail server accepted it). A missing receipt reads as fraud
+  and returns as a chargeback.
+- `compliance-legal`: new **LEGAL-11** — sales tax / VAT: map economic-nexus exposure by
+  jurisdiction, enable tax collection at checkout (built into the processor but off by default),
+  and keep a remittance calendar — collecting without remitting is a liability.
+
 ## 3.2.0
 
 Three new lessons folded in:
