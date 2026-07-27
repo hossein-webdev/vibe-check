@@ -1,5 +1,19 @@
 # Changelog
 
+## 3.4.0
+
+Three new lessons folded in:
+- `reliability-recovery`: new **REL-07** — incident communication: a status page on *separate*
+  infrastructure (hosted on your own stack it goes down with you), maintenance announced in advance,
+  and an incident-comms workflow prepared before the outage. Silence turns a technical problem into
+  a trust problem.
+- `auth-access`: AUTH-10 expanded to audit the **provider**, not just the integration — can it do
+  SAML/SSO at all, can it produce its own compliance documentation for the buyer's vendor audit, and
+  what does migrating off it cost before you're locked in.
+- `compliance-legal`: new **LEGAL-12** — health data (HIPAA/PHI): encryption everywhere it lands
+  including **logs, backups, and exports**, per-record access audit trails (role-based access alone
+  isn't enough), and a BAA with every third party that can see it.
+
 ## 3.3.0
 
 Three new lessons folded in:

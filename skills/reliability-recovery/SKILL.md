@@ -31,6 +31,7 @@ Skip for throwaway or no-data apps. Freedom: **medium**.
 | REL-04 | Availability planned: health checks, alerting, written recovery steps | P2 |
 | REL-05 | Backup schedule + retention policy exist; single-DB/single-region risk is a conscious decision | P1 with user data |
 | REL-06 | Post-mortem discipline: template ready before the first incident, blameless review within 48h, incident library | P3 (P2 with paying users) |
+| REL-07 | Status page on separate infrastructure + maintenance announcements + incident-comms workflow | P2 with paying users |
 
 ## When to Use This Skill
 
@@ -64,7 +65,18 @@ Skip for throwaway or no-data apps. Freedom: **medium**.
    dependency can't queue you to death, and a **fallback** so one vendor can't take you down.
 4. **Plan availability (REL-04).** Define "up", add health checks + alerting (→ `observability`),
    and write the recovery steps *before* you need them at 2am.
-5. **Learn from every incident (REL-06).** The first incident arrives when you least expect it;
+5. **Tell people what's happening (REL-07).** Silence during an outage turns a technical problem
+   into a trust problem — customers who hear nothing assume the worst about where their money went:
+   - **A status page on separate infrastructure** — hosted on your own stack it goes down *with*
+     you, which is exactly when it's needed. A standalone page on another host takes about twenty
+     minutes, and "we know, and we're fixing it" is the difference between patience and a chargeback.
+   - **Announce maintenance in advance** — every app needs downtime; a scheduled window emailed to
+     active users and posted on the status page reads professional, an unannounced Tuesday-afternoon
+     outage reads amateur. People don't mind planned downtime, they mind surprises.
+   - **An incident-communication workflow, written before the incident** — updates at defined
+     intervals, notification to active users, and an estimated restoration time even when it's a
+     rough guess. Templates and triggers prepared in advance; nobody drafts good comms mid-outage.
+6. **Learn from every incident (REL-06).** The first incident arrives when you least expect it;
    having no process for *after* is the real failure:
    - **Template before trouble** — a five-field post-mortem (what happened / impact / root cause /
      blast radius / what fixed it / what prevents it) written calmly, not mid-panic;

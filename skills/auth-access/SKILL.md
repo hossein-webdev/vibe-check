@@ -37,7 +37,7 @@ every check below at maximum strictness — assume nothing.**
 | AUTH-07 | RBAC modeled permissions-first (roles = permission bundles) | P2 |
 | AUTH-08 | Tenant isolation is a deliberate strategy, backed by RLS | P1 if B2B |
 | AUTH-09 | Service-to-service credentials scoped + rotated | P2 |
-| AUTH-10 | Enterprise SSO ready (SAML 2.0/OIDC, per-tenant IdP config) | P2 if selling to enterprise |
+| AUTH-10 | Enterprise SSO ready (SAML 2.0/OIDC, per-tenant IdP config); provider's own compliance docs available; migration path known | P2 if selling to enterprise |
 
 ## When to Use This Skill
 
@@ -103,6 +103,16 @@ every check below at maximum strictness — assume nothing.**
       session management — *before* the checklist arrives, not after.
 - [ ] Design **multi-tenant SSO** from the start: every customer brings a different IdP. One
       integration pattern, per-tenant credentials and configuration.
+- [ ] **Audit the provider you chose, not just your integration.** The provider picked for the free
+      tier and the nicest developer docs gets examined by the buyer's security team, who ask a
+      different set of questions:
+      - **Can it do SAML/SSO at all?** Enterprises don't create accounts on your platform — they
+        authenticate through their own IdP. Asking a 10,000-employee company to manage separate
+        credentials loses to the competitor that doesn't.
+      - **Can the provider produce its own compliance documentation?** Procurement audits your whole
+        *vendor* stack; a provider with nothing to show gets flagged as risk and the deal stalls.
+      - **What does leaving cost?** Know the migration path *before* thousands of paying users sit
+        on a provider you've outgrown — evaluating it later is exponentially harder.
 
 ### 6. Machine-to-machine (AUTH-09)
 - [ ] Services prove their own identity; a leaked service token is high blast radius — scope

@@ -36,6 +36,7 @@ these are requirements, not preferences.
 | LEGAL-09 | Security-questionnaire answers prepared + a public security page (before the questionnaire arrives) | P2 if selling B2B |
 | LEGAL-10 | Retention obligations mapped: law-required records kept (separate from user-controlled data), with an audit trail | P1 in regulated sectors |
 | LEGAL-11 | Sales-tax/VAT exposure mapped; tax collected at checkout; remittance calendar in place | P1 once selling across jurisdictions |
+| LEGAL-12 | Health data (HIPAA/PHI): encrypted everywhere incl. logs/backups/exports, per-record access audit trail, BAAs with every third party | P1 if the app touches health data |
 
 ## When to Use This Skill
 
@@ -120,6 +121,22 @@ deals with silence, not rejection:
       pen-test report together answer more procurement questions than any sales deck.
 - [ ] **A public security page** — encryption posture, audit cadence, pen-test schedule, IR plan,
       how to report a vulnerability. Costs nothing, answers half the questionnaire preemptively.
+
+### Health data — HIPAA and equivalents (LEGAL-12)
+The moment the app touches protected health information — patient records, student health data — it
+falls under federal regulation, and the generator never asks. Penalties scale from roughly $100 per
+violation into the millions, and a single complaint can trigger an investigation:
+- [ ] **Encrypt PHI at rest and in transit — everywhere it lands.** Not just the database:
+      **backups, logs, and exports** too. The classic failure is an encrypted database with PHI
+      sitting in plain text in application logs; one log file is enough.
+- [ ] **Access controls *plus* an audit trail per record** — who accessed it, when, from where, and
+      what they did. Regulators expect this on demand, and role-based access without the paper trail
+      doesn't satisfy the requirement.
+- [ ] **A BAA (business associate agreement) with every third party that can see PHI** — hosting,
+      email, analytics, error tracking. Integrating six services and signing zero agreements means
+      their breach becomes your liability with no contract defining obligations.
+- [ ] Same shape applies to other regulated data (financial, children's, biometric) — identify which
+      regime you're under *before* launch, not after the first complaint.
 
 ### Sales tax / VAT (LEGAL-11)
 Selling a digital subscription to a customer in another state or country can create a tax obligation
