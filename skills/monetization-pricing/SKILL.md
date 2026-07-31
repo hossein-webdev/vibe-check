@@ -36,6 +36,7 @@ Skip if the app is free. Freedom: **low on the webhook path** (money), medium on
 | PAY-08 | Dispute defense ready: published refund policy, chargeback-rate alerts, response workflow | P1 (a freeze halts all payouts) |
 | PAY-09 | Dunning built: staggered retries, failed-payment email sequence, grace period before cancel | P2 |
 | PAY-10 | Transactional email actually delivers: SPF/DKIM, sending domain split from marketing, inbox-placement monitoring | P2 (P1 once charging — a missing receipt reads as fraud) |
+| PAY-11 | Multi-currency checkout enabled when customers are international (processors support it; the default is one currency) | P2 if selling abroad |
 
 ## When to Use This Skill
 

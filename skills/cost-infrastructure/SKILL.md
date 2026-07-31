@@ -29,6 +29,7 @@ Skip while usage is trivial. Model/API spend → `llm-cost-control`. Freedom: **
 | COST-02 | Cost per user known and compared to price per user | P2 |
 | COST-03 | Hosting matches the stage (managed/serverless early; dedicated when steady-heavy) | P3 |
 | COST-04 | Self-hosted vs managed decided on team capacity + uptime needs, not sticker price | P3 |
+| COST-05 | Customer ceiling documented: what size customer the current stack can serve, and what leveling up requires | P3 (P2 when chasing enterprise) |
 
 ## When to Use This Skill
 
@@ -50,7 +51,19 @@ Skip while usage is trivial. Model/API spend → `llm-cost-control`. Freedom: **
 4. **Self-hosted vs managed, deliberately (COST-04).** One costs money, the other costs time. Weigh
    team capacity to operate it, uptime needs, and required control — don't self-host to save cash
    you'll repay in operations hours.
-5. **Serverless vs containers is a maturity decision, not a technology one.** Serverless charges a
+5. **Know your customer ceiling (COST-05).** The stack you picked doesn't just set your bill — it
+   sets the largest customer you can serve, and most builders never find out where that line is:
+   - The **bundled managed stack is the right foundation for your first ~10 customers**. Small
+     businesses don't care where the servers live, and those platforms bring SLAs, support, and
+     certifications you couldn't earn yourself in two years.
+   - **Enterprise isn't the next customer up — it's several evolutions away.** Procurement asks
+     where data lives, who owns it, who can access it, whether you can deploy into their VPC, and
+     for a SOC 2 attestation (→ `compliance-legal` LEGAL-04/09). Answering that means owning
+     infrastructure, security, and support contracts — an organizational build measured in years.
+   - **Write the ceiling down now**: what size customer you can serve today, what compliance you can
+     meet today, and what would have to change to level up. Builders who know their ceiling close
+     deals; builders who pretend they have none lose to questions they can't answer.
+6. **Serverless vs containers is a maturity decision, not a technology one.** Serverless charges a
    per-unit premium to manage *nothing* — the right deal early, when your time is worth more than
    the premium. Containers cost less per unit but someone must monitor, scale, and deploy them; if
    that someone is also the founder/sales/support, the ops burden costs more in lost focus than the

@@ -126,6 +126,17 @@ MCP-speaking service in minutes and route around ones that need an integration t
 - Treat discoverability as a distribution channel: the builder who never reads documentation still
   picks the product their assistant could wire up in five minutes.
 
+**And the same shift is reaching your product pages, not just your API.** Agents now compare
+products, read pricing, and complete purchases with no human ever visiting the site. A human reads
+copy and decides emotionally; an agent reads **structured data** and decides logically:
+- **Publish machine-readable product data** — schema markup, clean pricing tables, parseable specs.
+  A beautiful page with no structured data underneath is invisible to an agent.
+- **Expose the criteria agents filter on** that you never thought to publish — uptime guarantees,
+  integration lists, security certifications, data-export capability. Missing information gets
+  assumed or gets you skipped.
+- **Check how you're actually described**: ask the major assistants to recommend a product in your
+  category. If you don't appear, you don't exist to that channel.
+
 ## Fix playbook
 
 ```text

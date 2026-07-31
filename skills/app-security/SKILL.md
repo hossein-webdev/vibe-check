@@ -38,6 +38,7 @@ Freedom: **low** — run the checks exactly.
 | SEC-08 | Input validated/escaped — XSS defended | P1 |
 | SEC-09 | At least one self pen-test run (OWASP ZAP / Burp) before launch | P2 |
 | SEC-10 | AI/prompt supply chain triaged by trust tier; nothing unvetted in prod | P2 |
+| SEC-11 | Production errors return generic messages; stack traces and internals only in server-side logs | P2 |
 
 ## When to Use This Skill
 
@@ -82,7 +83,13 @@ beats none.
          what would break;
       3. **Then enforce** — whitelist exactly the domains allowed to load scripts; the browser
          blocks the rest before execution.
-- [ ] All input validated/escaped — assume generated code does **not** defend XSS.
+- [ ] All input validated/escaped — assume generated code does **not** defend XSS. Validate **every**
+      endpoint, not just the login form: every form, API parameter, and query string. The generator
+      validates what it expects a user to send; an attacker sends what it never imagined.
+- [ ] **Errors don't leak internals (SEC-11)** — a production stack trace tells an attacker your
+      framework, your database, and exactly where the code failed. The generator wrote error
+      handling for *debugging*, not for production: return **generic messages to users**, keep the
+      detail in **server-side logs** only.
 
 ### Prove it (SEC-09)
 - [ ] **Order matters: audit first, pen test second.** Run the full production audit (→ `audit`),

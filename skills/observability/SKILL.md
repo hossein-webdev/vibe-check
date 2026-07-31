@@ -48,6 +48,7 @@ Skip for a purely static site. Freedom: **medium** — adapt tools to the stack.
 | OBS-11 | SLOs defined with an error budget that gates release pace | P3 (P2 at scale) |
 | OBS-12 | Session replays wired to error events; rage-clicks flagged as UX failures | P3 |
 | OBS-13 | Support tickets triaged by root cause weekly; repeated causes escalate to engineering | P3 |
+| OBS-14 | Audit trail on sensitive actions (plan changes, email changes, deletions, permission edits) | P2 (P1 with billing or regulated data) |
 
 ## When to Use This Skill
 
@@ -124,6 +125,14 @@ against a green 99%-uptime dashboard is a bug report, not a service queue:
 3. **Weekly 30-minute review:** group the last 7 days by root cause — five "wrong dashboard data"
    tickets point at caching; three "payment failed" tickets point at a webhook returning 200
    (PAY-04). Read it like a dashboard, treat it like a task list.
+
+### Layer 7 — keep the receipts (OBS-14)
+
+The generator built the *actions* but never the record of them. Log every sensitive action —
+**plan/subscription changes, email changes, deletions, permission edits** — with who did it, when,
+and from where. Without that trail, "I never authorized that charge" has no answer and an
+accidental deletion can't be traced back. (Regulated data raises this from good practice to a
+requirement → `compliance-legal` LEGAL-12.)
 
 ## Fix playbook
 

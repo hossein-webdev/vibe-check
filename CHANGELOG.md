@@ -1,5 +1,28 @@
 # Changelog
 
+## 3.5.0
+
+Nine lessons folded in (a backlog batch):
+- `production-readiness`: new **PROD-06** — break the endless-debugging loop by auditing the whole
+  stack first, then queueing work by **business risk** (money / data / legal), not by whatever broke
+  most recently.
+- `app-security`: new **SEC-11** — production errors return generic messages; stack traces and
+  internals stay in server-side logs. Input validation extended to *every* endpoint, not just forms.
+- `observability`: new **OBS-14** — audit trail on sensitive actions (plan changes, email changes,
+  deletions, permission edits): the generator built the actions but never the receipts.
+- `frontend-mobile-quality`: new **FE-06** — build for where customers actually are: locale-aware
+  formatting and per-user timezone for scheduled messages.
+- `monetization-pricing`: new **PAY-11** — multi-currency checkout (processors support scores of
+  currencies; the default is one).
+- `cost-infrastructure`: new **COST-05** — document your **customer ceiling**: the bundled stack is
+  right for the first ~10 customers, enterprise procurement is several evolutions away, and knowing
+  the line closes deals.
+- `api-design`: APID-10 extended — agents as customers: publish machine-readable product data,
+  expose the criteria agents filter on, and check how assistants actually describe you.
+  (Global mirror synced.)
+- `deployment-cicd`: DEPLOY-01 — the shared dev/prod failure mode spelled out (one database, one
+  key set, test accounts beside paying customers).
+
 ## 3.4.0
 
 Three new lessons folded in:

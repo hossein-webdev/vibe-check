@@ -31,6 +31,7 @@ Applies to anything with a UI (deep links only if mobile). Freedom: **medium**.
 | FE-03 | Performant on throttled network + low-end device | P2 |
 | FE-04 | Tested under hostile conditions: old Android/Safari, special-character input | P2 |
 | FE-05 | Mobile deep links configured (universal/app links) — N/A if web-only | P2 if mobile |
+| FE-06 | Locale-aware formatting (dates, numbers, currency, addresses) + per-user timezone for scheduled messages | P2 if users are international |
 
 ## When to Use This Skill
 
@@ -50,6 +51,15 @@ Applies to anything with a UI (deep links only if mobile). Freedom: **medium**.
 3. **Fix deep links (FE-05).** Without universal links (iOS) / app links (Android) — association
    files plus handlers — shared URLs open in a browser tab and users bounce instead of landing
    in-app.
+4. **Build for where your customers actually are (FE-06).** The generator builds for *your* country
+   because that's what the tutorials use — hard-coded date formats, one currency, your timezone —
+   and international users quietly give up rather than complain:
+   - **Locale-aware formatting everywhere** — dates, times, numbers, currency, addresses. One
+     American date format tells a user in London the product wasn't built for them.
+   - **Per-user timezone for anything scheduled** — capture the timezone at signup and fire emails,
+     notifications, and renewal reminders relative to *theirs*. A 3am reminder isn't a reminder.
+   - **Multi-currency at checkout** → `monetization-pricing` PAY-11; processors support scores of
+     currencies, but default to one unless told otherwise.
 
 ## Fix playbook
 

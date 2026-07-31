@@ -37,6 +37,7 @@ Freedom: **high** — principles to adapt, not rigid steps.
 | PROD-03 | Non-obvious knowledge written down (decisions+why, env/secrets setup, shortcuts) | P2 |
 | PROD-04 | Effort matches stage (features → operations → architecture as users grow) | P3 |
 | PROD-05 | Support system exists before the first customer: per-feature playbooks + tiered escalation | P2 at launch |
+| PROD-06 | Work queued by business risk (money / data / legal) — audit first, then fix in priority order | P2 |
 
 ## When to Use This Skill
 
@@ -84,7 +85,16 @@ Freedom: **high** — principles to adapt, not rigid steps.
      refund, acknowledge); the feature request disguised as a bug report (works as designed, read
      the intent); the angry email that isn't about the stated issue (read the history, pick up the
      phone). Build the 70% precisely to buy time for the 30% — that's where trust is earned.
-7. **Dispatch the specifics.** Run `audit` to see which layers apply; this skill sets the posture,
+7. **Break the endless-debugging loop (PROD-06).** The weekend build followed by three months of
+   debugging isn't failure — it's the gap between *building* and *engineering* becoming visible. You
+   asked the generator to build; you never asked it to verify, secure, or handle the unexpected, so
+   each week surfaces another missing layer. The hole was always that deep. Two moves end the loop:
+   - **Audit the whole stack before fixing anything else** — map every area at once instead of
+     chasing whatever broke most recently (run `audit`).
+   - **Queue by business risk, not recency** — what can *lose money*, *lose data*, or *get you sued*
+     goes first; everything else takes a number. That's the difference between panicked debugging
+     and engineering with a plan.
+8. **Dispatch the specifics.** Run `audit` to see which layers apply; this skill sets the posture,
    the domain skills do the work.
 
 ## Fix playbook
