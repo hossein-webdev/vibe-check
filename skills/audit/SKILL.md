@@ -77,6 +77,7 @@ in a component is not.
 | API & backend boundary | A backend/API the client calls | `api-architecture` |
 | API surface design | Endpoints consumed by clients/partners (naming, codes, pagination, versioning) | `api-design` |
 | Smart-contract security | The app includes Solidity / EVM smart contracts | `solidity-security` |
+| Test quality | A test suite exists (or CI relies on one) | `test-quality` |
 | Frontend & mobile quality | There's a UI (deep links only if mobile) | `frontend-mobile-quality` |
 | Cost & infrastructure | Infra usage is non-trivial | `cost-infrastructure` |
 | Monetization & billing | The app charges money | `monetization-pricing` |
@@ -156,4 +157,4 @@ Bottom line: fix the webhook failure path before anything else — it silently e
 
 ---
 
-<sub>(c) 2026 hossein-webdev - https://github.com/hossein-webdev/vibe-check - Licensed CC BY-NC-SA 4.0: attribution required, non-commercial, share-alike.</sub>
+<sub>(c) 2026 hossein-webdev - https://github.com/hossein-webdev/vibe-check - MIT licensed: free to use, modify, and redistribute with attribution.</sub>

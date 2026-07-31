@@ -175,4 +175,4 @@ checkout every 5 min, [OBS-08] DLQ so a 200-but-failed webhook waits for you ins
 
 ---
 
-<sub>(c) 2026 hossein-webdev - https://github.com/hossein-webdev/vibe-check - Licensed CC BY-NC-SA 4.0: attribution required, non-commercial, share-alike.</sub>
+<sub>(c) 2026 hossein-webdev - https://github.com/hossein-webdev/vibe-check - MIT licensed: free to use, modify, and redistribute with attribution.</sub>

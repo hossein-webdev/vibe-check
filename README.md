@@ -4,11 +4,11 @@
 
 ### Your app runs. But does it survive real users?
 
-**A linter-grade production-readiness audit for vibe-coded (AI-generated) apps — packaged as 20 Claude Code skills.**
+**A linter-grade production-readiness audit for vibe-coded (AI-generated) apps — packaged as 21 Claude Code skills.**
 
-[![Version](https://img.shields.io/badge/version-3.5.0-blue)](CHANGELOG.md)
-[![Skills](https://img.shields.io/badge/skills-20-8A2BE2)](#-the-skills)
-[![License: CC BY-NC-SA 4.0](https://img.shields.io/badge/license-CC%20BY--NC--SA%204.0-lightgrey)](LICENSE)
+[![Version](https://img.shields.io/badge/version-4.0.0-blue)](CHANGELOG.md)
+[![Skills](https://img.shields.io/badge/skills-21-8A2BE2)](#-the-skills)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-plugin-D97757)](https://code.claude.com/docs/en/plugins)
 [![Node](https://img.shields.io/badge/scanner-Node%20%E2%89%A518%2C%20zero%20deps-339933)](skills/audit/scripts/scan.mjs)
 
@@ -117,7 +117,7 @@ flowchart LR
 
 ## 🧰 The skills
 
-The `audit` router + 19 focused skills. Every rule ID is defined once, in its owning skill, with a
+The `audit` router + 20 focused skills. Every rule ID is defined once, in its owning skill, with a
 fix playbook — the audit cites them; you can also invoke any skill directly (`/vibe-check:app-security`).
 
 | Skill | Covers | Rules |
@@ -142,6 +142,7 @@ fix playbook — the audit cites them; you can also invoke any skill directly (`
 | 💰 [`cost-infrastructure`](skills/cost-infrastructure/SKILL.md) | Bill attribution, cost per user, hosting by stage | `COST` |
 | 🧾 [`monetization-pricing`](skills/monetization-pricing/SKILL.md) | Hosted checkout, webhook security, silent revenue loss, pricing | `PAY` |
 | ⛓️ [`solidity-security`](skills/solidity-security/SKILL.md) | Smart-contract audit: reentrancy, oracle manipulation, proxy safety, token integration | `SOL` |
+| 🧪 [`test-quality`](skills/test-quality/SKILL.md) | Tests that catch bugs: anti-fragility, mocking discipline, fixed vectors, coverage as a floor | `TEST` |
 
 <details>
 <summary><b>Example rules</b> — the kind of thing the audit catches</summary>
@@ -170,10 +171,18 @@ Issues and PRs welcome. House style:
 - Every rule gets a stable ID, a severity-if-failed, and a paste-able fix.
 - The audit spec lives in [`skills/audit/reference.md`](skills/audit/reference.md) — finding-card format, detection matrix, scoring.
 
+## Credits
+
+The [`test-quality`](skills/test-quality/SKILL.md) rubric is adapted from
+**[beyond-test-coverage](https://github.com/rollinsio/beyond-test-coverage)** by
+**Michael Rollins** (MIT) — a benchmark showing that LLM-generated test suites judged on quality
+axes beat suites optimized for coverage percentage. Worth reading in full if you care about tests.
+
+`solidity-security` (SOL-01..10) was contributed by [@holistis](https://github.com/holistis).
+
 ## License
 
-[CC BY-NC-SA 4.0](LICENSE) — use it freely, credit **hossein-webdev**, keep it non-commercial, and
-share adaptations under the same license. (Versions before v3.0.0 remain MIT for those versions.)
+[MIT](LICENSE) — use it, fork it, sell it, ship safer apps. Attribution appreciated.
 
 <div align="center">
 <sub>Built for the era where anyone can generate an app — and everyone still has to run one.</sub>

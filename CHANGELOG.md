@@ -1,5 +1,23 @@
 # Changelog
 
+## 4.0.0
+
+**Back to MIT.** The project is MIT licensed again (v3.0.0–v3.5.0 were CC BY-NC-SA 4.0), and the
+v3.x content is re-released under MIT too, so the whole history is usable under one permissive
+license. Per-skill footers updated; `plugin.json` license set to `MIT`.
+
+**New skill: `test-quality`** (TEST-01..09) — judges a suite on whether it would *catch* a bug, not
+on coverage percentage: anti-fragility (no error-substring assertions, no private-symbol access, no
+tautological readbacks, no expectations recomputed with the logic under test), rigor (fixed vectors,
+boundaries, error paths), mocking discipline (never mock the unit under test), reuse
+(parametrization), correctness (verify real library behavior), and coverage as a floor rather than a
+target — with mutation survival as the real measure. Pack: 20 → 21 skills.
+
+Rubric adapted with credit from [beyond-test-coverage](https://github.com/rollinsio/beyond-test-coverage)
+by Michael Rollins (MIT). Added a Credits section to the README.
+
+- `audit`: new matrix row routing suites to `test-quality`; `TEST-` added to the rule-ID namespace.
+
 ## 3.5.0
 
 Nine lessons folded in (a backlog batch):
