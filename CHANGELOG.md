@@ -1,5 +1,32 @@
 # Changelog
 
+## 4.1.0
+
+**Accessibility gets teeth.** `frontend-mobile-quality` had one generic a11y line; it now carries
+three checkable rules and an hour-long audit procedure, and the legal side is named for what it is.
+
+- `frontend-mobile-quality` (2.1.0): **FE-07** (every core flow completable by keyboard alone —
+  reachable controls, visible focus, modals that trap and restore focus) and **FE-08** (text contrast
+  meets WCAG AA: 4.5:1 body, 3:1 large text and UI boundaries) added. **FE-02** sharpened from
+  "accessible" to the concrete screen-reader contract: alt text on every image, an accessible name on
+  every icon-only control, ARIA on inputs and landmarks, sane focus order. New How-It-Works step with
+  the three-audit procedure, a fix playbook block (including pinning the floor with axe-core in CI),
+  and a worked example.
+- `compliance-legal` (2.1.0): **LEGAL-13** — accessibility conformance documented: WCAG 2.1 AA named
+  as the target, a dated audit kept, an accessibility statement published (target, known gaps,
+  timeline, contact route), remediation logged. P1 for government, education, healthcare, and
+  public-accommodation sectors. Digital products are treated as places of public accommodation in
+  most jurisdictions, and a documented plan with open items is a far better posture than silence.
+- `production-readiness` (2.1.0): **PROD-07** — feature health audit before the next feature. Every
+  shipped feature scored *works / broken / adopted*: broken-and-used gets fixed first,
+  broken-and-unused gets deleted, works-and-unused gets investigated. Building on a broken layer
+  multiplies fragility, and the support inbox asks for the existing features to work — not for more.
+- `monetization-pricing` (2.1.0): **PAY-12** — ICP and positioning written down from real research
+  before building: the ICP derived from your actual background rather than a market that merely
+  sounds profitable, community research done from the inside, and a positioning document (who you
+  serve, what you deliver, how you differ, where you compete) that feeds the landing page, the
+  one-sentence sale, and the pricing tiers.
+
 ## 4.0.0
 
 **Back to MIT.** The project is MIT licensed again (v3.0.0–v3.5.0 were CC BY-NC-SA 4.0), and the

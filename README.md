@@ -6,7 +6,7 @@
 
 **A linter-grade production-readiness audit for vibe-coded (AI-generated) apps — packaged as 21 Claude Code skills.**
 
-[![Version](https://img.shields.io/badge/version-4.0.0-blue)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-4.1.0-blue)](CHANGELOG.md)
 [![Skills](https://img.shields.io/badge/skills-21-8A2BE2)](#-the-skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-plugin-D97757)](https://code.claude.com/docs/en/plugins)
@@ -123,7 +123,7 @@ fix playbook — the audit cites them; you can also invoke any skill directly (`
 | Skill | Covers | Rules |
 |---|---|:---:|
 | 🩺 **[`audit`](skills/audit/SKILL.md)** | The scored, adaptive audit — start here | — |
-| 🏁 [`production-readiness`](skills/production-readiness/SKILL.md) | The last mile: 2-of-13-layers gap, owning AI code, docs, stage fit | `PROD` |
+| 🏁 [`production-readiness`](skills/production-readiness/SKILL.md) | The last mile: 2-of-13-layers gap, owning AI code, docs, feature health, stage fit | `PROD` |
 | 🛡️ [`app-security`](skills/app-security/SKILL.md) | RLS, service-role bypass, deps, headers, XSS, monoculture, AI supply chain | `SEC` |
 | 🔑 [`secrets-management`](skills/secrets-management/SKILL.md) | Client-exposed keys, vaults, rotation, git history | `SEC-01..03` |
 | 🚪 [`auth-access`](skills/auth-access/SKILL.md) | AuthN ≠ authZ, JWT, sessions, RBAC, tenant isolation | `AUTH` |
@@ -135,12 +135,12 @@ fix playbook — the audit cites them; you can also invoke any skill directly (`
 | 📡 [`observability`](skills/observability/SKILL.md) | Structured logs, outside-in monitoring, SLOs, synthetics, DLQs | `OBS` |
 | 🚀 [`deployment-cicd`](skills/deployment-cicd/SKILL.md) | Environments, pipelines that build, canary, rollback, platform ceilings | `DEPLOY` |
 | 🧯 [`reliability-recovery`](skills/reliability-recovery/SKILL.md) | Graceful failure, timed restore drills, third-party resilience | `REL` |
-| 📜 [`compliance-legal`](skills/compliance-legal/SKILL.md) | Privacy/terms, GDPR/CCPA, true deletion, SOC 2, app-store privacy | `LEGAL` |
+| 📜 [`compliance-legal`](skills/compliance-legal/SKILL.md) | Privacy/terms, GDPR/CCPA, true deletion, SOC 2, accessibility law, app-store privacy | `LEGAL` |
 | 🧱 [`api-architecture`](skills/api-architecture/SKILL.md) | Backend boundary, contracts, versioning, layered rate limiting | `API` |
 | ✏️ [`api-design`](skills/api-design/SKILL.md) | The surface: naming, status codes, pagination, error shapes, idempotency | `APID` |
-| 📱 [`frontend-mobile-quality`](skills/frontend-mobile-quality/SKILL.md) | Responsive, a11y, hostile-condition testing, deep links | `FE` |
+| 📱 [`frontend-mobile-quality`](skills/frontend-mobile-quality/SKILL.md) | Responsive, WCAG AA a11y (keyboard/screen reader/contrast), hostile-condition testing, deep links | `FE` |
 | 💰 [`cost-infrastructure`](skills/cost-infrastructure/SKILL.md) | Bill attribution, cost per user, hosting by stage | `COST` |
-| 🧾 [`monetization-pricing`](skills/monetization-pricing/SKILL.md) | Hosted checkout, webhook security, silent revenue loss, pricing | `PAY` |
+| 🧾 [`monetization-pricing`](skills/monetization-pricing/SKILL.md) | Hosted checkout, webhook security, silent revenue loss, pricing, ICP + positioning | `PAY` |
 | ⛓️ [`solidity-security`](skills/solidity-security/SKILL.md) | Smart-contract audit: reentrancy, oracle manipulation, proxy safety, token integration | `SOL` |
 | 🧪 [`test-quality`](skills/test-quality/SKILL.md) | Tests that catch bugs: anti-fragility, mocking discipline, fixed vectors, coverage as a floor | `TEST` |
 

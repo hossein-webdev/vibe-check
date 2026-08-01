@@ -6,12 +6,12 @@ description: >
   signatures, idempotent fulfilment, never returning 2xx for a failed charge), choosing a pricing
   model tied to customer value with a credit system, and treating pricing as a structural decision.
   Activates when the user mentions Stripe, billing, checkout, webhooks, payment callbacks, a pricing
-  model, a credit system, silent revenue loss, or how to price the product. Applies only to apps
-  that charge money.
+  model, a credit system, silent revenue loss, how to price the product, or who the product is for
+  (ICP, target customer, positioning). Applies to apps that charge money or intend to.
 user-invokable: true
 metadata:
   category: monetization-pricing
-  version: "2.0.0"
+  version: "2.1.0"
 ---
 
 # Monetization & Pricing
@@ -37,6 +37,7 @@ Skip if the app is free. Freedom: **low on the webhook path** (money), medium on
 | PAY-09 | Dunning built: staggered retries, failed-payment email sequence, grace period before cancel | P2 |
 | PAY-10 | Transactional email actually delivers: SPF/DKIM, sending domain split from marketing, inbox-placement monitoring | P2 (P1 once charging — a missing receipt reads as fraud) |
 | PAY-11 | Multi-currency checkout enabled when customers are international (processors support it; the default is one currency) | P2 if selling abroad |
+| PAY-12 | ICP and positioning written down from real research before building — who you serve, what you deliver, how you differ | P3 (P2 pre-launch) |
 
 ## When to Use This Skill
 
@@ -118,6 +119,23 @@ support ticket. Deliverability is infrastructure the generator never configured:
       to create the upgrade. If free can do everything paid can, that's not a limit — it's a charity.
 - [ ] **Track usage events from day one** — you can't price on usage you never measured
       (pairs with `llm-cost-control` metering).
+
+### 7. Know the customer before you build (PAY-12)
+Pricing, positioning, and the landing page all derive from one thing most builders skip: knowing
+exactly who this is for. Do it before the code, not after the silence:
+- [ ] **Build the ICP from your actual background, not from a market that sounds profitable.** List
+      what you genuinely know — an industry you worked in, a workflow you ran for years, a community
+      you belong to — and find the segment where those advantages matter. Building for a lucrative
+      market you've never lived in means competing on features against people who understand the
+      customer better than you do.
+- [ ] **Research the communities from the inside.** Join where those customers already gather and
+      read before posting — you're there to learn, not to pitch. Decide what you're documenting
+      first (competitors, pricing, recurring complaints, the words they use for the problem), then
+      collect it: what's working, what isn't, and where your approach should deliberately differ.
+- [ ] **Write a positioning document before the first line of code**: who you serve, what you
+      deliver, how you differ, and where you compete. It becomes the source for the landing page,
+      the one-sentence sale (above), the pricing tiers, and every sales conversation. Skip it and
+      you build for yourself, then wonder why nobody shows up.
 
 ## Fix playbook
 

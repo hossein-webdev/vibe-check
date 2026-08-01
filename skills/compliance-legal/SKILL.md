@@ -5,12 +5,13 @@ description: >
   a privacy policy and terms, GDPR/CCPA opt-out and deletion, deletion that actually clears data
   across every table, SOC 2 readiness for enterprise deals, and app-store privacy requirements.
   Activates when the user mentions a privacy policy, terms of service, GDPR, CCPA, data deletion,
-  consent, SOC 2, enterprise security questionnaires, or app-store rejections for privacy. Applies
-  to apps that collect personal data, sell B2B, or ship to an app store.
+  consent, SOC 2, enterprise security questionnaires, accessibility law (ADA, WCAG conformance,
+  VPAT), or app-store rejections for privacy. Applies to apps that collect personal data, sell B2B,
+  ship to an app store, or are publicly accessible.
 user-invokable: true
 metadata:
   category: compliance-legal
-  version: "2.0.0"
+  version: "2.1.0"
 ---
 
 # Compliance & Legal
@@ -37,6 +38,7 @@ these are requirements, not preferences.
 | LEGAL-10 | Retention obligations mapped: law-required records kept (separate from user-controlled data), with an audit trail | P1 in regulated sectors |
 | LEGAL-11 | Sales-tax/VAT exposure mapped; tax collected at checkout; remittance calendar in place | P1 once selling across jurisdictions |
 | LEGAL-12 | Health data (HIPAA/PHI): encrypted everywhere incl. logs/backups/exports, per-record access audit trail, BAAs with every third party | P1 if the app touches health data |
+| LEGAL-13 | Accessibility conformance documented (WCAG 2.1 AA target, dated audit, remediation plan) | P2 for public-facing products; P1 for government, education, healthcare, and public-accommodation sectors |
 
 ## When to Use This Skill
 
@@ -138,6 +140,26 @@ violation into the millions, and a single complaint can trigger an investigation
 - [ ] Same shape applies to other regulated data (financial, children's, biometric) — identify which
       regime you're under *before* launch, not after the first complaint.
 
+### Accessibility as legal exposure (LEGAL-13)
+Accessibility is usually filed under design polish; in most jurisdictions it is **law**. Public-facing
+digital products are treated as places of public accommodation (ADA in the US, EN 301 549 / the
+European Accessibility Act in the EU, AODA in Ontario, and equivalents elsewhere), and web
+accessibility claims are among the cheapest to file — plaintiffs need no injury beyond an inaccessible
+page. A generator has never heard of WCAG:
+- [ ] **Pick the target and write it down: WCAG 2.1 Level AA.** It's the standard courts, procurement
+      teams, and regulators reference. "We try to be accessible" is not a target.
+- [ ] **Get a dated audit against that target** and keep the report. The technical work is
+      `frontend-mobile-quality` FE-02/FE-07/FE-08 (keyboard operability, screen-reader semantics,
+      contrast); this rule is about having the *evidence*.
+- [ ] **Publish an accessibility statement** — conformance target, known gaps, remediation timeline,
+      and a contact route for accessibility problems. A documented plan with open items is a far
+      better legal posture than silence, and it often resolves a complaint before it becomes a claim.
+- [ ] **Remediate on a schedule and log it.** Demonstrated good-faith progress is what distinguishes
+      a defensible position from an indefensible one; an untouched audit report is worse than none.
+- [ ] **Know your sector's floor.** Government, education, healthcare, and companies selling into
+      them face procurement requirements (VPAT/ACR requests) on top of general law — expect the
+      question during the same review that asks for SOC 2 (LEGAL-09).
+
 ### Sales tax / VAT (LEGAL-11)
 Selling a digital subscription to a customer in another state or country can create a tax obligation
 *there* — in the US it's called economic **nexus**, and the generator never raises it because it
@@ -178,6 +200,10 @@ Deletion audit [LEGAL-03]:
 Enterprise asked for SOC 2 [LEGAL-04]:
  1. Turn on: SSO/2FA + least-privilege access, audit logs, PR-based change management.
  2. Start evidence collection (screenshots/exports on a schedule); reply with the timeline.
+Accessibility exposure [LEGAL-13]:
+ 1. State the target: WCAG 2.1 AA. 2. Audit against it (→ frontend-mobile-quality FE-02/07/08); keep the dated report.
+ 3. Publish an accessibility statement: target, known gaps, timeline, contact route.
+ 4. Work the remediation list on a schedule and log each fix — good-faith progress is the defense.
 ```
 
 ## Examples
@@ -202,6 +228,8 @@ logging, change management) and give the prospect a timeline — scrambling read
 - **Do** treat deletion as a cross-table cascade with a tested proof.
 - **Don't** soft-delete and call it "deleted".
 - **Don't** wait for the deal to start SOC 2 evidence — by then it's too late.
+- **Don't** treat accessibility as design polish — name WCAG 2.1 AA as the target, audit against it,
+  and publish the statement.
 
 ---
 

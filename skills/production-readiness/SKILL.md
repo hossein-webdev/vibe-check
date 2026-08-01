@@ -5,13 +5,14 @@ description: >
   apps ship about two layers (a UI and a database) of the dozen-plus a real product needs — and
   AI-generated code carries 2-3x the vulnerabilities. Activates when a build "works for me
   but breaks for everyone else", is stuck at the "almost done" stage, when the owner can't explain
-  or maintain AI-generated code, when a developer is being brought in to take it over, or when
-  someone asks what unglamorous work is left before launch. Covers the last mile of shipping,
-  owning the generated code, lightweight docs, and right-sizing effort to the app's stage.
+  or maintain AI-generated code, when a developer is being brought in to take it over, when someone
+  asks what to build next while existing features are broken, or when someone asks what unglamorous
+  work is left before launch. Covers the last mile of shipping, owning the generated code,
+  lightweight docs, feature health audits, and right-sizing effort to the app's stage.
 user-invokable: true
 metadata:
   category: production-readiness
-  version: "2.0.0"
+  version: "2.1.0"
 ---
 
 # Production Readiness — The Last Mile
@@ -38,6 +39,7 @@ Freedom: **high** — principles to adapt, not rigid steps.
 | PROD-04 | Effort matches stage (features → operations → architecture as users grow) | P3 |
 | PROD-05 | Support system exists before the first customer: per-feature playbooks + tiered escalation | P2 at launch |
 | PROD-06 | Work queued by business risk (money / data / legal) — audit first, then fix in priority order | P2 |
+| PROD-07 | Feature health known before the next feature is built: what's live, what's broken, what has zero adoption — broken-and-used fixed first | P2 |
 
 ## When to Use This Skill
 
@@ -46,6 +48,7 @@ Freedom: **high** — principles to adapt, not rigid steps.
 - The owner (often non-technical) can't explain what the generated code does.
 - A new developer is taking over an AI-built codebase.
 - Someone asks "what's left that isn't a feature?" before launch.
+- Someone asks what to build next while existing features are broken or unused.
 
 ## How It Works
 
@@ -94,7 +97,23 @@ Freedom: **high** — principles to adapt, not rigid steps.
    - **Queue by business risk, not recency** — what can *lose money*, *lose data*, or *get you sued*
      goes first; everything else takes a number. That's the difference between panicked debugging
      and engineering with a plan.
-8. **Dispatch the specifics.** Run `audit` to see which layers apply; this skill sets the posture,
+8. **Fix before you build (PROD-07).** Building the next feature *feels* like progress; fixing the
+   last one feels like going backwards — and with a generator that will happily build anything you
+   ask, that instinct compounds into a product where nothing quite works. Three reasons to invert it:
+   - **Every feature stacks on the foundation underneath it.** Notifications on top of an auth flow
+     that silently drops sessions, a reporting dashboard on top of an unindexed table — the
+     generator builds what you asked without ever asking whether the thing below can hold the
+     weight. Each addition makes the system more fragile, not more valuable.
+   - **Customers aren't asking for more features.** Read the support inbox: nobody writes "I wish
+     this had more features", they write "this doesn't work the way I expected". New features
+     attract customers; broken ones lose the customers you already paid to acquire — and losing
+     costs more than delaying.
+   - **Run a feature health audit before the next build.** List every shipped feature in three
+     columns: *works*, *broken/half-finished*, *used vs zero adoption* (usage data, not memory).
+     Then: **broken + used → fix first**; **broken + unused → delete it**, because dead code is
+     surface area you still maintain and secure; **works + unused → find out why** before building
+     its successor. Only what survives that pass earns the next sprint.
+9. **Dispatch the specifics.** Run `audit` to see which layers apply; this skill sets the posture,
    the domain skills do the work.
 
 ## Fix playbook
@@ -108,6 +127,12 @@ Freedom: **high** — principles to adapt, not rigid steps.
 Unmaintainable handover [PROD-02/03]:
  1. Walk every file; rename misleading names; delete dead code.
  2. Write 3 docs: decisions+why · env/secrets setup · known shortcuts+why.
+Feature health audit [PROD-07] — before the next feature, one table:
+ | feature | works? | active users (last 30d) | verdict |
+ 1. Fill "works?" by actually running each flow, not from memory.
+ 2. Fill users from analytics/DB counts — zero adoption is a finding, not a blank.
+ 3. Verdict: broken+used = fix now · broken+unused = delete · works+unused = investigate.
+ 4. Only start new work after the "fix now" column is empty.
 ```
 
 ## Examples
@@ -127,11 +152,24 @@ You've likely built 2 of ~13 layers; run the audit to see which of the other 11 
 why handed-over AI codebases feel hostile.
 ```
 
+### Example 3: "What should I build next?"
+**Output**:
+```
+[PROD-07] Nothing, until the feature health audit is done: every shipped feature scored works /
+broken / used. Broken-and-used gets fixed first, broken-and-unused gets deleted. Building on top
+of a broken layer makes the product more fragile, and the support inbox is asking for the existing
+features to work — not for more of them.
+```
+
 ## Do / Don't
 
 - **Do** treat the unglamorous 20% as the main work; make the owner able to explain every file.
 - **Do** match effort to stage (1k features / 10k operations / 100k architecture).
+- **Do** audit feature health before starting the next feature — fix broken-and-used, delete
+  broken-and-unused.
 - **Don't** mistake "the happy path works" for "ready" — you may have 2 of 13 layers.
+- **Don't** stack a new feature on a foundation you know is broken; it multiplies the fragility
+  instead of adding value.
 - **Don't** ship AI code unreviewed; it carries 2–3× the vulnerabilities.
 
 ---

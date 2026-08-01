@@ -3,14 +3,14 @@ name: frontend-mobile-quality
 description: >
   Closes the front-end gaps generators leave behind: responsive layouts, accessibility, performance
   on slow connections and older devices, real-device and cross-browser bugs, and mobile deep links.
-  Activates when the user mentions responsive design, accessibility, screen readers, mobile bugs,
-  older Android/Safari, special characters breaking input, shared links opening in a browser instead
-  of the app, or "it looks fine on my machine but breaks for users". Applies to any app with a UI,
-  especially mobile.
+  Activates when the user mentions responsive design, accessibility, WCAG, ADA, screen readers,
+  keyboard navigation, color contrast, alt text, ARIA, mobile bugs, older Android/Safari, special
+  characters breaking input, shared links opening in a browser instead of the app, or "it looks fine
+  on my machine but breaks for users". Applies to any app with a UI, especially mobile.
 user-invokable: true
 metadata:
   category: frontend-mobile-quality
-  version: "2.0.0"
+  version: "2.1.0"
 ---
 
 # Front-End & Mobile Quality
@@ -27,11 +27,13 @@ Applies to anything with a UI (deep links only if mobile). Freedom: **medium**.
 | ID | Check | If it fails |
 |---|---|---|
 | FE-01 | Responsive at real breakpoints (not just desktop width) | P2 |
-| FE-02 | Accessible: semantic markup, labels, focus order, screen-reader pass | P2 |
+| FE-02 | Screen-reader ready: semantic markup, alt text on every image, labels on every control, ARIA on inputs/nav, sane focus order | P2 (P1 if public-facing and legally exposed → `compliance-legal` LEGAL-13) |
 | FE-03 | Performant on throttled network + low-end device | P2 |
 | FE-04 | Tested under hostile conditions: old Android/Safari, special-character input | P2 |
 | FE-05 | Mobile deep links configured (universal/app links) — N/A if web-only | P2 if mobile |
 | FE-06 | Locale-aware formatting (dates, numbers, currency, addresses) + per-user timezone for scheduled messages | P2 if users are international |
+| FE-07 | Every core flow completable by keyboard alone — buttons, forms, dropdowns, modals reachable and operable, focus never trapped | P2 |
+| FE-08 | Text contrast meets WCAG AA (≥ 4.5:1 body, ≥ 3:1 large text and UI boundaries) | P2 |
 
 ## When to Use This Skill
 
@@ -42,16 +44,34 @@ Applies to anything with a UI (deep links only if mobile). Freedom: **medium**.
 
 ## How It Works
 
-1. **Verify what the generator skips (FE-01..03):** responsive behavior at real breakpoints;
-   semantic markup, labels, focus order, one full screen-reader pass; performance on a throttled
-   connection and a cheap device.
-2. **Test under hostile conditions (FE-04).** Users do the QA you didn't: six-year-old Androids,
+1. **Verify what the generator skips (FE-01, FE-03):** responsive behavior at real breakpoints;
+   performance on a throttled connection and a cheap device.
+2. **Run the accessibility pass (FE-02, FE-07, FE-08).** The generator built for a user with a
+   mouse, perfect vision, and two working hands — roughly **1.3 billion people** live with a
+   disability, and inaccessible products are increasingly the subject of ADA/equivalent complaints
+   (→ `compliance-legal` LEGAL-13). Three concrete audits, in this order:
+   - **Keyboard navigation (FE-07)** — put the mouse down and complete every core flow with Tab,
+     Shift+Tab, Enter, Space, and arrow keys. Every button, form field, dropdown, and modal must be
+     reachable and operable, focus must be visible, and modals must trap focus while open and
+     return it on close. If you can't finish signup or checkout this way, the app is unusable for
+     everyone who navigates by keyboard, switch, or voice control.
+   - **Screen readers (FE-02)** — a screen reader doesn't see the interface, it reads the *code*.
+     Audit every image for meaningful alt text (decorative images get `alt=""`, not a filename),
+     every button and icon-only control for an accessible name, and every input, landmark, and nav
+     element for correct semantics or ARIA. Then run one pass with a real reader (NVDA, JAWS,
+     VoiceOver) and try to complete a task — that's how ~285 million people with visual impairments
+     experience the product.
+   - **Color contrast (FE-08)** — the generator picked colors that look good, never colors a
+     colorblind or low-vision user can read. Run a contrast checker over the palette and fix
+     anything below WCAG AA: 4.5:1 for body text, 3:1 for large text and UI boundaries. Grey-on-
+     grey placeholder text and low-contrast disabled states are the usual offenders.
+3. **Test under hostile conditions (FE-04).** Users do the QA you didn't: six-year-old Androids,
    older Safari, mobile data, apostrophes and non-Latin names in inputs. Reproduce those before
    they do — that's where the uninstall-causing breaks live.
-3. **Fix deep links (FE-05).** Without universal links (iOS) / app links (Android) — association
+4. **Fix deep links (FE-05).** Without universal links (iOS) / app links (Android) — association
    files plus handlers — shared URLs open in a browser tab and users bounce instead of landing
    in-app.
-4. **Build for where your customers actually are (FE-06).** The generator builds for *your* country
+5. **Build for where your customers actually are (FE-06).** The generator builds for *your* country
    because that's what the tutorials use — hard-coded date formats, one currency, your timezone —
    and international users quietly give up rather than complain:
    - **Locale-aware formatting everywhere** — dates, times, numbers, currency, addresses. One
@@ -64,11 +84,18 @@ Applies to anything with a UI (deep links only if mobile). Freedom: **medium**.
 ## Fix playbook
 
 ```text
-"Perfect on my laptop, users complain" [FE-01..04]:
+"Perfect on my laptop, users complain" [FE-01, FE-03, FE-04]:
  1. DevTools device mode at 360px + CPU 4x throttle + Slow 3G — fix what breaks.
- 2. Keyboard-only walk + screen reader pass (NVDA/VoiceOver); label every control.
- 3. Lighthouse mobile run; fix the red items first.
- 4. Paste O'Brien / 名前 / emoji into every input; fix crashes + validation.
+ 2. Lighthouse mobile run; fix the red items first.
+ 3. Paste O'Brien / 名前 / emoji into every input; fix crashes + validation.
+Accessibility pass [FE-02, FE-07, FE-08] — one hour, three audits:
+ 1. Keyboard: unplug the mouse, complete signup + the core flow with Tab/Enter/Space/arrows.
+    Fix: unreachable controls, invisible focus ring, modals that don't trap or restore focus.
+ 2. Semantics: grep for <img without alt, icon-only buttons without aria-label, inputs without
+    a <label for=...>, div/span used as button. Then one real NVDA/VoiceOver task run.
+ 3. Contrast: run Lighthouse/axe or a contrast checker over the palette; fix < 4.5:1 body text
+    and < 3:1 large text and UI boundaries (placeholders and disabled states usually fail).
+ 4. Automate the floor: add axe-core to the test suite so regressions fail CI, not customers.
 Links open in browser, not app [FE-05]:
  1. iOS: host /.well-known/apple-app-site-association; add Associated Domains entitlement.
  2. Android: host /.well-known/assetlinks.json; add intent filters with autoVerify.
@@ -84,7 +111,16 @@ Links open in browser, not app [FE-05]:
 screen-reader pass, Lighthouse mobile, and apostrophe/non-Latin input tests. Fix what falls out.
 ```
 
-### Example 2: "Shared links open Safari, not my app"
+### Example 2: "Is my app accessible? Nobody's complained"
+**Output**:
+```
+[FE-07] Complete signup with the mouse unplugged — Tab/Enter/Space only. [FE-02] Alt text on every
+image, an accessible name on every icon-only button, one real screen-reader task run. [FE-08]
+Contrast checker over the palette; fix anything under 4.5:1. Nobody complains — they leave, and
+in some markets they file (→ compliance-legal LEGAL-13).
+```
+
+### Example 3: "Shared links open Safari, not my app"
 **Output**:
 ```
 [FE-05] Universal/app links: association files (apple-app-site-association, assetlinks.json)
@@ -94,8 +130,12 @@ screen-reader pass, Lighthouse mobile, and apostrophe/non-Latin input tests. Fix
 ## Do / Don't
 
 - **Do** test responsiveness, accessibility, and performance explicitly — the generator won't.
+- **Do** run all three accessibility audits (keyboard, screen reader, contrast) before launch, and
+  pin the result with an automated check so it can't regress.
 - **Do** test older devices, throttled networks, unusual input.
 - **Don't** judge quality by how it looks on your machine.
+- **Don't** treat accessibility as a nice-to-have — it's a market of over a billion people and, for
+  public-facing products, a legal requirement.
 - **Don't** ship mobile without configured deep links.
 
 ---
