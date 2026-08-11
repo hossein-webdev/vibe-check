@@ -5,13 +5,14 @@ description: >
   a privacy policy and terms, GDPR/CCPA opt-out and deletion, deletion that actually clears data
   across every table, SOC 2 readiness for enterprise deals, and app-store privacy requirements.
   Activates when the user mentions a privacy policy, terms of service, GDPR, CCPA, data deletion,
-  consent, SOC 2, enterprise security questionnaires, accessibility law (ADA, WCAG conformance,
-  VPAT), or app-store rejections for privacy. Applies to apps that collect personal data, sell B2B,
-  ship to an app store, or are publicly accessible.
+  consent, SOC 2, enterprise security questionnaires, the EU AI Act, AI content disclosure or
+  watermarking, accessibility law (ADA, WCAG conformance, VPAT), or app-store rejections for
+  privacy. Applies to apps that collect personal data, ship AI-generated content, sell B2B, ship to
+  an app store, or are publicly accessible.
 user-invokable: true
 metadata:
   category: compliance-legal
-  version: "2.1.0"
+  version: "2.2.0"
 ---
 
 # Compliance & Legal
@@ -39,6 +40,8 @@ these are requirements, not preferences.
 | LEGAL-11 | Sales-tax/VAT exposure mapped; tax collected at checkout; remittance calendar in place | P1 once selling across jurisdictions |
 | LEGAL-12 | Health data (HIPAA/PHI): encrypted everywhere incl. logs/backups/exports, per-record access audit trail, BAAs with every third party | P1 if the app touches health data |
 | LEGAL-13 | Accessibility conformance documented (WCAG 2.1 AA target, dated audit, remediation plan) | P2 for public-facing products; P1 for government, education, healthcare, and public-accommodation sectors |
+| LEGAL-14 | AI-generated output disclosed: visible labels/watermarks, affirmative opt-in before user input reaches a model, immutable generation log | P1 if the product ships model-generated content to users |
+| LEGAL-15 | Obligations scoped from where **users** are, not where the company is — user jurisdictions mapped from real signals | P1 once anyone outside your home jurisdiction can sign up |
 
 ## When to Use This Skill
 
@@ -47,6 +50,8 @@ these are requirements, not preferences.
 - The app needs real account deletion, not a flag.
 - An enterprise prospect asked for **SOC 2** or sent a security questionnaire.
 - An app-store submission was (or might be) rejected for privacy.
+- The product generates content with a model and ships it to users.
+- The user says compliance doesn't apply because the company isn't in that market.
 
 ## Checklist
 
@@ -160,6 +165,44 @@ page. A generator has never heard of WCAG:
       them face procurement requirements (VPAT/ACR requests) on top of general law — expect the
       question during the same review that asks for SOC 2 (LEGAL-09).
 
+### AI transparency — disclosure, consent, and the generation log (LEGAL-14)
+Transparency obligations for AI-generated content are now enforceable in several jurisdictions (the
+EU's AI Act is the furthest along, with the first transparency duties live as of August 2026). The
+term to know is **synthetically generated information**: if the product uses a model to write copy,
+generate images, create avatars, or produce anything a user consumes, it distributes SGI — and
+undisclosed SGI is a deceptive-practices exposure, not a style choice. Three builds, none of them
+large:
+- [ ] **Label every AI-generated output, visibly and non-removably.** Not a footnote, not a line in
+      the terms. The rules are specific about form: watermarks on synthetic media, disclaimers on
+      generated text, metadata tags on generated images. This is roughly a day of work.
+- [ ] **Gate every model call behind affirmative consent.** If a feature sends a user's photo, text,
+      or data through a model, the user opts in *before* it happens — an explicit action, not a
+      pre-checked box and not a clause buried in the terms of service. One gate per feature that
+      processes user input.
+- [ ] **Keep an immutable generation log.** Every output, timestamped, with the model used and the
+      input that triggered it, stored so it cannot be quietly edited. When an audit asks what the
+      system generated on a given day, the log is the answer — having it demonstrates compliance,
+      lacking it demonstrates negligence.
+- [ ] Wire the log alongside the sensitive-action audit trail (→ `observability` OBS-14) rather than
+      as a second parallel system, and note that a generator will never raise any of this: it does
+      not read legislation.
+
+### Your users pick your jurisdictions, not you (LEGAL-15)
+"We're not in the EU" is not a defence, and the same logic applies to every regime with
+extraterritorial reach. The obligations follow **where your users are**:
+- [ ] **Accept that you don't choose who signs up.** The product is on the internet; anyone can
+      create an account and pay. One subscriber in a covered market pulls you under its rules.
+- [ ] **Recognise how little of this is new.** GDPR has applied since 2018; AI transparency duties
+      (LEGAL-14) stack on top of it. A resident of a covered market consuming AI-generated output
+      triggers labeling and disclosure duties you never opted into.
+- [ ] **Don't rely on regional walls.** Geo-fencing and IP filtering miss VPNs, country dropdowns get
+      ignored, and terms-of-service exclusions carry little weight while you are still collecting the
+      data and serving the content. Blocking a market properly means refusing signup, refusing
+      payment, and deleting what you already hold — most builders won't do that, which is fine, but
+      then the obligations apply.
+- [ ] **Map where your users actually are** — payment country, billing address, IP at signup — and
+      treat that map as the scope of your obligations. Re-run it quarterly; the map moves.
+
 ### Sales tax / VAT (LEGAL-11)
 Selling a digital subscription to a customer in another state or country can create a tax obligation
 *there* — in the US it's called economic **nexus**, and the generator never raises it because it
@@ -200,6 +243,14 @@ Deletion audit [LEGAL-03]:
 Enterprise asked for SOC 2 [LEGAL-04]:
  1. Turn on: SSO/2FA + least-privilege access, audit logs, PR-based change management.
  2. Start evidence collection (screenshots/exports on a schedule); reply with the timeline.
+AI content shipping to users [LEGAL-14]:
+ 1. Label: visible, non-removable disclosure on every generated output (watermark / disclaimer / metadata tag).
+ 2. Consent: affirmative opt-in gate on every feature that sends user input to a model.
+ 3. Log: append-only record of output + timestamp + model + triggering input, on every generation endpoint.
+Jurisdiction scope [LEGAL-15]:
+ 1. SELECT DISTINCT country FROM customers (or pull it from the payment processor) — that's your real map.
+ 2. For each market: check data-protection duties, AI disclosure duties, and tax nexus (LEGAL-11).
+ 3. Blocking a market only counts if signup, payment, and stored data all stop — otherwise scope it in.
 Accessibility exposure [LEGAL-13]:
  1. State the target: WCAG 2.1 AA. 2. Audit against it (→ frontend-mobile-quality FE-02/07/08); keep the dated report.
  3. Publish an accessibility statement: target, known gaps, timeline, contact route.
@@ -228,6 +279,9 @@ logging, change management) and give the prospect a timeline — scrambling read
 - **Do** treat deletion as a cross-table cascade with a tested proof.
 - **Don't** soft-delete and call it "deleted".
 - **Don't** wait for the deal to start SOC 2 evidence — by then it's too late.
+- **Do** disclose AI-generated content and log every generation — the rules are live and the
+  generator has never heard of them.
+- **Don't** assume your location sets your obligations; your users' locations do.
 - **Don't** treat accessibility as design polish — name WCAG 2.1 AA as the target, audit against it,
   and publish the statement.
 

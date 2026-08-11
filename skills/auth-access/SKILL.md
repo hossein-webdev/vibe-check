@@ -11,7 +11,7 @@ description: >
 user-invokable: true
 metadata:
   category: auth-access
-  version: "2.0.0"
+  version: "2.2.0"
 ---
 
 # Authentication & Access Control
@@ -37,6 +37,7 @@ every check below at maximum strictness — assume nothing.**
 | AUTH-07 | RBAC modeled permissions-first (roles = permission bundles) | P2 |
 | AUTH-08 | Tenant isolation is a deliberate strategy, backed by RLS | P1 if B2B |
 | AUTH-09 | Service-to-service credentials scoped + rotated | P2 |
+| AUTH-11 | Every shared layer above the database is tenant-scoped — cache keys, search indexes, job queues, file paths, logs — and a cross-tenant test proves it | P1 if multi-tenant |
 | AUTH-10 | Enterprise SSO ready (SAML 2.0/OIDC, per-tenant IdP config); provider's own compliance docs available; migration path known | P2 if selling to enterprise |
 
 ## When to Use This Skill
@@ -44,6 +45,7 @@ every check below at maximum strictness — assume nothing.**
 - User mentions auth, login, signup, JWT, tokens, sessions, or logout.
 - User mentions permissions, roles, RBAC, admin/member/viewer, or "who can do what".
 - User mentions multi-tenant / tenant isolation, or "can user A see user B's data?".
+- A customer reports seeing another customer's data, or you're auditing for that risk.
 - User is choosing or wiring a provider (Clerk, Auth0, BetterAuth, Supabase Auth).
 - The app's auth was hand-written or generated from scratch.
 
@@ -90,11 +92,34 @@ every check below at maximum strictness — assume nothing.**
       tiny (a missing WHERE clause, or a **cache key that omits tenant context** serving the wrong
       tenant's data) and cascades into legal duty (notify the exposed tenant; HIPAA fines; GDPR
       filing within 72 hours) and trust damage that outlives the fix. Two implications:
-      - **cache keys always include the tenant id** — app-layer filtering is undone by a shared cache;
+      - **cache keys always include the tenant id** — app-layer filtering is undone by a shared cache
+        (the full shared-layer sweep is AUTH-11 below);
       - **monitor for cross-tenant reads** and alert the moment one happens — you must be able to
         answer "how long?" and "who else?" immediately; learning it from a customer is too late.
 
-### 5. Enterprise SSO — the procurement gate (AUTH-10)
+### 5. Everything above the database leaks too (AUTH-11)
+Perfect row-level security buys you nothing if a layer *in front of* the database answers first. A
+cache is the classic: customer A loads their dashboard, the query result gets cached **after** your
+security rules ran for A — then customer B requests the same page, never reaches the database, and
+is served A's revenue, invoices, and customer list. The isolation was real; it just wasn't where the
+request stopped.
+- [ ] **Scope every cache key to the tenant id — no exceptions.** Every cached query, page fragment,
+      API response, and computed rollup carries tenant context in the key. A key of
+      `dashboard:summary` is a leak; `dashboard:summary:{tenant_id}` is not. Same rule for anything
+      memoized in process memory on a shared server.
+- [ ] **Sweep every other shared layer**, because the cache is only the most visible one:
+      **search indexes** (one index, all tenants' documents — filter at query time *and* partition),
+      **background job queues** (a worker that picks up any job and runs it with ambient
+      credentials), **file storage** (predictable paths, one bucket, no per-tenant prefix or signed
+      URL), **logging and analytics pipelines** (one tenant's records readable in another's export),
+      and any **rate-limit or feature-flag store** keyed on something global. The rule is simple: if
+      a layer can't tell you which tenant it is serving, it should not be serving anything.
+- [ ] **Prove it with a cross-tenant test, and keep it in CI.** Log in as tenant A, load a page; log
+      out; log in as tenant B, load the same page; assert none of A's data appears. Repeat for the
+      search endpoint, a file URL, and an export. It takes ten minutes to write and it is the only
+      thing standing between you and finding out from a customer.
+
+### 6. Enterprise SSO — the procurement gate (AUTH-10)
 - [ ] If you sell to companies, **SSO is a gate, not a feature request**: line one of the IT
       procurement checklist is "SAML/OIDC support?", and Google sign-in + email/password doesn't
       count. Employees authenticate through the corporate IdP (Okta, Azure AD, Google Workspace) or
@@ -114,7 +139,7 @@ every check below at maximum strictness — assume nothing.**
       - **What does leaving cost?** Know the migration path *before* thousands of paying users sit
         on a provider you've outgrown — evaluating it later is exponentially harder.
 
-### 6. Machine-to-machine (AUTH-09)
+### 7. Machine-to-machine (AUTH-09)
 - [ ] Services prove their own identity; a leaked service token is high blast radius — scope
       narrowly and rotate.
 

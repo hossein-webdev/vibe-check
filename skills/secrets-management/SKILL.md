@@ -12,7 +12,7 @@ user-invokable: true
 metadata:
   category: app-security
   parent: app-security
-  version: "2.0.0"
+  version: "2.1.0"
 ---
 
 # Secrets Management
@@ -31,6 +31,7 @@ Freedom: **low** — run the checks exactly.
 | SEC-01 | No secret is hard-coded or git-tracked (`.env*` untracked; only `.env.example` in git) | P1 |
 | SEC-02 | No secret reachable from the client (bundle, component code, `NEXT_PUBLIC_*`) | P1 |
 | SEC-03 | Git history is clean or rotated; secret scanning enabled; rotation path exists | P2 |
+| SEC-12 | A pre-commit hook (or push protection) blocks secrets before they ever reach the remote | P2 — the only control that makes the fix permanent |
 
 ## When to Use This Skill
 
@@ -62,9 +63,36 @@ Freedom: **low** — run the checks exactly.
 - [ ] Have a **dual-key rotation** path (issue new key → deploy → revoke old) so rotating never
       causes downtime — then actually rotate on a schedule and immediately after any suspicion.
 
+### 4. Stop it happening again (SEC-12)
+Everything above is cleanup; this is the only step that makes it permanent. Roughly **seven in ten**
+audited projects have a live credential in their repository — not because builders are careless, but
+because a generator doesn't distinguish a config file from an environment variable, so it writes the
+key inline and commits it with everything else. Cleanup you have to repeat isn't a fix:
+- [ ] **Install a pre-commit hook that scans staged changes** for key, token, and credential
+      patterns and rejects the commit. `gitleaks protect --staged` behind `pre-commit`, `husky`, or
+      a plain `.git/hooks/pre-commit` — five minutes, once.
+- [ ] **Turn on the platform's push protection too.** The hook protects your machine; push
+      protection protects the repository from every other machine and from `--no-verify`.
+- [ ] **After moving secrets to env vars, verify the env file is actually ignored** — `git check-ignore -v .env`
+      should print the matching rule. Skipping this moves the keys from one committed file to
+      another committed file, which is not a fix.
+- [ ] **Give the team an escape hatch that isn't disabling the hook**: a documented way to commit a
+      deliberate test fixture (an allowlist entry with a comment) so nobody learns the habit of
+      passing `--no-verify`.
+
 ## Fix playbook
 
 ```bash
+# Block secrets at commit time (SEC-12)
+pip install pre-commit && cat >> .pre-commit-config.yaml <<'YAML'
+repos:
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.18.0
+    hooks: [{ id: gitleaks }]
+YAML
+pre-commit install          # now every commit is scanned
+git check-ignore -v .env    # must print a matching .gitignore rule
+
 # Untrack a committed env file (SEC-01)
 git rm --cached .env.local && echo ".env.local" >> .gitignore && git commit -m "untrack env"
 # then ROTATE every value it contained — untracking does not un-leak history
@@ -100,6 +128,7 @@ No — the file lives in history. [SEC-03]:
 
 - **Do** treat any key that ever touched a commit as leaked — rotate it.
 - **Do** keep secrets server-side, in a manager, short-lived where possible.
+- **Do** block secrets at commit time — cleanup you repeat every few months isn't a fix.
 - **Don't** put real secrets in `NEXT_PUBLIC_*` / `VITE_*` / client code — ever.
 - **Don't** confuse untracking a file with revoking its contents.
 

@@ -11,7 +11,7 @@ description: >
 user-invokable: true
 metadata:
   category: monetization-pricing
-  version: "2.1.0"
+  version: "2.2.0"
 ---
 
 # Monetization & Pricing
@@ -38,6 +38,7 @@ Skip if the app is free. Freedom: **low on the webhook path** (money), medium on
 | PAY-10 | Transactional email actually delivers: SPF/DKIM, sending domain split from marketing, inbox-placement monitoring | P2 (P1 once charging — a missing receipt reads as fraud) |
 | PAY-11 | Multi-currency checkout enabled when customers are international (processors support it; the default is one currency) | P2 if selling abroad |
 | PAY-12 | ICP and positioning written down from real research before building — who you serve, what you deliver, how you differ | P3 (P2 pre-launch) |
+| PAY-13 | If the buyer can be an agent: machine-readable product data, install-without-a-human packaging, and metered pricing an agent can transact | P3 (P2 if selling developer tools) |
 
 ## When to Use This Skill
 
@@ -136,6 +137,28 @@ exactly who this is for. Do it before the code, not after the silence:
       deliver, how you differ, and where you compete. It becomes the source for the landing page,
       the one-sentence sale (above), the pricing tiers, and every sales conversation. Skip it and
       you build for yourself, then wonder why nobody shows up.
+
+### 8. When the buyer is an agent (PAY-13)
+If you sell to builders, a growing share of your buyers never see your landing page. They ask an
+assistant to find, compare, and recommend a tool, and the assistant decides whether you're in the
+set. Three consequences, none of them about design:
+- [ ] **Be legible to machines first.** What decides whether you appear isn't the testimonial
+      carousel — it's whether your product exists as **structured data** an AI search tool can
+      index, parse, and rank: capabilities, constraints, pricing, and integration surface in a
+      machine-readable form (→ `api-design` APID-10). If your value is only described in prose on a
+      marketing page, you're invisible to the channel.
+- [ ] **Package for integration, not for checkout.** Developer tools, wrappers, and integrations
+      aren't bought, they're *installed*: the agent queries for a capability, reads the docs, checks
+      the pricing, and wires it in — the whole transaction happening inside the development
+      environment with no demo call and no funnel. That means real docs at a stable URL, a
+      self-serve key, and a working call in under five minutes.
+- [ ] **Price in units an agent can transact.** An agent doesn't sign up for a $49/month seat; it
+      consumes what it needs when it needs it. Metered pricing — tokens per action, credits per
+      query, value per outcome — is what makes you purchasable at all by that buyer. Keep the human
+      plan; add a metered tier beside it (PAY-07's usage events are the prerequisite, and the cost
+      side is `cost-infrastructure` COST-06).
+- [ ] Sanity-check it the way the buyer does: ask a few assistants to recommend a tool in your
+      category and see whether you're named, and what they say your pricing is.
 
 ## Fix playbook
 

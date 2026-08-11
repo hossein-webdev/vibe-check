@@ -10,7 +10,7 @@ description: >
 user-invokable: true
 metadata:
   category: cost-infrastructure
-  version: "2.0.0"
+  version: "2.1.0"
 ---
 
 # Cost & Infrastructure Economics
@@ -29,6 +29,7 @@ Skip while usage is trivial. Model/API spend → `llm-cost-control`. Freedom: **
 | COST-02 | Cost per user known and compared to price per user | P2 |
 | COST-03 | Hosting matches the stage (managed/serverless early; dedicated when steady-heavy) | P3 |
 | COST-04 | Self-hosted vs managed decided on team capacity + uptime needs, not sticker price | P3 |
+| COST-06 | Unit economics instrumented: cost attributed **per feature**, revenue vs cost **per user**, and a monthly P&L reconciled automatically | P2 once charging |
 | COST-05 | Customer ceiling documented: what size customer the current stack can serve, and what leveling up requires | P3 (P2 when chasing enterprise) |
 
 ## When to Use This Skill
@@ -37,6 +38,7 @@ Skip while usage is trivial. Model/API spend → `llm-cost-control`. Freedom: **
 - User asks "where is my money going?" or about cost per user.
 - User is choosing hosting (Vercel vs Railway vs VPS) or sizing infrastructure.
 - User is weighing self-hosted vs managed.
+- User asks whether the product is profitable, or what a feature costs to run.
 
 ## How It Works
 
@@ -63,7 +65,25 @@ Skip while usage is trivial. Model/API spend → `llm-cost-control`. Freedom: **
    - **Write the ceiling down now**: what size customer you can serve today, what compliance you can
      meet today, and what would have to change to level up. Builders who know their ceiling close
      deals; builders who pretend they have none lose to questions they can't answer.
-6. **Serverless vs containers is a maturity decision, not a technology one.** Serverless charges a
+6. **Instrument the unit economics (COST-06).** Most builders can quote their tool subscriptions but
+   can't say what it costs to serve *one* customer — that gap is the difference between building a
+   product and running a business. COST-01 attributes the bill to services; this attributes it to
+   the things you actually make decisions about:
+   - **Cost per feature, not per month.** Tag consumption — model tokens, function invocations,
+     egress, storage — by endpoint, feature, and user action. Some features cost fractions of a cent
+     and some cost dollars, and until you measure it you can't tell which. It is routinely the
+     feature customers love most that is eating the margin, and that's a pricing decision
+     (→ `monetization-pricing` PAY-06), not a reason to remove it.
+   - **Revenue per user against cost per user.** Subscription revenue is flat per customer;
+     infrastructure cost scales with how hard they use the product. A heavy user who costs more to
+     serve than they pay isn't a customer, it's a liability that grows as you succeed — and the fix
+     is usually a usage tier or a fair-use limit, not a hope that the average holds.
+   - **A monthly P&L that updates itself.** Revenue in, infrastructure out, consumption by user,
+     margin by product line — pulled from the payment processor and hosting dashboards on a
+     schedule, not typed into a spreadsheet once and abandoned. Usage events from PAY-07 and token
+     metering from `llm-cost-control` are the inputs; this is where they add up to a decision.
+
+7. **Serverless vs containers is a maturity decision, not a technology one.** Serverless charges a
    per-unit premium to manage *nothing* — the right deal early, when your time is worth more than
    the premium. Containers cost less per unit but someone must monitor, scale, and deploy them; if
    that someone is also the founder/sales/support, the ops burden costs more in lost focus than the
@@ -79,6 +99,11 @@ Bill doubled [COST-01/02]:
  1. Provider cost explorer → group by service → find the delta line.
  2. cost_per_user = monthly_infra / active_users; compare to ARPU.
  3. Fix the driver specifically: right-size the instance / cache the hot path / move cold storage.
+Unit economics from zero [COST-06]:
+ 1. Tag every metered call (model, function, egress) with feature + user id at the call site.
+ 2. Weekly rollup: SELECT feature, sum(cost) ... GROUP BY feature ORDER BY 2 DESC — top 3 is your bill.
+ 3. Per user: cost_per_user vs price_per_user; list anyone above their price. That list is the tier design.
+ 4. Monthly: pull processor revenue + hosting spend into one sheet on a cron. Margin by product line.
 Hosting mismatch [COST-03]:
  - Spiky low traffic on a big VPS → move to serverless/managed.
  - Steady heavy compute on premium serverless → move to Railway/VPS; keep the front-end where it is.

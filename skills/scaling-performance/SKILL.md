@@ -12,7 +12,7 @@ description: >
 user-invokable: true
 metadata:
   category: scaling-performance
-  version: "2.0.0"
+  version: "2.1.0"
 ---
 
 # Scaling & Performance
@@ -78,6 +78,12 @@ jobs, write batching**.
   3. **What happens when the cache itself fails** — an expiring hot key can send thousands of
      simultaneous requests at the database (**stampede**); it never shows in testing and always
      shows on your biggest day. Use stampede protection (locking / single-flight refresh).
+  4. **Who the cached row belongs to** — a cache sits *in front of* the database, so it stores the
+     result after row-level security already ran for the first requester. If the key omits the user
+     or tenant, the second requester is served the first one's data without the database ever being
+     consulted. Every key that holds per-customer data carries the tenant id
+     (→ `auth-access` AUTH-11, which sweeps the other shared layers: search indexes, job queues,
+     file paths, logs).
 - **Background jobs (SCALE-05):** long work inside the request causes timeouts; hand it to workers
   with **idempotency keys** so a retry never runs the job — or the charge — twice. The generated
   anti-pattern is the **synchronous chain**: a 12-second checkout where the user stares at a spinner

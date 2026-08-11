@@ -36,12 +36,14 @@ Freedom: **medium** — recommend the pattern, adapt to the stack.
 | DATA-06 | Platform fits the workload | → `database-selection` (DBS-01..04) |
 | DATA-07 | Concurrent-write conflict strategy chosen (CRDTs where merging must be automatic) | P2 if collaborative |
 | DATA-08 | Downstream consumers synced via change data capture (events, routed by type, with a DLQ) — not polling | P3 (P2 with search/analytics/notifications) |
+| DATA-09 | Live schema changes are expand-then-contract, with a rollback script written up front and a rehearsal on a current staging mirror | P1 once the database has real users |
 
 ## When to Use This Skill
 
 - User mentions database design, schema, normalization, or "one big table".
 - User mentions multi-tenant, tenant id, or separating customers' data.
 - User mentions migrations, backups, or schema changes in production.
+- User needs to add, rename, or restructure a column/table on a database that already has users.
 - User is choosing an ORM (Prisma/Drizzle) or storing images/files.
 - (Which platform/provider → `database-selection`.)
 
@@ -71,6 +73,23 @@ Freedom: **medium** — recommend the pattern, adapt to the stack.
    - **dead-letter failed events** — a missed event means a system believes nothing changed when
      everything did; capture, retry, alert (→ `observability` OBS-08).
    The database is the source of truth; CDC is how everything else agrees with it.
+8. **Change a live schema without an outage (DATA-09).** Having migrations (DATA-04) is not the same
+   as being able to *run* one against traffic. A generator's instinct is to drop the column and
+   recreate it — and every customer query touching that column mid-migration either errors or
+   returns nonsense. Three requirements, every time:
+   - **Add before you remove (expand → contract).** New column goes up; data backfills across; the
+     application starts writing and reading the new one; the old column drops only after that switch
+     is confirmed in production. Renames are the same shape: add, dual-write, backfill, cut over,
+     drop. That sequence is the whole difference between a migration and an outage.
+   - **Write the rollback before you run the migration.** Not after it breaks. If the change can't
+     be described in reverse, it isn't ready — that's the test, and it catches destructive steps
+     before they run.
+   - **Rehearse on a current staging mirror.** Not production, not a copy from three weeks ago — a
+     mirror with today's data shapes and roughly today's volume, so you find the lock that takes
+     four minutes on 2M rows *there*. The first run of a migration should never be against the
+     database your customers depend on.
+   Long backfills belong in batches with a bounded lock window; add the index concurrently where the
+   engine supports it.
 
 ## Fix playbook
 
@@ -81,6 +100,12 @@ Mega-table found [DATA-01]:
 No migrations [DATA-04]:
  1. Adopt the ORM's migration tool (drizzle-kit / prisma migrate) — snapshot current schema as 0000.
  2. Rule: every schema change lands as a migration file in git, applied by deploy, never by hand.
+Changing a live schema [DATA-09]:
+ 1. Write both scripts first: forward + rollback. Can't describe the reverse? Not ready.
+ 2. Restore the latest backup into staging (current data shapes) and run the migration there; time it.
+ 3. Production sequence: add new column -> backfill in batches -> dual-write -> switch reads ->
+    verify -> drop old column in a LATER deploy. Never add and drop in one release.
+ 4. Postgres: CREATE INDEX CONCURRENTLY; avoid ALTER TABLE forms that rewrite the whole table.
 Multi-tenant retrofit [DATA-02]:
  1. Add tenant_id to every table; backfill from ownership chains.
  2. Turn on RLS policies keyed to tenant_id; verify a cross-tenant read fails.

@@ -1,5 +1,49 @@
 # Changelog
 
+## 4.2.0
+
+**Fourteen lessons folded in — eight new rules.** The theme of this batch is the layers nobody
+audits: what sits *in front of* the database, what sits *in front of* the app, what the law now
+requires of generated content, and what a build actually costs to run.
+
+- `compliance-legal` (2.2.0): **LEGAL-14** — AI transparency. Products shipping model-generated
+  content owe users a visible, non-removable disclosure (watermark / disclaimer / metadata tag), an
+  affirmative opt-in before their input reaches a model, and an immutable generation log recording
+  every output with its timestamp, model, and triggering input. The EU AI Act's transparency duties
+  are the furthest along and are live now; the generator has never read a statute.
+  **LEGAL-15** — your obligations are scoped by where your *users* are, not where you are: one
+  subscriber in a covered market pulls you in, geo-fencing and ToS exclusions don't hold, and the
+  real map comes from payment country and billing address.
+- `app-security` (2.1.0): **SEC-13** — edge protection. A WAF in front of the whole stack (not
+  per-endpoint limits), rate limiting that adapts to attack *behavior* rather than just volume, and
+  a DDoS runbook written before the outage. **SEC-11** expanded: split error handling into a public
+  layer and a private one, catch at every boundary (API routes, background jobs, webhook receivers,
+  payment callbacks — not just the login form), and give the private half a searchable pipeline.
+- `secrets-management` (2.1.0): **SEC-12** — block secrets at commit time with a pre-commit hook
+  plus platform push protection. Roughly seven in ten audited projects have a live credential in
+  their repository; rotating without adding the hook just schedules the next cleanup.
+- `auth-access` (2.2.0): **AUTH-11** — row-level security is bypassed by everything that answers
+  before the database does. Scope every cache key to the tenant, then sweep the layers people
+  forget — search indexes, job queues, file paths, logs, rate-limit stores — and pin it with a
+  cross-tenant test in CI.
+- `data-architecture` (2.1.0): **DATA-09** — changing a live schema. Expand then contract (add,
+  backfill, dual-write, cut over, drop in a later release), write the rollback before the migration,
+  and rehearse on a staging mirror with current data shapes.
+- `ai-engineering` (2.1.0): **AI-08** — agents that contradict themselves at step 15 ran out of
+  context, not competence. A state document that travels with the task, decomposition into
+  five-to-seven step chunks each in a fresh session, and a human checkpoint between chunks.
+- `cost-infrastructure` (2.1.0): **COST-06** — unit economics. Cost attributed per *feature*, not
+  per month; revenue per user against cost per user (a heavy user who costs more than they pay is a
+  liability that grows as you succeed); and a monthly P&L reconciled automatically from the payment
+  processor and hosting dashboards.
+- `monetization-pricing` (2.2.0): **PAY-13** — when the buyer is an agent. Machine-readable product
+  data, packaging that installs without a human, and metered pricing an agent can actually
+  transact — a per-seat monthly plan is unbuyable by a consumer that shows up for one call.
+- `scaling-performance` (2.1.0): SCALE-04 gains the ownership question — a cache stores the result
+  *after* security ran for the first requester.
+- `api-design` (2.10.0): APID-10 extended for the install-not-browse path — docs as the sales
+  surface, self-serve credentials, metered pricing. (Global mirror synced.)
+
 ## 4.1.0
 
 **Accessibility gets teeth.** `frontend-mobile-quality` had one generic a11y line; it now carries

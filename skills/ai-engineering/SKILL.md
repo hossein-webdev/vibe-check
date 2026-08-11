@@ -7,12 +7,13 @@ description: >
   orchestrator-vs-conductor choice for multi-agent systems, and vector store selection (pgvector
   first). For the model bill specifically (caching, routing, spend caps, rate limits), routes to the
   llm-cost-control skill. Activates when the user mentions hallucinations, AI output validation,
-  evals, model-as-judge, flaky AI tests, AI agents, agent memory, multi-agent, or vector databases.
+  evals, model-as-judge, flaky AI tests, AI agents, agent memory, context windows, an agent losing
+  track of a long task, multi-agent, or vector databases.
   Applies only to apps that call an LLM.
 user-invokable: true
 metadata:
   category: ai-engineering
-  version: "2.0.0"
+  version: "2.1.0"
 ---
 
 # AI / LLM Engineering
@@ -36,12 +37,14 @@ Freedom: **medium** — recommended patterns; adapt to the provider/stack.
 | AI-05 | Agents have designed memory (short-term buffer + long-term vector store) | P3 |
 | AI-06 | Multi-agent starts with a single orchestrator (escalate only on measured bottleneck) | P3 |
 | AI-07 | Vector store: pgvector evaluated before a dedicated service | P3 |
+| AI-08 | Long agent runs are chunked, state-carrying, and checkpointed — not one 30-step conversation | P2 if agents run multi-step work unattended |
 
 ## When to Use This Skill
 
 - User mentions hallucinations, garbage output, or validating/retrying model responses.
 - User mentions evals, model-as-judge, quality regressions, or flaky AI tests in CI.
 - User mentions AI agents, agent memory/context, orchestrator/conductor, multi-agent.
+- An agent loses the plot, contradicts itself, or forgets the task partway through a long run.
 - User is choosing a vector store (Pinecone/Weaviate/Chroma/pgvector).
 - (Bill, caching, routing, caps → `llm-cost-control`.)
 
@@ -65,6 +68,21 @@ Freedom: **medium** — recommended patterns; adapt to the provider/stack.
    bottleneck.
 6. **Don't over-buy vectors (AI-07)** — Postgres `pgvector` covers most workloads before
    Pinecone/Weaviate/Chroma earn their complexity.
+7. **Architect long runs, don't just launch them (AI-08).** An agent that is sharp at step 1,
+   contradicts step 3 by step 15, and has forgotten the project by step 30 is not malfunctioning —
+   it ran out of context. How you feed the work matters more than which model you picked:
+   - **A state document travels with the task.** Keep a running project-state file updated after
+     every step: what's complete, what's in progress, the constraints, the decisions already made
+     and why. Each new step reads it first. That file *is* the memory the model doesn't have — it's
+     the durable half of AI-05, written down instead of hoped for.
+   - **Decompose before executing.** Never run a 30-step job as one conversation. Split it into
+     chunks of five to seven steps; each chunk is a fresh session seeded with the state file. Short
+     scopes keep the agent from drifting far enough to contradict itself.
+   - **Checkpoint between chunks.** The agent stops at each boundary and presents a summary for
+     review before continuing. Something has to verify the output, and for unattended multi-step
+     work that something is a human — the alternative is discovering the drift 25 steps later.
+   - Structure the checkpoint as a real gate (does the state file match reality? do the artifacts
+     exist? does the next chunk still make sense?), not a rubber stamp.
 
 ## Fix playbook
 
@@ -72,6 +90,11 @@ Freedom: **medium** — recommended patterns; adapt to the provider/stack.
 Garbage output reaching users [AI-02]:
  1. Define the output schema (zod/pydantic); validate every response.
  2. On failure: retry with the validation error in the prompt (max 2-3), then fallback UX.
+Agent drifts on long jobs [AI-08]:
+ 1. Create PROJECT_STATE.md: done / in-progress / constraints / decisions+why. Update it every step.
+ 2. Split the job into 5-7 step chunks; start each chunk in a fresh session seeded with that file.
+ 3. Between chunks: agent prints a summary, you verify artifacts exist and state matches reality.
+ 4. If a chunk needs more than ~7 steps, it's two chunks.
 Flaky AI tests [AI-04]:
  1. Replace exact-match asserts with shape/contains checks or a grader model.
  2. Pin model + temperature in CI where the provider allows.

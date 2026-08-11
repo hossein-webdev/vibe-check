@@ -7,11 +7,12 @@ description: >
   monoculture risk of template-cloned apps, and the AI/prompt supply chain. For keys and credentials
   specifically, routes to the secrets-management skill. Activates when the user mentions security,
   RLS, OWASP/ZAP/Burp, a pen test or security audit, dependency or supply-chain risk, CVEs,
-  CORS/CSP, XSS, prompt injection, or asks "is my app secure?". Applies to every app.
+  CORS/CSP, XSS, prompt injection, a WAF, DDoS or traffic floods, stack traces leaking to users, or
+  asks "is my app secure?". Applies to every app.
 user-invokable: true
 metadata:
   category: app-security
-  version: "2.0.0"
+  version: "2.1.0"
 ---
 
 # App Security
@@ -30,7 +31,7 @@ Freedom: **low** — run the checks exactly.
 
 | ID | Check | If it fails |
 |---|---|---|
-| SEC-01..03 | Secrets: tracked env / client exposure / history+rotation | → `secrets-management` |
+| SEC-01..03, SEC-12 | Secrets: tracked env / client exposure / history+rotation / commit-time blocking | → `secrets-management` |
 | SEC-04 | No table world-readable; RLS (or equivalent) enforces row access | P1 |
 | SEC-05 | API routes don't bypass RLS with a privileged/service role for user data | P1 |
 | SEC-06 | Dependency tree audited, pinned (lockfile), criticals resolved | P2 |
@@ -38,7 +39,9 @@ Freedom: **low** — run the checks exactly.
 | SEC-08 | Input validated/escaped — XSS defended | P1 |
 | SEC-09 | At least one self pen-test run (OWASP ZAP / Burp) before launch | P2 |
 | SEC-10 | AI/prompt supply chain triaged by trust tier; nothing unvetted in prod | P2 |
-| SEC-11 | Production errors return generic messages; stack traces and internals only in server-side logs | P2 |
+| SEC-11 | Production errors return generic messages; stack traces and internals only in server-side logs; every boundary catches | P2 |
+| SEC-12 | Secrets blocked at commit time | → `secrets-management` (pre-commit hook / push protection) |
+| SEC-13 | Edge protection in front of the stack: WAF, adaptive rate limiting, and a written DDoS runbook | P2 (P1 once the app carries revenue or an SLA) |
 
 ## When to Use This Skill
 
@@ -87,9 +90,35 @@ beats none.
       endpoint, not just the login form: every form, API parameter, and query string. The generator
       validates what it expects a user to send; an attacker sends what it never imagined.
 - [ ] **Errors don't leak internals (SEC-11)** — a production stack trace tells an attacker your
-      framework, your database, and exactly where the code failed. The generator wrote error
-      handling for *debugging*, not for production: return **generic messages to users**, keep the
-      detail in **server-side logs** only.
+      framework, your database version, your file layout, and often the connection string itself.
+      The generator wrote one handler that does both jobs — user-facing and diagnostic — which is a
+      security hole shaped like efficiency. **Split it in two**: a public layer returning a generic,
+      helpful message with a support reference, and a private layer recording the full detail
+      server-side.
+- [ ] **Catch at every boundary, not just the form (SEC-11).** API routes, background jobs, webhook
+      receivers, payment callbacks, scheduled tasks — every uncaught path is a stack trace waiting
+      to be rendered to someone. Add unit and end-to-end tests that assert error *responses* contain
+      no internals; that's how you find the leaks before a user does.
+- [ ] **The private half needs somewhere to go.** Timestamps, user/session, route, inputs, and the
+      full trace, searchable (→ `observability` OBS-01/03/04). Users should see nothing of your
+      internals; your logs should see everything.
+
+### Edge protection — WAF, adaptive limits, DDoS runbook (SEC-13)
+Generators deploy straight to the internet with nothing between the user and the infrastructure, so
+uptime depends on nobody deciding to point a script at you. One person sending ten thousand requests
+a second is enough to take the whole product dark:
+- [ ] **Put a WAF in front of the entire stack** — not per-endpoint rate limiting, but a layer that
+      filters malicious traffic patterns before they reach your server. Every major host and CDN
+      offers one; enabling it is an afternoon, and it also absorbs the volumetric floods your
+      application-level limits can't.
+- [ ] **Make rate limiting adaptive, not just fixed.** A per-user-per-minute cap is the floor.
+      Adaptive limiting watches volume, frequency, and origin patterns, then escalates
+      throttle → challenge → temporary ban based on *behavior* — which is what separates an attacker
+      from a customer having a busy morning. Rate-limit headers and tier design → `api-design`
+      APID-08 / `api-architecture` API-06.
+- [ ] **Write the DDoS runbook before the attack.** Who gets paged, what gets toggled (challenge
+      mode, cached-only mode, blocked regions), where traffic reroutes, and how customers are told
+      (→ `reliability-recovery` REL-07). Decisions made during an outage are the wrong ones.
 
 ### Prove it (SEC-09)
 - [ ] **Order matters: audit first, pen test second.** Run the full production audit (→ `audit`),
@@ -128,6 +157,12 @@ CREATE POLICY "own rows" ON profiles FOR SELECT USING (auth.uid() = user_id);
 ```bash
 # SEC-06: audit + fix deps
 npm audit --audit-level=high && npm audit fix
+# SEC-13: edge protection
+#  1. Turn on the host/CDN WAF (managed ruleset) - proxy DNS through it so origin isn't reachable direct.
+#  2. Rate limits: per-IP + per-user; add a challenge tier before the ban tier.
+#  3. Lock the origin: allow inbound only from the CDN's ranges.
+#  4. Write the runbook: pager, toggles, reroute, customer comms. Test the toggles once.
+
 # SEC-09: self pen-test
 docker run -t zaproxy/zap-stable zap-baseline.py -t https://your-app.example
 ```
@@ -155,6 +190,7 @@ Your app likely shares a template with thousands of others — the scan finds th
 
 - **Do** start with the 30-minute starter; enforce access in the database (RLS).
 - **Do** run at least one ZAP scan — the monoculture means your holes are already catalogued.
+- **Do** put a WAF and adaptive rate limiting in front of the stack before you need them.
 - **Don't** query user data with the service role; don't trust generated input handling.
 - **Don't** feed the AI anything you haven't read (prompts are supply chain now).
 

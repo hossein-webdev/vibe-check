@@ -13,7 +13,7 @@ user-invokable: true
 metadata:
   category: api-architecture
   parent: api-architecture
-  version: "2.9.0"
+  version: "2.10.0"
 ---
 
 # API Design
@@ -136,6 +136,17 @@ copy and decides emotionally; an agent reads **structured data** and decides log
   assumed or gets you skipped.
 - **Check how you're actually described**: ask the major assistants to recommend a product in your
   category. If you don't appear, you don't exist to that channel.
+
+**If you sell to builders, the agent isn't browsing — it's installing.** For developer tools,
+wrappers, and integrations the transaction happens inside the development environment: the agent
+queries for a capability, reads your documentation, checks the pricing, and wires you in. No landing
+page, no demo call, no checkout. Three things that decide whether that path completes:
+- **Docs are the sales surface.** A stable URL, machine-readable capability and error contracts, and
+  a copy-pasteable first call. Anything gated behind "contact us" is a dead end to an agent.
+- **Self-serve credentials.** If getting a key requires a human, the integration stops there.
+- **Metered pricing an agent can transact** — tokens per action, credits per query, value per
+  outcome. A per-seat monthly plan is unbuyable by a consumer that shows up for one call
+  (→ `monetization-pricing` PAY-13).
 
 ## Fix playbook
 
