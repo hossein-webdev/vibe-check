@@ -40,7 +40,6 @@ Freedom: **low** — run the checks exactly.
 | SEC-09 | At least one self pen-test run (OWASP ZAP / Burp) before launch | P2 |
 | SEC-10 | AI/prompt supply chain triaged by trust tier; nothing unvetted in prod | P2 |
 | SEC-11 | Production errors return generic messages; stack traces and internals only in server-side logs; every boundary catches | P2 |
-| SEC-12 | Secrets blocked at commit time | → `secrets-management` (pre-commit hook / push protection) |
 | SEC-13 | Edge protection in front of the stack: WAF, adaptive rate limiting, and a written DDoS runbook | P2 (P1 once the app carries revenue or an SLA) |
 
 ## When to Use This Skill

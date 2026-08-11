@@ -3,15 +3,15 @@ name: audit
 description: >
   Runs an adaptive, evidence-based production-readiness audit on a vibe-coded (AI-generated) app.
   It profiles the project from its code (optionally via a bundled static scanner), checks only the
-  areas that apply, grades each with cited evidence and stable rule IDs, computes a readiness score,
-  and outputs a prioritized gap table plus a detailed finding card for every gap (what, why it
-  matters, exact fix commands, how to verify). Use this first when the user wants to ship/launch,
+  areas that apply, grades each with cited evidence and stable rule IDs, scores readiness, and
+  outputs a prioritized gap table plus a detailed finding card for every gap (what, why it matters,
+  exact fix commands, how to verify). Use this first when the user wants to ship/launch,
   asks "is my app production-ready / what am I missing", has a demo that breaks with real users, or
-  is hardening something built with Lovable, Cursor, Bolt, v0, Replit, or similar. Routes gaps to
+  is hardening something built with Lovable, Cursor, Bolt, v0, or Replit. Routes gaps to
   production-readiness, app-security, secrets-management, auth-access, scaling-performance,
   data-architecture, database-selection, ai-engineering, llm-cost-control, observability,
   deployment-cicd, reliability-recovery, compliance-legal, api-architecture, api-design,
-  frontend-mobile-quality, cost-infrastructure, and monetization-pricing.
+  frontend-mobile-quality, cost-infrastructure, monetization-pricing, growth-activation.
 user-invokable: true
 metadata:
   category: production-readiness
@@ -81,6 +81,7 @@ in a component is not.
 | Frontend & mobile quality | There's a UI (deep links only if mobile) | `frontend-mobile-quality` |
 | Cost & infrastructure | Infra usage is non-trivial | `cost-infrastructure` |
 | Monetization & billing | The app charges money | `monetization-pricing` |
+| Growth & activation | The product has (or wants) users to keep | `growth-activation` |
 
 Skipping is a real result — mark ⚪ N/A with a one-word reason. Never pad.
 

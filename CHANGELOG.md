@@ -1,5 +1,33 @@
 # Changelog
 
+## 4.3.0
+
+**New skill: `growth-activation`** (GROW-01..09) — the half of shipping that isn't engineering the
+product. The pack could take an app through all thirteen production layers and still leave it
+launching to silence; this closes that gap. Pack: 21 → 22 skills.
+
+It covers the arc end to end:
+- **Before launch** — build the audience on the same clock as the product (GROW-01), because every
+  week spent building without publishing is a week your future customers don't know you exist; and
+  scope from what target customers **already use and pay for** (GROW-02) rather than from what's
+  easy to generate. Sit with a real operator, count the features they actually touch across the ten
+  platforms they pay for, and build that subset.
+- **At the point of sale** — instrument every step from discovery to purchase with entries,
+  drop-offs, and conversions (GROW-03), and version and A/B test the funnel the way you test
+  features, treating checkout abandonment as seriously as API latency (GROW-04). You'd never run the
+  app without error tracking.
+- **After signup** — the activation window: one named core action completed in the first session,
+  with a nudge when it isn't (GROW-05); the week-three habit gate, alerting on a drop below *that
+  user's* own baseline rather than a global threshold (GROW-06).
+- **Reading the truth** — cohort retention instead of total-user counts, which only ever go up
+  (GROW-07), and feature adoption diagnosed as a discovery problem before anything is rebuilt
+  (GROW-08).
+- **At ~100 days** — the launch build was a hypothesis; schedule the review and pivot on behavior
+  data (GROW-09).
+
+- `audit`: new matrix row routing to `growth-activation`; `GROW-` added to the rule-ID namespace
+  table and the router's description.
+
 ## 4.2.0
 
 **Fourteen lessons folded in — eight new rules.** The theme of this batch is the layers nobody
