@@ -123,7 +123,7 @@ Interpreting output — the scanner reports **facts, not findings**; you judge:
 | SCALE- | scaling-performance | | LEGAL- | compliance-legal |
 | DATA- | data-architecture | | API- | api-architecture |
 | DBS- | database-selection | | APID- | api-design |
-| AI- | ai-engineering | | FE- | frontend-mobile-quality |
+| AI- | ai-engineering (AI-05/06/08..11 detailed in agent-operations) | | FE- | frontend-mobile-quality |
 | LLM- | llm-cost-control | | COST- | cost-infrastructure |
 | SOL- | solidity-security | | PAY- | monetization-pricing |
 | TEST- | test-quality | | GROW- | growth-activation |

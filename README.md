@@ -4,10 +4,10 @@
 
 ### Your app runs. But does it survive real users?
 
-**A linter-grade production-readiness audit for vibe-coded (AI-generated) apps — packaged as 22 Claude Code skills.**
+**A linter-grade production-readiness audit for vibe-coded (AI-generated) apps — packaged as 23 Claude Code skills.**
 
-[![Version](https://img.shields.io/badge/version-4.3.0-blue)](CHANGELOG.md)
-[![Skills](https://img.shields.io/badge/skills-22-8A2BE2)](#-the-skills)
+[![Version](https://img.shields.io/badge/version-4.4.0-blue)](CHANGELOG.md)
+[![Skills](https://img.shields.io/badge/skills-23-8A2BE2)](#-the-skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-plugin-D97757)](https://code.claude.com/docs/en/plugins)
 [![Node](https://img.shields.io/badge/scanner-Node%20%E2%89%A518%2C%20zero%20deps-339933)](skills/audit/scripts/scan.mjs)
@@ -117,7 +117,7 @@ flowchart LR
 
 ## 🧰 The skills
 
-The `audit` router + 21 focused skills. Every rule ID is defined once, in its owning skill, with a
+The `audit` router + 22 focused skills. Every rule ID is defined once, in its owning skill, with a
 fix playbook — the audit cites them; you can also invoke any skill directly (`/vibe-check:app-security`).
 
 | Skill | Covers | Rules |
@@ -130,7 +130,8 @@ fix playbook — the audit cites them; you can also invoke any skill directly (`
 | 📈 [`scaling-performance`](skills/scaling-performance/SKILL.md) | The scaling decision tree, pooling, caching, background jobs | `SCALE` |
 | 🗄️ [`data-architecture`](skills/data-architecture/SKILL.md) | Schema, tenancy, zero-downtime migrations, backups, storage, CRDTs | `DATA` |
 | ⚖️ [`database-selection`](skills/database-selection/SKILL.md) | Platform by workload: Neon / PlanetScale / D1 / Supabase / Firebase / Convex | `DBS` |
-| 🤖 [`ai-engineering`](skills/ai-engineering/SKILL.md) | Output validation, evals, agents, memory, long-run orchestration, pgvector | `AI` |
+| 🤖 [`ai-engineering`](skills/ai-engineering/SKILL.md) | Output validation, evals, non-determinism in CI, pgvector-first retrieval | `AI` |
+| 🕹️ [`agent-operations`](skills/agent-operations/SKILL.md) | Agents that act: memory, topology, long runs, tool surface, config freshness, guardrails | `AI-05/06/08..11` |
 | 💸 [`llm-cost-control`](skills/llm-cost-control/SKILL.md) | The prompt bill: semantic caching, routing, spend caps | `LLM` |
 | 📡 [`observability`](skills/observability/SKILL.md) | Structured logs, outside-in monitoring, SLOs, synthetics, DLQs | `OBS` |
 | 🚀 [`deployment-cicd`](skills/deployment-cicd/SKILL.md) | Environments, pipelines that build, canary, rollback, platform ceilings | `DEPLOY` |
@@ -161,6 +162,7 @@ fix playbook — the audit cites them; you can also invoke any skill directly (`
 | `LLM-06` | A model call in client code publishes your key *and* your wallet |
 | `DEPLOY-08` | "Serverless scales automatically" — within plan ceilings you never read, found on launch day |
 | `GROW-07` | Total users only goes up — the dashboard stays green while every cohort quietly stops returning |
+| `AI-11` | A human approving agent actions isn't a guardrail — scoped credentials and deny-by-default gates are |
 
 </details>
 

@@ -145,6 +145,10 @@ a second is enough to take the whole product dark:
       comments, issues, PR descriptions: if an outsider can write it and your AI reads it, your AI
       can be weaponized. Review external contributions before letting an assistant ingest them, and
       keep assistants patched.
+- [ ] **An agent that can act needs the boundary in its tooling, not in a reviewer.** Injection is
+      only dangerous in proportion to what the agent can reach: scoped short-lived credentials, an
+      egress allowlist, and deny-by-default gates on destructive operations turn a successful
+      injection into a rejected tool call (→ `agent-operations` AI-11).
 
 ## Fix playbook
 

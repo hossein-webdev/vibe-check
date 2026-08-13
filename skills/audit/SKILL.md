@@ -2,16 +2,16 @@
 name: audit
 description: >
   Runs an adaptive, evidence-based production-readiness audit on a vibe-coded (AI-generated) app.
-  It profiles the project from its code (optionally via a bundled static scanner), checks only the
+  It profiles the project from its code (optionally via a bundled scanner), checks only the
   areas that apply, grades each with cited evidence and stable rule IDs, scores readiness, and
   outputs a prioritized gap table plus a detailed finding card for every gap (what, why it matters,
   exact fix commands, how to verify). Use this first when the user wants to ship/launch,
   asks "is my app production-ready / what am I missing", has a demo that breaks with real users, or
   is hardening something built with Lovable, Cursor, Bolt, v0, or Replit. Routes gaps to
   production-readiness, app-security, secrets-management, auth-access, scaling-performance,
-  data-architecture, database-selection, ai-engineering, llm-cost-control, observability,
-  deployment-cicd, reliability-recovery, compliance-legal, api-architecture, api-design,
-  frontend-mobile-quality, cost-infrastructure, monetization-pricing, growth-activation.
+  data-architecture, database-selection, ai-engineering, agent-operations, llm-cost-control,
+  observability, deployment-cicd, reliability-recovery, compliance-legal, api-architecture,
+  api-design, frontend-mobile-quality, cost-infrastructure, monetization-pricing, growth-activation.
 user-invokable: true
 metadata:
   category: production-readiness
@@ -69,6 +69,7 @@ in a component is not.
 | Choosing/fitting the database | DB choice in question, or workload-fit doubts | `database-selection` |
 | Scaling & performance | Backend/DB **and** real traffic expected | `scaling-performance` |
 | AI / LLM engineering | The app calls an LLM | `ai-engineering` |
+| Agent operations | The app runs an agent that calls tools or works multi-step | `agent-operations` |
 | LLM cost control | The app calls a paid model API | `llm-cost-control` |
 | Observability | There's a backend that can fail | `observability` |
 | Deployment & CI/CD | Anything you redeploy | `deployment-cicd` |

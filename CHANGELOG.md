@@ -1,5 +1,39 @@
 # Changelog
 
+## 4.4.0
+
+**New sub-skill: `agent-operations`**, split out of `ai-engineering` — agents crossed the threshold
+where they're their own discipline. A model that *answers* and a model that *acts* fail differently:
+the second accumulates state, chooses tools, runs unattended, and can reach things that matter.
+Pack: 22 → 23 skills.
+
+**No rule IDs changed.** `agent-operations` owns AI-05, AI-06, and AI-08..11 exactly as they were
+published; `ai-engineering` keeps AI-02..04 and AI-07 and carries a delegation row — the same
+pattern as SEC-01..03 in `secrets-management`. Existing citations stay valid.
+
+Three new rules land with the split:
+- **AI-09 — budget the tool surface.** Every connected tool is evaluated on *every* request, so ten
+  permanently-loaded connectors are ten things competing for a finite context window before the
+  agent starts on the actual task, plus a failure mode where it picks a plausible wrong tool. Load
+  per task, not per project; when a model can read the API docs and make the call itself, a
+  permanent wrapper often costs more than it saves. Keep wrappers that earn it — fiddly auth,
+  stateful protocols, a boundary you want enforced in one reviewed place. Quality degrading as a
+  project accumulates integrations is usually clutter, not a worse model.
+- **AI-10 — configuration is perishable.** Instruction files, skill definitions, prompt scaffolding,
+  and connectors are all still being consulted months later. Stale instructions compete with current
+  ones and the conflict reads as the model getting worse; workarounds for limitations that no longer
+  exist are brakes. Review the stack on a cadence (a quarter is a reasonable default) and date your
+  config so the next review is a decision, not an excavation.
+- **AI-11 — boundaries belong in the tooling, not the reviewer.** The expensive agent failures share
+  a shape: the agent did something destructive and a human approved it. Nobody catches every
+  dangerous action by reading hundreds a day — that's a bottleneck without teeth. Scoped short-lived
+  credentials, an egress allowlist, deny-by-default gates on destructive operations, and an
+  append-only tool-call log. Then the approvals a human *does* see are the few that need judgment.
+
+- `app-security`: SEC-10 gains the corollary — a successful prompt injection is only as dangerous as
+  what the agent can reach, so the AI-11 boundaries turn one into a rejected tool call.
+- `audit`: new matrix row routing to `agent-operations`; namespace table notes the AI- split.
+
 ## 4.3.0
 
 **New skill: `growth-activation`** (GROW-01..09) — the half of shipping that isn't engineering the
