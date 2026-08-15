@@ -6,7 +6,7 @@
 
 **A linter-grade production-readiness audit for vibe-coded (AI-generated) apps — packaged as 23 Claude Code skills.**
 
-[![Version](https://img.shields.io/badge/version-4.4.0-blue)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-4.5.0-blue)](CHANGELOG.md)
 [![Skills](https://img.shields.io/badge/skills-23-8A2BE2)](#-the-skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-plugin-D97757)](https://code.claude.com/docs/en/plugins)
@@ -123,7 +123,7 @@ fix playbook — the audit cites them; you can also invoke any skill directly (`
 | Skill | Covers | Rules |
 |---|---|:---:|
 | 🩺 **[`audit`](skills/audit/SKILL.md)** | The scored, adaptive audit — start here | — |
-| 🏁 [`production-readiness`](skills/production-readiness/SKILL.md) | The last mile: 2-of-13-layers gap, owning AI code, docs, feature health, stage fit | `PROD` |
+| 🏁 [`production-readiness`](skills/production-readiness/SKILL.md) | The last mile: 2-of-13-layers gap, owning AI code, docs, feature health, pre-release audit gate | `PROD` |
 | 🛡️ [`app-security`](skills/app-security/SKILL.md) | RLS, service-role bypass, deps, headers, XSS, error leaks, WAF/DDoS edge, monoculture, AI supply chain | `SEC` |
 | 🔑 [`secrets-management`](skills/secrets-management/SKILL.md) | Client-exposed keys, vaults, rotation, git history, commit-time blocking | `SEC-01..03`, `SEC-12` |
 | 🚪 [`auth-access`](skills/auth-access/SKILL.md) | AuthN ≠ authZ, JWT, sessions, RBAC, tenant isolation across every shared layer | `AUTH` |
@@ -144,7 +144,7 @@ fix playbook — the audit cites them; you can also invoke any skill directly (`
 | 🧾 [`monetization-pricing`](skills/monetization-pricing/SKILL.md) | Hosted checkout, webhook security, silent revenue loss, pricing, ICP, agent buyers | `PAY` |
 | ⛓️ [`solidity-security`](skills/solidity-security/SKILL.md) | Smart-contract audit: reentrancy, oracle manipulation, proxy safety, token integration | `SOL` |
 | 🧪 [`test-quality`](skills/test-quality/SKILL.md) | Tests that catch bugs: anti-fragility, mocking discipline, fixed vectors, coverage as a floor | `TEST` |
-| 📈 [`growth-activation`](skills/growth-activation/SKILL.md) | Audience before launch, validated scope, funnel instrumentation, activation, cohort retention | `GROW` |
+| 📈 [`growth-activation`](skills/growth-activation/SKILL.md) | Audience (and the skill to build one) before launch, validated scope, funnel instrumentation, activation, cohort retention | `GROW` |
 
 <details>
 <summary><b>Example rules</b> — the kind of thing the audit catches</summary>

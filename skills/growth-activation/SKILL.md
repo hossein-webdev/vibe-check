@@ -5,13 +5,14 @@ description: >
   build, validating what to scope from what customers already use and pay for, instrumenting the
   path from discovery to purchase, getting new users to their first real value, and keeping them
   past week three. Activates when the user mentions a launch or launch plan, "I shipped and nobody
-  came", waitlists or pre-launch audience, conversion rate, funnel, checkout abandonment, pricing-page
-  testing, onboarding, activation, the aha moment, day-two return, churn, retention, cohorts, feature
-  adoption, or asks what to build next for real customers. Applies to any product with users you want
+  came", waitlists, pre-launch audience or building in public, conversion rate, funnel, checkout
+  abandonment, pricing-page testing, onboarding, activation, the aha moment, day-two return, churn,
+  retention, cohorts, feature adoption, or asks what to build next for real customers. Applies to any product with users you want
   to keep — before launch as much as after.
 user-invokable: true
 metadata:
   category: growth-activation
+  version: "1.1.0"
 ---
 
 # Growth & Activation
@@ -59,6 +60,12 @@ Every week spent building without publishing anything about what you're building
 you're building it for, is a week your future customers don't know you exist. The builders who
 launch to an audience built it *while* building — they ran both tracks at once, and the second one
 does not start itself:
+- **Learn to publish before you need to.** The failure isn't only starting late, it's discovering on
+  launch day that you don't know how — where to look, how to open, how to cut thirty seconds
+  together — so the first attempt gets deleted and nothing goes out. Rehearse somewhere with no
+  stakes: a throwaway account, an unrelated topic, nobody you know watching. Bad output and zero
+  views are the *point*; you're building the muscle, not an audience. Give it a couple of months
+  before it matters. It's the same reason you don't learn deploys during an incident.
 - **Run a content track in parallel**, aimed at the specific customer in your ICP (→
   `monetization-pricing` PAY-12), from early in the build. Building in public is the cheap version:
   the decisions, the tradeoffs, the thing that broke.
@@ -68,6 +75,14 @@ does not start itself:
 - **Understand the real competition.** You aren't competing with the three products in your category;
   you're competing with every notification, ad, and unread email in that person's day. Launching to
   strangers with zero prior contact isn't a launch strategy, it's a raffle.
+
+**The shape of the calendar.** The app can be built in a weekend; the business can't. Working
+backwards from launch, roughly: **~200 days out** learn the skill with no stakes; **~100 days out**
+point it at the product and build in public until launch day carries proof (GROW-01); **~100 days
+after**, real behavior finally exists and the build gets revised against it (GROW-09). The exact
+numbers aren't the claim — the granularity is. Entity, content engine, audience, launch, iteration:
+these move in hundred-day blocks, not weeks, and the plan that assumes otherwise skips the part
+that was never optional.
 
 ### 2. Scope from what people already use (GROW-02)
 A generator will build any feature you name and never once ask whether a customer requested it, so
@@ -188,6 +203,8 @@ step, not a general malaise.
 ## Do / Don't
 
 - **Do** build the audience on the same clock as the product — the second track never starts itself.
+- **Do** rehearse publishing somewhere with no stakes before it matters; launch day is a bad place
+  to learn a new skill.
 - **Do** scope from what customers already use and pay for, not from what's easy to generate.
 - **Do** instrument the funnel the way you instrument the application; measure the drop, fix the drop.
 - **Do** define the core action and nudge the users who miss it.

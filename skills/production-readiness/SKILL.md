@@ -6,13 +6,14 @@ description: >
   AI-generated code carries 2-3x the vulnerabilities. Activates when a build "works for me
   but breaks for everyone else", is stuck at the "almost done" stage, when the owner can't explain
   or maintain AI-generated code, when a developer is being brought in to take it over, when someone
-  asks what to build next while existing features are broken, or when someone asks what unglamorous
-  work is left before launch. Covers the last mile of shipping, owning the generated code,
-  lightweight docs, feature health audits, and right-sizing effort to the app's stage.
+  asks what to build next while existing features are broken, when a build is about to reach its
+  first customer, or when someone asks what unglamorous work is left before launch. Covers the last
+  mile of shipping, owning the generated code, lightweight docs, feature health audits, the
+  pre-release audit gate, and right-sizing effort to the app's stage.
 user-invokable: true
 metadata:
   category: production-readiness
-  version: "2.1.0"
+  version: "2.2.0"
 ---
 
 # Production Readiness — The Last Mile
@@ -40,6 +41,7 @@ Freedom: **high** — principles to adapt, not rigid steps.
 | PROD-05 | Support system exists before the first customer: per-feature playbooks + tiered escalation | P2 at launch |
 | PROD-06 | Work queued by business risk (money / data / legal) — audit first, then fix in priority order | P2 |
 | PROD-07 | Feature health known before the next feature is built: what's live, what's broken, what has zero adoption — broken-and-used fixed first | P2 |
+| PROD-08 | No customer reaches a build that hasn't passed a structured pre-release audit, with the pass/fail result recorded | P1 before first customer, then per release |
 
 ## When to Use This Skill
 
@@ -49,6 +51,7 @@ Freedom: **high** — principles to adapt, not rigid steps.
 - A new developer is taking over an AI-built codebase.
 - Someone asks "what's left that isn't a feature?" before launch.
 - Someone asks what to build next while existing features are broken or unused.
+- A build is about to reach its first customer, or a release is about to go out.
 
 ## How It Works
 
@@ -113,8 +116,28 @@ Freedom: **high** — principles to adapt, not rigid steps.
      Then: **broken + used → fix first**; **broken + unused → delete it**, because dead code is
      surface area you still maintain and secure; **works + unused → find out why** before building
      its successor. Only what survives that pass earns the next sprint.
-9. **Dispatch the specifics.** Run `audit` to see which layers apply; this skill sets the posture,
-   the domain skills do the work.
+9. **Inspect before occupancy (PROD-08).** Every industry where people can be harmed puts a check
+   between *we built it* and *people use it* — a kitchen isn't served from until it's inspected, a
+   building isn't occupied without sign-off, wiring isn't energised without a final check. Software
+   is the exception: a generator pours the foundation over a weekend and the first paying customer
+   moves in on Monday, with nobody having looked at the schema, the auth flow, or the API boundary.
+   A failed foundation in construction gets torn out before anyone steps inside; in software it
+   fails silently while customers live on top of it.
+   - **Make the audit a gate, not an activity.** Run the structured pass (`audit`) *before* the next
+     customer arrives, and again before each meaningful release. The point isn't the score — it's
+     that passing and failing are both recorded, so "we didn't know" stops being available.
+   - **Record the result with the release.** What passed, what failed, what was accepted as a known
+     risk and by whom. That record is what turns a scramble into a decision when something breaks,
+     and it's most of what a buyer's security review asks for anyway (→ `compliance-legal`
+     LEGAL-09).
+   - **The direction of travel favours you.** Disclosure and safety obligations for software —
+     especially anything shipping model-generated content — keep tightening
+     (→ `compliance-legal` LEGAL-13/14/15). Builders already inspecting before occupancy absorb each
+     new requirement as a checklist line; builders who aren't will retrofit under deadline.
+   - This is not PROD-06. That one orders the work *after* you know what's broken; this one is the
+     gate that stops an uninspected build reaching a customer in the first place.
+10. **Dispatch the specifics.** Run `audit` to see which layers apply; this skill sets the posture,
+    the domain skills do the work.
 
 ## Fix playbook
 
@@ -127,6 +150,10 @@ Freedom: **high** — principles to adapt, not rigid steps.
 Unmaintainable handover [PROD-02/03]:
  1. Walk every file; rename misleading names; delete dead code.
  2. Write 3 docs: decisions+why · env/secrets setup · known shortcuts+why.
+Release gate [PROD-08] — before the next customer or release:
+ 1. Run the structured audit; capture the score + the failing rule IDs into the release notes.
+ 2. P1s block the release. P2s ship only as a written accepted risk with an owner and a date.
+ 3. Store the record with the tag (RELEASE_AUDIT.md or the release body) — dated, not remembered.
 Feature health audit [PROD-07] — before the next feature, one table:
  | feature | works? | active users (last 30d) | verdict |
  1. Fill "works?" by actually running each flow, not from memory.
@@ -165,9 +192,11 @@ features to work — not for more of them.
 
 - **Do** treat the unglamorous 20% as the main work; make the owner able to explain every file.
 - **Do** match effort to stage (1k features / 10k operations / 100k architecture).
+- **Do** treat the audit as a release gate with a recorded result — inspection before occupancy.
 - **Do** audit feature health before starting the next feature — fix broken-and-used, delete
   broken-and-unused.
 - **Don't** mistake "the happy path works" for "ready" — you may have 2 of 13 layers.
+- **Don't** let a customer be the first thing that inspects your build.
 - **Don't** stack a new feature on a foundation you know is broken; it multiplies the fragility
   instead of adding value.
 - **Don't** ship AI code unreviewed; it carries 2–3× the vulnerabilities.

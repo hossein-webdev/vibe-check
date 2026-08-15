@@ -1,5 +1,31 @@
 # Changelog
 
+## 4.5.0
+
+**Inspection before occupancy.** Every industry where people can be harmed puts a check between
+*we built it* and *people use it* — a kitchen isn't served from until it's inspected, a building
+isn't occupied without sign-off. Software is the exception: the foundation gets poured over a
+weekend and the first paying customer moves in on Monday, with nobody having looked at the schema,
+the auth flow, or the API boundary. A failed foundation in construction is torn out before anyone
+steps inside; in software it fails silently while customers live on top of it.
+
+- `production-readiness` (2.2.0): **PROD-08** — no customer reaches a build that hasn't passed a
+  structured pre-release audit, with the pass/fail result recorded. The point isn't the score, it's
+  that passing *and* failing are written down, so "we didn't know" stops being available: P1s block,
+  P2s ship only as a written accepted risk with an owner and a date, and the record lives with the
+  release. It doubles as most of what a buyer's security review asks for (LEGAL-09), and as
+  disclosure obligations tighten (LEGAL-13/14/15) the builders already inspecting absorb each new
+  requirement as a checklist line instead of a retrofit. Distinct from PROD-06, which orders work
+  *after* you know what's broken — this is the gate that stops an uninspected build reaching anyone.
+- `growth-activation` (1.1.0): GROW-01 gains the rehearsal phase. Starting the content track late
+  isn't the only failure — the other is discovering on launch day that you don't know *how*, so the
+  first attempt gets deleted and nothing ships. Practise somewhere with no stakes (throwaway
+  account, unrelated topic, nobody you know watching); bad output and zero views are the point,
+  because you're building the muscle, not an audience. Added the calendar the corpus keeps
+  implying: ~200 days out learn the skill, ~100 days out build in public until launch day carries
+  proof, ~100 days after revise against real behavior (GROW-09). The numbers aren't the claim — the
+  granularity is. The app can be built in a weekend; the business moves in hundred-day blocks.
+
 ## 4.4.0
 
 **New sub-skill: `agent-operations`**, split out of `ai-engineering` — agents crossed the threshold

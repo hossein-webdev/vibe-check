@@ -29,8 +29,8 @@ Skip while usage is trivial. Model/API spend → `llm-cost-control`. Freedom: **
 | COST-02 | Cost per user known and compared to price per user | P2 |
 | COST-03 | Hosting matches the stage (managed/serverless early; dedicated when steady-heavy) | P3 |
 | COST-04 | Self-hosted vs managed decided on team capacity + uptime needs, not sticker price | P3 |
-| COST-06 | Unit economics instrumented: cost attributed **per feature**, revenue vs cost **per user**, and a monthly P&L reconciled automatically | P2 once charging |
 | COST-05 | Customer ceiling documented: what size customer the current stack can serve, and what leveling up requires | P3 (P2 when chasing enterprise) |
+| COST-06 | Unit economics instrumented: cost attributed **per feature**, revenue vs cost **per user**, and a monthly P&L reconciled automatically | P2 once charging |
 
 ## When to Use This Skill
 

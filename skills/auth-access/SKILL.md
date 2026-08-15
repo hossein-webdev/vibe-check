@@ -37,8 +37,8 @@ every check below at maximum strictness — assume nothing.**
 | AUTH-07 | RBAC modeled permissions-first (roles = permission bundles) | P2 |
 | AUTH-08 | Tenant isolation is a deliberate strategy, backed by RLS | P1 if B2B |
 | AUTH-09 | Service-to-service credentials scoped + rotated | P2 |
-| AUTH-11 | Every shared layer above the database is tenant-scoped — cache keys, search indexes, job queues, file paths, logs — and a cross-tenant test proves it | P1 if multi-tenant |
 | AUTH-10 | Enterprise SSO ready (SAML 2.0/OIDC, per-tenant IdP config); provider's own compliance docs available; migration path known | P2 if selling to enterprise |
+| AUTH-11 | Every shared layer above the database is tenant-scoped — cache keys, search indexes, job queues, file paths, logs — and a cross-tenant test proves it | P1 if multi-tenant |
 
 ## When to Use This Skill
 
