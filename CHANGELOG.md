@@ -1,5 +1,36 @@
 # Changelog
 
+## 4.6.0
+
+**Three boundaries that were configured but not enforced.** Each rule here covers a control people
+believe they already have: an edge that traffic can route around, a role that can't tell a thief
+from its owner, and a vector store that answers whoever asks.
+
+- `app-security` (2.2.0): **SEC-14** — edge protection you can't walk around. A WAF only protects
+  traffic that goes *through* it, so a discoverable origin IP makes every rule optional. Assume it
+  leaked and go find it: DNS history keeps every address the domain ever resolved to, and stray
+  subdomains, MX records, and outbound mail headers each publish it independently. Then firewall the
+  origin to the CDN's ranges, and set TLS to full/strict with an origin certificate — "flexible"
+  modes leave CDN→origin in plain text while the browser shows a padlock. Verify by requesting the
+  site directly by IP; if it answers, the edge is decorative.
+- `auth-access` (2.3.0): **AUTH-12** — when the role isn't enough. A stolen password yields a
+  session identical to the real user's: same role, same permissions, 3am, unfamiliar country. Add
+  attribute-based checks that weigh time, location, device, IP reputation and data sensitivity per
+  request; re-verify identity on *internal* calls too, since generated services trust anything
+  already inside the perimeter; and score sessions continuously for impossible travel, volume
+  spikes, and escalation attempts. Graded to sit **after** AUTH-01..08 — this is tier three, not a
+  substitute for working authorization.
+- `ai-engineering` (3.1.0): **AI-12** — retrieval boundaries. Once a corpus holds anything not public
+  to every user, the vector store is an access-control surface, and embedding everything into one
+  pool means retrieval returns whatever is semantically closest regardless of who owns it. Tag
+  ownership at embed time and filter inside the query; treat uploads as untrusted, because a
+  document can carry instructions that execute whenever that chunk is retrieved — a stored injection
+  sitting in your index; and re-check every cited source against the user's permissions before the
+  answer ships, since ACLs change after embedding.
+- `reliability-recovery` (2.1.0): REL-02 now names **RPO and RTO** explicitly and insists both come
+  from what the business tolerates rather than from whatever the default backup schedule implies —
+  a nightly snapshot *is* an RPO of up to 24 hours. Restore drills are timed, not estimated.
+
 ## 4.5.0
 
 **Inspection before occupancy.** Every industry where people can be harmed puts a check between

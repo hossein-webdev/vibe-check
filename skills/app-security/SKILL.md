@@ -7,12 +7,12 @@ description: >
   monoculture risk of template-cloned apps, and the AI/prompt supply chain. For keys and credentials
   specifically, routes to the secrets-management skill. Activates when the user mentions security,
   RLS, OWASP/ZAP/Burp, a pen test or security audit, dependency or supply-chain risk, CVEs,
-  CORS/CSP, XSS, prompt injection, a WAF, DDoS or traffic floods, stack traces leaking to users, or
-  asks "is my app secure?". Applies to every app.
+  CORS/CSP, XSS, prompt injection, a WAF or CDN, origin IP exposure, DDoS or traffic floods, stack
+  traces leaking to users, or asks "is my app secure?". Applies to every app.
 user-invokable: true
 metadata:
   category: app-security
-  version: "2.1.0"
+  version: "2.2.0"
 ---
 
 # App Security
@@ -41,6 +41,7 @@ Freedom: **low** — run the checks exactly.
 | SEC-10 | AI/prompt supply chain triaged by trust tier; nothing unvetted in prod | P2 |
 | SEC-11 | Production errors return generic messages; stack traces and internals only in server-side logs; every boundary catches | P2 |
 | SEC-13 | Edge protection in front of the stack: WAF, adaptive rate limiting, and a written DDoS runbook | P2 (P1 once the app carries revenue or an SLA) |
+| SEC-14 | Edge protection can't be walked around: origin IP not discoverable, origin accepts only the CDN's ranges, TLS strict end-to-end | P1 wherever SEC-13 applies — an unenforced edge is no edge |
 
 ## When to Use This Skill
 
@@ -119,6 +120,30 @@ a second is enough to take the whole product dark:
       mode, cached-only mode, blocked regions), where traffic reroutes, and how customers are told
       (→ `reliability-recovery` REL-07). Decisions made during an outage are the wrong ones.
 
+### Make the edge unbypassable (SEC-14)
+A CDN/WAF only protects the traffic that goes *through* it. The moment someone learns your origin
+server's real address they connect directly and every rule you configured — filtering, DDoS
+absorption, bot challenges, rate limits — is simply not in the path. This is the single most common
+way a correctly-configured edge provides no protection at all, and a generator that "set up
+Cloudflare" has almost never closed it:
+- [ ] **Assume your origin IP has already leaked, then go find it.** DNS history services keep every
+      address your domain has ever resolved to, so if the site was live before you put a CDN in
+      front, the old address is public record. Check the usual leaks: every **subdomain** (a stray
+      `staging.` or `direct.` A record pointing at origin), **MX and other mail records**, **outbound
+      email headers** (mail sent from the origin stamps its IP), plus any status/monitoring endpoint.
+      A locked front door next to an open garage is not a locked building.
+- [ ] **Rotate the origin address if it leaked, then stop accepting the internet.** Firewall the
+      origin to the CDN's published IP ranges and drop everything else — a request that didn't come
+      through the edge doesn't reach the server. Automate the range refresh; those lists change.
+      Cloud-native equivalents (private origin, authenticated origin pull, service tokens) are
+      stronger where available.
+- [ ] **Set TLS to full/strict with a real origin certificate.** "Flexible" modes encrypt
+      user → CDN and leave **CDN → origin in plain text**, so anyone positioned on that hop reads
+      everything — including session cookies — while the browser shows a padlock. Install the
+      provider's origin certificate and require validation end to end.
+- [ ] Verify rather than assume: from outside your network, request the site by IP with your host
+      header and confirm it's refused. If it answers, the edge is decorative.
+
 ### Prove it (SEC-09)
 - [ ] **Order matters: audit first, pen test second.** Run the full production audit (→ `audit`),
       fix what it surfaces, *then* pen test to validate the fixes and catch what they missed — and
@@ -166,6 +191,12 @@ npm audit --audit-level=high && npm audit fix
 #  3. Lock the origin: allow inbound only from the CDN's ranges.
 #  4. Write the runbook: pager, toggles, reroute, customer comms. Test the toggles once.
 
+# SEC-14: prove the edge can't be bypassed
+#  1. Hunt the origin: DNS history services, every subdomain A record, MX records, raw email headers.
+#  2. Leaked? rotate the origin IP, then firewall it to the CDN ranges only (refresh the list on a cron).
+#  3. TLS: full/strict + provider origin certificate. "Flexible" = plaintext CDN->origin.
+#  4. Verify: curl --resolve yourdomain:443:<origin-ip> https://yourdomain/ -> must be refused.
+
 # SEC-09: self pen-test
 docker run -t zaproxy/zap-stable zap-baseline.py -t https://your-app.example
 ```
@@ -194,6 +225,8 @@ Your app likely shares a template with thousands of others — the scan finds th
 - **Do** start with the 30-minute starter; enforce access in the database (RLS).
 - **Do** run at least one ZAP scan — the monoculture means your holes are already catalogued.
 - **Do** put a WAF and adaptive rate limiting in front of the stack before you need them.
+- **Do** confirm the edge can't be walked around — an origin the internet can still reach makes
+  every rule at the edge optional.
 - **Don't** query user data with the service role; don't trust generated input handling.
 - **Don't** feed the AI anything you haven't read (prompts are supply chain now).
 

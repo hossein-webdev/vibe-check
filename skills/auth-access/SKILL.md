@@ -11,7 +11,7 @@ description: >
 user-invokable: true
 metadata:
   category: auth-access
-  version: "2.2.0"
+  version: "2.3.0"
 ---
 
 # Authentication & Access Control
@@ -39,6 +39,7 @@ every check below at maximum strictness — assume nothing.**
 | AUTH-09 | Service-to-service credentials scoped + rotated | P2 |
 | AUTH-10 | Enterprise SSO ready (SAML 2.0/OIDC, per-tenant IdP config); provider's own compliance docs available; migration path known | P2 if selling to enterprise |
 | AUTH-11 | Every shared layer above the database is tenant-scoped — cache keys, search indexes, job queues, file paths, logs — and a cross-tenant test proves it | P1 if multi-tenant |
+| AUTH-12 | Authorization evaluates request context, not just a stored role; internal calls re-verify; sessions are scored continuously | P2 with sensitive data (P3 otherwise) — after AUTH-01..08 are solid |
 
 ## When to Use This Skill
 
@@ -46,6 +47,7 @@ every check below at maximum strictness — assume nothing.**
 - User mentions permissions, roles, RBAC, admin/member/viewer, or "who can do what".
 - User mentions multi-tenant / tenant isolation, or "can user A see user B's data?".
 - A customer reports seeing another customer's data, or you're auditing for that risk.
+- Stolen credentials, suspicious logins, zero trust, or step-up authentication come up.
 - User is choosing or wiring a provider (Clerk, Auth0, BetterAuth, Supabase Auth).
 - The app's auth was hand-written or generated from scratch.
 
@@ -119,7 +121,31 @@ request stopped.
       search endpoint, a file URL, and an export. It takes ten minutes to write and it is the only
       thing standing between you and finding out from a customer.
 
-### 6. Enterprise SSO — the procurement gate (AUTH-10)
+### 6. When the role isn't enough (AUTH-12)
+A stolen password produces a session that looks exactly like the real user: same role, same
+permissions, same access — at 3am, from a country the account has never touched, on a device it has
+never seen. A static role can't tell those apart because it was decided once and never revisited.
+**Do the basics first** — most apps need AUTH-01..08 working before this is the best use of a week —
+but once you hold financial, health, or other sensitive data, three additions change the shape of a
+credential theft:
+- [ ] **Evaluate attributes, not just the role.** A policy check on each request that considers time
+      of day, location, device fingerprint, IP reputation, and the sensitivity of the data being
+      requested. Same role, different context, different answer: routine reads pass, an unrecognized
+      device pulling financial records at 3am gets stepped-up authentication or a refusal. Start with
+      one policy on your most sensitive endpoint rather than a general-purpose engine.
+- [ ] **Drop the perimeter assumption.** Generated services trust anything already inside the
+      network, so one foothold reaches everything. Every internal call — service to service, job to
+      database, function to function — carries and re-verifies identity and authorization
+      (pairs with AUTH-09's scoped credentials). "It came from inside" is not an authorization.
+- [ ] **Score the session continuously, not once at login.** Watch for the patterns that only appear
+      mid-session: impossible travel between requests, a sudden jump in volume of records read, an
+      attempt to escalate privileges. Shifts trigger a challenge or terminate the session
+      automatically, and every one of those events belongs in the audit trail
+      (→ `observability` OBS-14).
+- [ ] Keep the failure mode kind: a false positive should cost a legitimate user one extra
+      verification step, never a lockout with no path back.
+
+### 7. Enterprise SSO — the procurement gate (AUTH-10)
 - [ ] If you sell to companies, **SSO is a gate, not a feature request**: line one of the IT
       procurement checklist is "SAML/OIDC support?", and Google sign-in + email/password doesn't
       count. Employees authenticate through the corporate IdP (Okta, Azure AD, Google Workspace) or
@@ -139,7 +165,7 @@ request stopped.
       - **What does leaving cost?** Know the migration path *before* thousands of paying users sit
         on a provider you've outgrown — evaluating it later is exponentially harder.
 
-### 7. Machine-to-machine (AUTH-09)
+### 8. Machine-to-machine (AUTH-09)
 - [ ] Services prove their own identity; a leaked service token is high blast radius — scope
       narrowly and rotate.
 

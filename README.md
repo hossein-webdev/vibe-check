@@ -6,7 +6,7 @@
 
 **A linter-grade production-readiness audit for vibe-coded (AI-generated) apps — packaged as 23 Claude Code skills.**
 
-[![Version](https://img.shields.io/badge/version-4.5.0-blue)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-4.6.0-blue)](CHANGELOG.md)
 [![Skills](https://img.shields.io/badge/skills-23-8A2BE2)](#-the-skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-plugin-D97757)](https://code.claude.com/docs/en/plugins)
@@ -124,13 +124,13 @@ fix playbook — the audit cites them; you can also invoke any skill directly (`
 |---|---|:---:|
 | 🩺 **[`audit`](skills/audit/SKILL.md)** | The scored, adaptive audit — start here | — |
 | 🏁 [`production-readiness`](skills/production-readiness/SKILL.md) | The last mile: 2-of-13-layers gap, owning AI code, docs, feature health, pre-release audit gate | `PROD` |
-| 🛡️ [`app-security`](skills/app-security/SKILL.md) | RLS, service-role bypass, deps, headers, XSS, error leaks, WAF/DDoS edge, monoculture, AI supply chain | `SEC` |
+| 🛡️ [`app-security`](skills/app-security/SKILL.md) | RLS, service-role bypass, deps, headers, XSS, error leaks, unbypassable WAF/CDN edge, AI supply chain | `SEC` |
 | 🔑 [`secrets-management`](skills/secrets-management/SKILL.md) | Client-exposed keys, vaults, rotation, git history, commit-time blocking | `SEC-01..03`, `SEC-12` |
-| 🚪 [`auth-access`](skills/auth-access/SKILL.md) | AuthN ≠ authZ, JWT, sessions, RBAC, tenant isolation across every shared layer | `AUTH` |
+| 🚪 [`auth-access`](skills/auth-access/SKILL.md) | AuthN ≠ authZ, JWT, sessions, RBAC, tenant isolation, context-aware access | `AUTH` |
 | 📈 [`scaling-performance`](skills/scaling-performance/SKILL.md) | The scaling decision tree, pooling, caching, background jobs | `SCALE` |
 | 🗄️ [`data-architecture`](skills/data-architecture/SKILL.md) | Schema, tenancy, zero-downtime migrations, backups, storage, CRDTs | `DATA` |
 | ⚖️ [`database-selection`](skills/database-selection/SKILL.md) | Platform by workload: Neon / PlanetScale / D1 / Supabase / Firebase / Convex | `DBS` |
-| 🤖 [`ai-engineering`](skills/ai-engineering/SKILL.md) | Output validation, evals, non-determinism in CI, pgvector-first retrieval | `AI` |
+| 🤖 [`ai-engineering`](skills/ai-engineering/SKILL.md) | Output validation, evals, non-determinism in CI, RAG permission boundaries | `AI` |
 | 🕹️ [`agent-operations`](skills/agent-operations/SKILL.md) | Agents that act: memory, topology, long runs, tool surface, config freshness, guardrails | `AI-05/06/08..11` |
 | 💸 [`llm-cost-control`](skills/llm-cost-control/SKILL.md) | The prompt bill: semantic caching, routing, spend caps | `LLM` |
 | 📡 [`observability`](skills/observability/SKILL.md) | Structured logs, outside-in monitoring, SLOs, synthetics, DLQs | `OBS` |
@@ -162,6 +162,7 @@ fix playbook — the audit cites them; you can also invoke any skill directly (`
 | `LLM-06` | A model call in client code publishes your key *and* your wallet |
 | `DEPLOY-08` | "Serverless scales automatically" — within plan ceilings you never read, found on launch day |
 | `GROW-07` | Total users only goes up — the dashboard stays green while every cohort quietly stops returning |
+| `SEC-14` | Your WAF is perfect and your origin IP is in public DNS history — attackers just skip it |
 | `AI-11` | A human approving agent actions isn't a guardrail — scoped credentials and deny-by-default gates are |
 
 </details>

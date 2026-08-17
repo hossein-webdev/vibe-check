@@ -10,7 +10,7 @@ description: >
 user-invokable: true
 metadata:
   category: reliability-recovery
-  version: "2.0.0"
+  version: "2.1.0"
 ---
 
 # Reliability & Recovery
@@ -52,8 +52,15 @@ Skip for throwaway or no-data apps. Freedom: **medium**.
    - **Location.** A backup on the same server as the database isn't a backup — it's a second copy
      of the same risk. Store **cross-region / off-site**, so it survives whatever kills the primary.
    - **Test the restore.** Restore to a test environment **monthly at minimum**; verify the data and
-     that the app runs against it. The worst moment to discover a broken backup is the outage that
-     needed it. An untested backup is a guess, not a plan.
+     that the app runs against it, and **time it** — recovery time is measured, never estimated. The
+     worst moment to discover a broken backup is the outage that needed it. An untested backup is a
+     guess, not a plan.
+   - **Name the two numbers, and take them from the business.** **RPO** (recovery point objective) is
+     how much data you can afford to lose; **RTO** (recovery time objective) is how long the business
+     survives with the system down. Decide both from what the business actually tolerates, then make
+     the infrastructure meet them — the common failure is inheriting whatever the default backup
+     schedule implies and calling that the target. A nightly snapshot *is* an RPO of up to 24 hours;
+     if that's unacceptable for your payments table, continuous archiving is not optional.
    **Know why this gap exists (REL-05):** the generator built the schema, the API, even the deploy —
    but it will **never raise backup strategy on its own**, because nobody asked. The default
    AI-built app is one database, one provider, one region, no schedule, no retention, no tested
@@ -93,7 +100,8 @@ Restore never tested [REL-02]:
  1. Enable point-in-time recovery on the managed DB (it's a setting) — kills the 24h-loss window.
  2. Confirm backups replicate cross-region/off-site (same-server "backup" = same risk twice).
  3. Restore the latest backup to a scratch database — time it; repeat monthly.
- 4. Write down: data-loss window + measured restore time; fix whichever misses your target.
+ 4. Write down RPO (tolerable data loss) + RTO (tolerable downtime) from the business, then the
+    measured numbers beside them. Fix whichever misses.
 Third-party fragility [REL-03] (per external call):
  timeout(5s) → retry ×2-3 with exponential backoff + jitter → circuit breaker (open after N fails)
  → fallback (cached value / degraded feature / honest error).
