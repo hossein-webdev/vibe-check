@@ -6,7 +6,7 @@
 
 **A linter-grade production-readiness audit for vibe-coded (AI-generated) apps — packaged as 23 Claude Code skills.**
 
-[![Version](https://img.shields.io/badge/version-4.6.0-blue)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-4.7.0-blue)](CHANGELOG.md)
 [![Skills](https://img.shields.io/badge/skills-23-8A2BE2)](#-the-skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-plugin-D97757)](https://code.claude.com/docs/en/plugins)
@@ -132,15 +132,15 @@ fix playbook — the audit cites them; you can also invoke any skill directly (`
 | ⚖️ [`database-selection`](skills/database-selection/SKILL.md) | Platform by workload: Neon / PlanetScale / D1 / Supabase / Firebase / Convex | `DBS` |
 | 🤖 [`ai-engineering`](skills/ai-engineering/SKILL.md) | Output validation, evals, non-determinism in CI, RAG permission boundaries | `AI` |
 | 🕹️ [`agent-operations`](skills/agent-operations/SKILL.md) | Agents that act: memory, topology, long runs, tool surface, config freshness, guardrails | `AI-05/06/08..11` |
-| 💸 [`llm-cost-control`](skills/llm-cost-control/SKILL.md) | The prompt bill: semantic caching, routing, spend caps | `LLM` |
+| 💸 [`llm-cost-control`](skills/llm-cost-control/SKILL.md) | Semantic + prompt caching, model routing, spend caps, endpoint lockdown | `LLM` |
 | 📡 [`observability`](skills/observability/SKILL.md) | Structured logs, outside-in monitoring, SLOs, synthetics, DLQs | `OBS` |
-| 🚀 [`deployment-cicd`](skills/deployment-cicd/SKILL.md) | Environments, pipelines that build, canary, rollback, platform ceilings | `DEPLOY` |
-| 🧯 [`reliability-recovery`](skills/reliability-recovery/SKILL.md) | Graceful failure, timed restore drills, third-party resilience | `REL` |
+| 🚀 [`deployment-cicd`](skills/deployment-cicd/SKILL.md) | Environments, branch protection, CI gates, canary/rollback, runbooks | `DEPLOY` |
+| 🧯 [`reliability-recovery`](skills/reliability-recovery/SKILL.md) | Graceful failure, tested restores, circuit breakers, bulkheads, incident comms | `REL` |
 | 📜 [`compliance-legal`](skills/compliance-legal/SKILL.md) | Privacy/terms, GDPR/CCPA, true deletion, SOC 2, AI disclosure, accessibility + jurisdiction | `LEGAL` |
 | 🧱 [`api-architecture`](skills/api-architecture/SKILL.md) | Backend boundary, contracts, versioning, layered rate limiting | `API` |
 | ✏️ [`api-design`](skills/api-design/SKILL.md) | The surface: naming, status codes, pagination, error shapes, idempotency | `APID` |
 | 📱 [`frontend-mobile-quality`](skills/frontend-mobile-quality/SKILL.md) | Responsive, WCAG AA a11y (keyboard/screen reader/contrast), hostile-condition testing, deep links | `FE` |
-| 💰 [`cost-infrastructure`](skills/cost-infrastructure/SKILL.md) | Bill attribution, cost per feature/user, unit economics, hosting by stage | `COST` |
+| 💰 [`cost-infrastructure`](skills/cost-infrastructure/SKILL.md) | Bill attribution, cost per feature/user, unit economics, vendor commitments, hosting by stage | `COST` |
 | 🧾 [`monetization-pricing`](skills/monetization-pricing/SKILL.md) | Hosted checkout, webhook security, silent revenue loss, pricing, ICP, agent buyers | `PAY` |
 | ⛓️ [`solidity-security`](skills/solidity-security/SKILL.md) | Smart-contract audit: reentrancy, oracle manipulation, proxy safety, token integration | `SOL` |
 | 🧪 [`test-quality`](skills/test-quality/SKILL.md) | Tests that catch bugs: anti-fragility, mocking discipline, fixed vectors, coverage as a floor | `TEST` |
@@ -163,6 +163,7 @@ fix playbook — the audit cites them; you can also invoke any skill directly (`
 | `DEPLOY-08` | "Serverless scales automatically" — within plan ceilings you never read, found on launch day |
 | `GROW-07` | Total users only goes up — the dashboard stays green while every cohort quietly stops returning |
 | `SEC-14` | Your WAF is perfect and your origin IP is in public DNS history — attackers just skip it |
+| `REL-08` | One hung webhook drains the shared connection pool and takes login and checkout with it |
 | `AI-11` | A human approving agent actions isn't a guardrail — scoped credentials and deny-by-default gates are |
 
 </details>

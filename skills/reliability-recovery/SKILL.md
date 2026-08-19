@@ -10,7 +10,7 @@ description: >
 user-invokable: true
 metadata:
   category: reliability-recovery
-  version: "2.1.0"
+  version: "2.2.0"
 ---
 
 # Reliability & Recovery
@@ -32,6 +32,7 @@ Skip for throwaway or no-data apps. Freedom: **medium**.
 | REL-05 | Backup schedule + retention policy exist; single-DB/single-region risk is a conscious decision | P1 with user data |
 | REL-06 | Post-mortem discipline: template ready before the first incident, blameless review within 48h, incident library | P3 (P2 with paying users) |
 | REL-07 | Status page on separate infrastructure + maintenance announcements + incident-comms workflow | P2 with paying users |
+| REL-08 | Failure is contained: per-dependency resource pools (bulkheads) and a total request time budget, so one slow dependency can't exhaust shared capacity | P2 (P1 once several third parties sit on the critical path) |
 
 ## When to Use This Skill
 
@@ -70,9 +71,25 @@ Skip for throwaway or no-data apps. Freedom: **medium**.
 3. **Survive third parties (REL-03).** Upstream APIs change, rate-limit, and kill free tiers. Every
    external call gets a **timeout**, **retries with backoff**, a **circuit breaker** so a dead
    dependency can't queue you to death, and a **fallback** so one vendor can't take you down.
-4. **Plan availability (REL-04).** Define "up", add health checks + alerting (→ `observability`),
+4. **Contain the blast radius (REL-08).** REL-03 protects the *call*; this protects everything
+   else while that call misbehaves. The failure mode is disproportionate: one webhook endpoint hangs,
+   request threads pile up waiting on a response that never comes, new requests queue behind them,
+   and authentication, the dashboard, and checkout all go down with it — none of which had anything
+   to do with that vendor. Two structures prevent it:
+   - **Bulkheads: a separate, bounded resource pool per dependency.** If the payments API hangs it
+     exhausts its own ten connections and stops; the pools serving login and the dashboard are
+     untouched. One shared pool means the slowest dependency eventually owns all of it. Partition
+     connections, threads, and worker concurrency the same way a ship is partitioned — the leak
+     floods one compartment.
+   - **A timeout budget for the whole request, not per call.** A five-second global timeout on each
+     of four chained calls is a twenty-second request. Allocate a total ceiling and spend it down:
+     if the budget is five seconds and the first call takes three, the second gets two, not five
+     more. Pass the remaining budget along the chain and fail fast when it's gone.
+   - Watch the pools like any other saturation signal — a dependency sitting at its ceiling is the
+     early warning that a circuit is about to open (→ `observability`).
+5. **Plan availability (REL-04).** Define "up", add health checks + alerting (→ `observability`),
    and write the recovery steps *before* you need them at 2am.
-5. **Tell people what's happening (REL-07).** Silence during an outage turns a technical problem
+6. **Tell people what's happening (REL-07).** Silence during an outage turns a technical problem
    into a trust problem — customers who hear nothing assume the worst about where their money went:
    - **A status page on separate infrastructure** — hosted on your own stack it goes down *with*
      you, which is exactly when it's needed. A standalone page on another host takes about twenty
@@ -83,7 +100,7 @@ Skip for throwaway or no-data apps. Freedom: **medium**.
    - **An incident-communication workflow, written before the incident** — updates at defined
      intervals, notification to active users, and an estimated restoration time even when it's a
      rough guess. Templates and triggers prepared in advance; nobody drafts good comms mid-outage.
-6. **Learn from every incident (REL-06).** The first incident arrives when you least expect it;
+7. **Learn from every incident (REL-06).** The first incident arrives when you least expect it;
    having no process for *after* is the real failure:
    - **Template before trouble** — a five-field post-mortem (what happened / impact / root cause /
      blast radius / what fixed it / what prevents it) written calmly, not mid-panic;
@@ -102,6 +119,10 @@ Restore never tested [REL-02]:
  3. Restore the latest backup to a scratch database — time it; repeat monthly.
  4. Write down RPO (tolerable data loss) + RTO (tolerable downtime) from the business, then the
     measured numbers beside them. Fix whichever misses.
+Cascading failure [REL-08]:
+ 1. One connection/thread pool per dependency with a hard ceiling - never one shared pool.
+ 2. Total request budget (e.g. 5s): pass the remaining time down the chain; each call gets what's left.
+ 3. Load-test it: make one dependency hang and confirm the rest of the app still serves.
 Third-party fragility [REL-03] (per external call):
  timeout(5s) → retry ×2-3 with exponential backoff + jitter → circuit breaker (open after N fails)
  → fallback (cached value / degraded feature / honest error).

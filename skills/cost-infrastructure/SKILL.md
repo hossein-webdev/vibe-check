@@ -10,7 +10,7 @@ description: >
 user-invokable: true
 metadata:
   category: cost-infrastructure
-  version: "2.1.0"
+  version: "2.2.0"
 ---
 
 # Cost & Infrastructure Economics
@@ -31,6 +31,7 @@ Skip while usage is trivial. Model/API spend → `llm-cost-control`. Freedom: **
 | COST-04 | Self-hosted vs managed decided on team capacity + uptime needs, not sticker price | P3 |
 | COST-05 | Customer ceiling documented: what size customer the current stack can serve, and what leveling up requires | P3 (P2 when chasing enterprise) |
 | COST-06 | Unit economics instrumented: cost attributed **per feature**, revenue vs cost **per user**, and a monthly P&L reconciled automatically | P2 once charging |
+| COST-07 | Fixed vendor commitments deferred until demand proves them; terms negotiated; every third party behind a swappable boundary | P2 pre-revenue |
 
 ## When to Use This Skill
 
@@ -39,6 +40,7 @@ Skip while usage is trivial. Model/API spend → `llm-cost-control`. Freedom: **
 - User is choosing hosting (Vercel vs Railway vs VPS) or sizing infrastructure.
 - User is weighing self-hosted vs managed.
 - User asks whether the product is profitable, or what a feature costs to run.
+- User is paying vendor minimums, or about to commit to one, before having customers.
 
 ## How It Works
 
@@ -83,7 +85,24 @@ Skip while usage is trivial. Model/API spend → `llm-cost-control`. Freedom: **
      schedule, not typed into a spreadsheet once and abandoned. Usage events from PAY-07 and token
      metering from `llm-cost-control` are the inputs; this is where they add up to a decision.
 
-7. **Serverless vs containers is a maturity decision, not a technology one.** Serverless charges a
+7. **Don't buy production before the market earns it (COST-07).** The expensive version of this is
+   months of a vendor's monthly minimum against zero transactions — the infrastructure running while
+   the business isn't, meter ticking throughout. Three moves:
+   - **Separate what you must *demonstrate* from what you must *operate*.** Build the integration,
+     run the flow in the provider's sandbox, and demo the complete experience. Early customers need
+     to see that the system works; they rarely need the live production rail on day one. Explaining
+     that a capability switches on during onboarding costs far less than months of minimums paid
+     while you wait for a first user.
+   - **Negotiate — the first offer is not the last.** Ask for a 60-90 day ramp, waived or deferred
+     minimums, usage-based pricing, or pilot terms that start when your first customers go live.
+     Most providers run startup programs they don't advertise. The downside of asking is a no.
+   - **Put every third party behind a boundary you can swap.** One module per vendor, your own
+     interface in front of it, so better economics — or a vendor's outage, or their next price
+     change — means replacing a rail rather than rebuilding the product. It's the same seam that
+     makes `reliability-recovery` REL-03's fallbacks possible; build it once, get both.
+   Validate, sell, activate, scale — in that order. Fixed costs come last, not first.
+
+8. **Serverless vs containers is a maturity decision, not a technology one.** Serverless charges a
    per-unit premium to manage *nothing* — the right deal early, when your time is worth more than
    the premium. Containers cost less per unit but someone must monitor, scale, and deploy them; if
    that someone is also the founder/sales/support, the ops burden costs more in lost focus than the
@@ -104,6 +123,11 @@ Unit economics from zero [COST-06]:
  2. Weekly rollup: SELECT feature, sum(cost) ... GROUP BY feature ORDER BY 2 DESC — top 3 is your bill.
  3. Per user: cost_per_user vs price_per_user; list anyone above their price. That list is the tier design.
  4. Monthly: pull processor revenue + hosting spend into one sheet on a cron. Margin by product line.
+Paying minimums with no customers [COST-07]:
+ 1. List every vendor with a floor/minimum; for each: needed to OPERATE, or only to DEMO?
+ 2. Demo-only -> move to sandbox/test keys now; ask the vendor for a ramp, pilot terms, or minimums
+    that start at first live customer (startup programs are usually unlisted - ask).
+ 3. Wrap each vendor in one module behind your own interface so the rail can be swapped later.
 Hosting mismatch [COST-03]:
  - Spiky low traffic on a big VPS → move to serverless/managed.
  - Steady heavy compute on premium serverless → move to Railway/VPS; keep the front-end where it is.

@@ -1,5 +1,38 @@
 # Changelog
 
+## 4.7.0
+
+**Four gates that exist on paper.** This batch is about the difference between having a control
+configured and having it *enforced* — a pipeline that runs but can't block, a vendor bill that
+starts before the market does, context re-sent on every call, and a failure with nothing to contain
+it.
+
+- `deployment-cicd` (2.1.0): **DEPLOY-12** — branch protection actually enforced on `main`. Having
+  CI configured is not the same as having merges blocked: forty-seven files land in one commit, no
+  pull request, no review, and at 6pm on a Friday the payment flow stops with no way to tell which
+  file did it. Reject direct pushes for *everyone* including automation, require the checks to
+  **pass** rather than merely run, require a review, and keep changes small enough to bisect — which
+  is what makes DEPLOY-06's rollback usable instead of theoretical.
+- `cost-infrastructure` (2.2.0): **COST-07** — don't buy production before the market earns it. The
+  expensive version is months of a vendor's monthly minimum against zero transactions. Separate what
+  you must *demonstrate* from what you must *operate* (sandbox the flow, demo the whole experience,
+  sell before switching on the paid rail), negotiate — first offer isn't last, and most providers
+  run startup programs they don't advertise — and keep every third party behind a boundary you can
+  swap, which is the same seam REL-03's fallbacks need anyway.
+- `llm-cost-control` (2.1.0): **LLM-07** — cache the *input*, not just the answer. LLM-01 caches
+  responses to similar questions; this is the other half, and agents live on it. Shipping the same
+  system prompt and project context on every call pays full input price for identical tokens every
+  cycle. Structure prompts stable-part-first (caching keys on a prefix), watch cache-read tokens —
+  near zero on a repeated-context workload is an architecture problem wearing a billing costume —
+  and mind the TTLs. LLM-05's section now also breaks spend down by model, workflow, and token type
+  on a weekly cadence, which is what tells you whether the fix is routing, caching, or output length.
+- `reliability-recovery` (2.2.0): **REL-08** — contain the blast radius. REL-03 protects the *call*;
+  this protects everything else while that call misbehaves. One hung webhook stacks up request
+  threads, queues everything behind them, and takes authentication and checkout down with it.
+  Bulkheads give each dependency its own bounded pool so a hang exhausts only its own compartment,
+  and a **total request time budget** replaces per-call timeouts — five seconds spread across the
+  chain, not five seconds each.
+
 ## 4.6.0
 
 **Three boundaries that were configured but not enforced.** Each rule here covers a control people

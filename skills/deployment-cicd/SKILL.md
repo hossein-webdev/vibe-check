@@ -10,7 +10,7 @@ description: >
 user-invokable: true
 metadata:
   category: deployment-cicd
-  version: "2.0.0"
+  version: "2.1.0"
 ---
 
 # Deployment, CI/CD & Environments
@@ -36,6 +36,7 @@ Freedom: **medium** — adapt to the platform; depth scales with team.
 | DEPLOY-09 | Automated PR review gate (CodeRabbit/Sourcery/LLM action) | P3 |
 | DEPLOY-10 | CI quota managed: usage alert at ~75%, path-based conditional pipelines, self-hosted-runner escape hatch | P2 for teams |
 | DEPLOY-11 | Runbooks exist per failure scenario; rollback is automated on degraded metrics, not manual | P2 near launch |
+| DEPLOY-12 | Branch protection **enforced** on `main`: direct pushes rejected, PR + review required, checks required to merge — and changes small enough to bisect | P1 once anything reaches real users |
 
 ## When to Use This Skill
 
@@ -60,7 +61,24 @@ Freedom: **medium** — adapt to the platform; depth scales with team.
    the **production build in CI** — "we build locally before pushing" is honor-based, and a broken
    build reaching `main` blocks everyone. Keep it fast (DEPLOY-07): parallelize test/lint; a 45-min
    pipeline trains teams to deploy weekly.
-4. **Release safely (DEPLOY-05/06/11).** The test of your deploy architecture: *what could go wrong
+4. **Make the gate real (DEPLOY-12).** Having CI configured is not the same as having merges
+   blocked. The failure looks like this: forty-seven files land on `main` in one commit, no pull
+   request, no review, no checks — and at 6pm on a Friday the payment flow stops, with no way to
+   tell which of the forty-seven did it while chargebacks arrive. A generator treats the repository
+   as a filing cabinet unless it's told otherwise:
+   - **Reject direct pushes to `main` — for everyone**, including you, including automation. Turn on
+     branch protection so every change arrives as a pull request. This is the one setting that makes
+     DEPLOY-02..04 actually binding rather than a convention.
+   - **Require the checks to pass before merge**, not merely to run. Tests, lint, the production
+     build, and your security scan gate the button; a failing check blocks it. The one file that
+     broke checkout gets caught before it reaches a customer rather than after.
+   - **Require a review** — at least one approval, and for a solo builder a self-review pass over
+     the diff is still worth its minute. The pull request is where *what changed and why* gets
+     recorded, which is what you'll read during the next incident.
+   - **Keep changes small enough to trace and revert.** One concern per pull request. A 47-file
+     commit can't be bisected or rolled back surgically; a scoped one is reverted in seconds. This is
+     what makes DEPLOY-06's rollback usable in practice instead of theoretical.
+5. **Release safely (DEPLOY-05/06/11).** The test of your deploy architecture: *what could go wrong
    that you couldn't fix remotely in 30 minutes?* (Fear of Friday deploys is an architecture
    confession, not a scheduling preference.)
    - **Feature flags decouple deploying from releasing** — deployment is a technical event, release
@@ -74,9 +92,9 @@ Freedom: **medium** — adapt to the platform; depth scales with team.
      **Test the rollback** either way — a typo shouldn't take everyone down while you google the undo.
    - **Runbooks (DEPLOY-11)** — a step-by-step guide per failure scenario, written in daylight.
      Judgment at 3am is unreliable; process isn't.
-5. **Automated PR review (DEPLOY-09).** CodeRabbit / Sourcery / a custom LLM action, gating merges —
+6. **Automated PR review (DEPLOY-09).** CodeRabbit / Sourcery / a custom LLM action, gating merges —
    catches security/logic issues and the tech debt you don't fully understand.
-6. **Compute fits the stage (DEPLOY-08).** "Serverless scales automatically" — *within the plan
+7. **Compute fits the stage (DEPLOY-08).** "Serverless scales automatically" — *within the plan
    boundaries you never read*, and you find them on launch day. Read the ceilings **before** you
    need them:
    - **concurrency caps** — hobby tiers allow ~10 concurrent executions: the 11th cold-starts, the
@@ -87,9 +105,9 @@ Freedom: **medium** — adapt to the platform; depth scales with team.
    Every platform (Vercel, Netlify, Lambda, Cloudflare Workers) markets infinite scale and has
    different walls. Long/heavy work → a platform without the cap, or a background worker
    (→ `scaling-performance`); split front-end from back-end when you outgrow one box.
-7. **"Works locally, fails in CI"** = stale env vars, mismatched DB state, or timing/resource
+8. **"Works locally, fails in CI"** = stale env vars, mismatched DB state, or timing/resource
    limits. Reconcile those three before blaming the tests.
-8. **Mind the CI quota trapdoor (DEPLOY-10).** Free CI minutes cover a solo project; add a teammate,
+9. **Mind the CI quota trapdoor (DEPLOY-10).** Free CI minutes cover a solo project; add a teammate,
    integration tests, and a staging step and usage multiplies — the allocation dies **mid-sprint**,
    the pipeline stops, code ships untested, and overage pricing turns a free tool into a four-figure
    bill. Every CI platform has a free tier and a trapdoor under it:
@@ -101,6 +119,14 @@ Freedom: **medium** — adapt to the platform; depth scales with team.
      manage it), versus paying per-minute overage.
 
 ## Fix playbook
+
+```text
+Everything goes straight to main [DEPLOY-12]:
+ 1. Repo settings -> branch protection on `main`: block direct pushes (include admins), require a PR.
+ 2. Require status checks to PASS before merge: test, lint, production build, security scan.
+ 3. Require 1 approval (solo: a self-review pass over the diff still catches things).
+ 4. Going forward: one concern per PR. A 47-file commit cannot be bisected or reverted cleanly.
+```
 
 ```yaml
 # DEPLOY-04: make CI build (GitHub Actions step)
@@ -137,6 +163,7 @@ Big-bang releases [DEPLOY-05]:
 
 - **Do** keep main = production, run the build in CI, and test the rollback.
 - **Do** release with canary + flags once real users exist.
+- **Do** enforce branch protection — CI that runs but can't block a merge is decoration.
 - **Don't** test features in production or accept a serial 45-minute pipeline.
 - **Don't** fight a free-tier timeout — graduate the compute.
 

@@ -12,7 +12,7 @@ user-invokable: true
 metadata:
   category: ai-engineering
   parent: ai-engineering
-  version: "2.0.0"
+  version: "2.1.0"
 ---
 
 # LLM Cost Control
@@ -34,6 +34,7 @@ Freedom: **medium** — apply the levers in order; adapt to the provider.
 | LLM-04 | AI endpoints rate-limited and behind auth + input validation | P1 when public |
 | LLM-05 | Provider budget levers (budgets, alerts, caps) configured and stacked | P3 |
 | LLM-06 | No model call (or key) in client-side code | P1 always |
+| LLM-07 | Repeated context is **prompt-cached**, not re-sent — system prompts, instructions, and project context reused across calls | P2 for agents or any repeated-context workload |
 
 ## When to Use This Skill
 
@@ -57,8 +58,27 @@ Freedom: **medium** — apply the levers in order; adapt to the provider.
 5. **Stack the provider levers (LLM-05).** Budgets, alerts, hard caps exist in every major
    provider's console — most builders never combine them. Set monthly budget + alert threshold +
    per-key limits so the platform backstops your code.
-6. **Meter from day one.** Log tokens + cost per call (many SDKs expose it) tagged by user/feature —
-   you can't cap or price what you don't measure (feeds `monetization-pricing` usage tracking).
+6. **Cache the *input*, not just the answer (LLM-07).** LLM-01 caches responses to similar
+   questions; this is the other half, and agents live on it. If every call ships the same system
+   prompt, the same instructions, and the same project context, you pay full input price for
+   identical tokens on every cycle — the same context sent ten times costs ten times what it should.
+   Providers expose explicit prompt/context caching for exactly this, at a large discount on the
+   cached portion:
+   - **Structure prompts stable-part-first.** Caching keys on a prefix, so put the unchanging
+     context at the top and the varying request at the bottom; reordering a prompt is often the
+     whole fix.
+   - **Read the cache metrics.** Cache-read tokens near zero on a repeated-context workload means
+     nothing is being reused — that's an architecture problem wearing a billing costume, not a
+     pricing problem.
+   - **Mind the TTLs.** Cached context expires; batching related calls together keeps hits high,
+     and a workload that touches the provider once an hour may never hit cache at all.
+7. **Meter from day one, and read it weekly.** Log tokens + cost per call (many SDKs expose it),
+   tagged by user and feature — you can't cap or price what you don't measure (feeds
+   `monetization-pricing` usage tracking). Break the spend down **by model, by workflow, and by
+   token type** (input / output / cache-read / cache-write): that split is what tells you whether
+   the fix is routing (LLM-02), prompt caching (LLM-07), or a runaway output length. A monthly
+   invoice says what you spent; a weekly breakdown with a per-workflow budget and an alert on
+   anything above baseline says where to cut (→ `cost-infrastructure` COST-06).
 
 ## Fix playbook
 
@@ -82,6 +102,7 @@ Client-side model call found (LLM-06):
 [LLM-02] Route by difficulty: small model default, frontier only when needed.
 [LLM-03/04] Per-user caps + rate limit the endpoint — stop bot/buggy-client spend.
 [LLM-05] Set provider budget + alerts as the backstop. Verify: cost/user dashboard trends down.
+[LLM-07] Agent workload? Move the fixed context to a cached prefix; confirm cache-read tokens rise.
 ```
 
 ### Example 2: "Is my AI endpoint safe to expose for the demo?"
