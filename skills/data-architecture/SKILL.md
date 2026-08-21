@@ -11,7 +11,7 @@ description: >
 user-invokable: true
 metadata:
   category: data-architecture
-  version: "2.0.0"
+  version: "2.1.0"
 ---
 
 # Database & Data Architecture
@@ -37,6 +37,7 @@ Freedom: **medium** — recommend the pattern, adapt to the stack.
 | DATA-07 | Concurrent-write conflict strategy chosen (CRDTs where merging must be automatic) | P2 if collaborative |
 | DATA-08 | Downstream consumers synced via change data capture (events, routed by type, with a DLQ) — not polling | P3 (P2 with search/analytics/notifications) |
 | DATA-09 | Live schema changes are expand-then-contract, with a rollback script written up front and a rehearsal on a current staging mirror | P1 once the database has real users |
+| DATA-10 | Per-tenant differences live in configuration, not in forked code: tenant-scoped flags, base config with overrides, tenant resolved at the boundary | P1 if B2B with per-client customization |
 
 ## When to Use This Skill
 
@@ -91,6 +92,25 @@ Freedom: **medium** — recommend the pattern, adapt to the stack.
    Long backfills belong in batches with a bounded lock window; add the index concurrently where the
    engine supports it.
 
+9. **Serve every tenant from one codebase (DATA-10).** The other multi-tenant failure isn't data
+   leakage, it's divergence: a client wants dark mode, another wants CSV instead of PDF, a third
+   wants onboarding skipped — and a generator happily copies the repository and customizes. Eleven
+   clients later there are eleven products sharing a name, nobody remembers which client runs which
+   branch, and a security fix has to be applied eleven times (or is applied nine times). Three
+   structures keep it one product:
+   - **Feature flags scoped per tenant, not globally.** A flag isn't an on/off switch, it's a
+     per-tenant value: one codebase reads the tenant context and renders the right behavior. Every
+     configurable difference is a flag lookup, never a branch.
+   - **Base configuration with override layers.** Every tenant inherits a shared default; tenant
+     overrides merge on top at runtime. Update the base and everyone gets it *except* where they
+     explicitly opted out — which is exactly the property forking destroys.
+   - **Tenant resolution at the boundary.** Middleware identifies the tenant on every request —
+     subdomain, header, or token claim — and injects that context *before* any business logic runs.
+     Everything downstream (config, flags, branding, and the tenant scoping in `auth-access`
+     AUTH-08/AUTH-11) keys off that one resolved identity.
+   Retrofitting this after the forks exist means merging divergent codebases by hand; it's cheap on
+   day one and expensive at client four.
+
 ## Fix playbook
 
 ```text
@@ -106,6 +126,11 @@ Changing a live schema [DATA-09]:
  3. Production sequence: add new column -> backfill in batches -> dual-write -> switch reads ->
     verify -> drop old column in a LATER deploy. Never add and drop in one release.
  4. Postgres: CREATE INDEX CONCURRENTLY; avoid ALTER TABLE forms that rewrite the whole table.
+Forked per client [DATA-10]:
+ 1. Diff the forks; list every real difference. Most are config (copy, flags, branding), not logic.
+ 2. Add tenant resolution middleware first (subdomain/header/claim -> tenant context on the request).
+ 3. Move each difference to a per-tenant flag or config override; merge base + overrides at runtime.
+ 4. Collapse forks into main one client at a time; delete the branch only after that tenant runs on it.
 Multi-tenant retrofit [DATA-02]:
  1. Add tenant_id to every table; backfill from ownership chains.
  2. Turn on RLS policies keyed to tenant_id; verify a cross-tenant read fails.

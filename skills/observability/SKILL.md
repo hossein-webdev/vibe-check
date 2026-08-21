@@ -12,7 +12,7 @@ description: >
 user-invokable: true
 metadata:
   category: observability
-  version: "2.0.0"
+  version: "2.1.0"
 ---
 
 # Observability & Monitoring
@@ -49,6 +49,7 @@ Skip for a purely static site. Freedom: **medium** — adapt tools to the stack.
 | OBS-12 | Session replays wired to error events; rage-clicks flagged as UX failures | P3 |
 | OBS-13 | Support tickets triaged by root cause weekly; repeated causes escalate to engineering | P3 |
 | OBS-14 | Audit trail on sensitive actions (plan changes, email changes, deletions, permission edits) | P2 (P1 with billing or regulated data) |
+| OBS-15 | Incidents carry measured business impact — users affected, transactions failed, revenue at risk — so severity is a number, not a guess | P2 once revenue flows |
 
 ## When to Use This Skill
 
@@ -97,6 +98,18 @@ The "we have monitoring" test is three questions; most rooms go quiet on all thr
 3. **"Do you have SLOs?" (OBS-11).** "99% uptime" sounds great until you do the math: **3 days 15
    hours down per year**. 99.9% = 8h45m; 99.99% = 52 minutes. SLOs turn vague expectations into
    commitments with an **error budget**: budget burning → slow releases; budget healthy → ship fast.
+   Two refinements separate a real budget from a number in a doc:
+   - **Budget per critical endpoint, not one global uptime figure.** A single site-wide percentage
+     averages your checkout together with your marketing pages, which is how a status page reads
+     "operational" while payments fail. Give your two or three highest-revenue endpoints their own
+     budget, sized from business impact rather than an infrastructure default: 0.1% over a rolling
+     30 days means 100 failures in 100,000 requests before you're in violation.
+   - **Alert on burn *rate*, not on breach.** Waiting for the budget to be exhausted means alerting
+     after the damage. Measure how fast it's being consumed: half a 30-day budget spent in 48 hours
+     means something changed and the trajectory ends in a breach. Fire on the projection, while
+     there's still budget left to spend on fixing it.
+   The budget is also a decision rule, not a report — inside budget, ship features; burning it,
+   freeze deploys and spend the sprint on reliability.
 
 Monitoring is not a dashboard you built — it's a system that calls *you*.
 
@@ -133,6 +146,22 @@ The generator built the *actions* but never the record of them. Log every sensit
 and from where. Without that trail, "I never authorized that charge" has no answer and an
 accidental deletion can't be traced back. (Regulated data raises this from good practice to a
 requirement → `compliance-legal` LEGAL-12.)
+
+### Layer 8 — price the incident (OBS-15)
+"The API returned 500 for twelve minutes" tells you what happened and nothing about what it cost.
+An outage on your documentation page and an outage on checkout are not the same event, and treating
+them alike is how the wrong one gets worked first:
+- **Attach business numbers to every incident**: users affected, transactions failed, revenue at
+  risk or lost, and which customers (a single enterprise account down is not a rounding error).
+- **Derive severity from those numbers**, not from the status code or the loudest channel. This is
+  what makes `production-readiness` PROD-06's risk-ordered queue possible — you can't rank by
+  business risk if incidents are only ever described in status codes.
+- **Instrument the correlation up front** by tagging the critical paths with their revenue meaning
+  (checkout, signup, the paid API), so the number is available *during* the incident rather than
+  reconstructed afterwards. It pairs with the business-metric alerting in OBS-06: same
+  instrumentation, one alerts, the other prices.
+- Carry the figure into the post-mortem (→ `reliability-recovery` REL-06); "this cost us X" is what
+  turns a reliability backlog item into a funded one.
 
 ## Fix playbook
 

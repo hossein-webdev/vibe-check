@@ -6,7 +6,7 @@
 
 **A linter-grade production-readiness audit for vibe-coded (AI-generated) apps — packaged as 23 Claude Code skills.**
 
-[![Version](https://img.shields.io/badge/version-4.7.0-blue)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-4.8.0-blue)](CHANGELOG.md)
 [![Skills](https://img.shields.io/badge/skills-23-8A2BE2)](#-the-skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-plugin-D97757)](https://code.claude.com/docs/en/plugins)
@@ -127,13 +127,13 @@ fix playbook — the audit cites them; you can also invoke any skill directly (`
 | 🛡️ [`app-security`](skills/app-security/SKILL.md) | RLS, service-role bypass, deps, headers, XSS, error leaks, unbypassable WAF/CDN edge, AI supply chain | `SEC` |
 | 🔑 [`secrets-management`](skills/secrets-management/SKILL.md) | Client-exposed keys, vaults, rotation, git history, commit-time blocking | `SEC-01..03`, `SEC-12` |
 | 🚪 [`auth-access`](skills/auth-access/SKILL.md) | AuthN ≠ authZ, JWT, sessions, RBAC, tenant isolation, context-aware access | `AUTH` |
-| 📈 [`scaling-performance`](skills/scaling-performance/SKILL.md) | The scaling decision tree, pooling, caching, background jobs | `SCALE` |
-| 🗄️ [`data-architecture`](skills/data-architecture/SKILL.md) | Schema, tenancy, zero-downtime migrations, backups, storage, CRDTs | `DATA` |
+| 📈 [`scaling-performance`](skills/scaling-performance/SKILL.md) | Pooling, caching layers, read replicas + consistency, background jobs, query tuning | `SCALE` |
+| 🗄️ [`data-architecture`](skills/data-architecture/SKILL.md) | Schema, tenancy without forks, zero-downtime migrations, backups, storage, CRDTs | `DATA` |
 | ⚖️ [`database-selection`](skills/database-selection/SKILL.md) | Platform by workload: Neon / PlanetScale / D1 / Supabase / Firebase / Convex | `DBS` |
 | 🤖 [`ai-engineering`](skills/ai-engineering/SKILL.md) | Output validation, evals, non-determinism in CI, RAG permission boundaries | `AI` |
 | 🕹️ [`agent-operations`](skills/agent-operations/SKILL.md) | Agents that act: memory, topology, long runs, tool surface, config freshness, guardrails | `AI-05/06/08..11` |
 | 💸 [`llm-cost-control`](skills/llm-cost-control/SKILL.md) | Semantic + prompt caching, model routing, spend caps, endpoint lockdown | `LLM` |
-| 📡 [`observability`](skills/observability/SKILL.md) | Structured logs, outside-in monitoring, SLOs, synthetics, DLQs | `OBS` |
+| 📡 [`observability`](skills/observability/SKILL.md) | Structured logs, error tracking, SLOs + burn rate, incident cost, audit trails | `OBS` |
 | 🚀 [`deployment-cicd`](skills/deployment-cicd/SKILL.md) | Environments, branch protection, CI gates, canary/rollback, runbooks | `DEPLOY` |
 | 🧯 [`reliability-recovery`](skills/reliability-recovery/SKILL.md) | Graceful failure, tested restores, circuit breakers, bulkheads, incident comms | `REL` |
 | 📜 [`compliance-legal`](skills/compliance-legal/SKILL.md) | Privacy/terms, GDPR/CCPA, true deletion, SOC 2, AI disclosure, accessibility + jurisdiction | `LEGAL` |
@@ -164,6 +164,7 @@ fix playbook — the audit cites them; you can also invoke any skill directly (`
 | `GROW-07` | Total users only goes up — the dashboard stays green while every cohort quietly stops returning |
 | `SEC-14` | Your WAF is perfect and your origin IP is in public DNS history — attackers just skip it |
 | `REL-08` | One hung webhook drains the shared connection pool and takes login and checkout with it |
+| `SCALE-08` | The save worked — the read came off a replica three seconds behind and showed the old value |
 | `AI-11` | A human approving agent actions isn't a guardrail — scoped credentials and deny-by-default gates are |
 
 </details>

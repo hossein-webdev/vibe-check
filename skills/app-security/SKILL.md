@@ -116,6 +116,19 @@ a second is enough to take the whole product dark:
       throttle → challenge → temporary ban based on *behavior* — which is what separates an attacker
       from a customer having a busy morning. Rate-limit headers and tier design → `api-design`
       APID-08 / `api-architecture` API-06.
+- [ ] **Then actually write the rules — a default-on WAF is a wall with no gate.** Managed rulesets
+      catch the generic traffic; the three that pay for themselves are yours to configure:
+      - **Edge rate limits on the credential endpoints.** Login, registration, and password reset get
+        a per-IP-per-minute ceiling **at the edge**, not in your application — credential-stuffing
+        bots run these at hundreds of requests a minute, and an application-level limit means you
+        already paid the compute to reject them. Challenge or block above the threshold.
+      - **Bot rules on high-value routes.** Pricing pages, checkout, and API docs get scraped
+        continuously; edge providers identify automated traffic by fingerprint and behavior and can
+        challenge it before it reaches your origin. This is as much a bill problem as a security one.
+      - **Attack-pattern rules for the OWASP classics** — injection strings in query parameters,
+        script payloads in form fields, path traversal in URLs — dropped at the edge so your
+        application never parses them. Defense in depth: this does not replace SEC-08's validation,
+        it removes the volume.
 - [ ] **Write the DDoS runbook before the attack.** Who gets paged, what gets toggled (challenge
       mode, cached-only mode, blocked regions), where traffic reroutes, and how customers are told
       (→ `reliability-recovery` REL-07). Decisions made during an outage are the wrong ones.
@@ -188,6 +201,8 @@ npm audit --audit-level=high && npm audit fix
 # SEC-13: edge protection
 #  1. Turn on the host/CDN WAF (managed ruleset) - proxy DNS through it so origin isn't reachable direct.
 #  2. Rate limits: per-IP + per-user; add a challenge tier before the ban tier.
+#  2b. Edge rules to write by hand: auth-route rate limit; bot rules on pricing/checkout/docs;
+#      OWASP pattern rules. Check the edge analytics for what is already hitting you.
 #  3. Lock the origin: allow inbound only from the CDN's ranges.
 #  4. Write the runbook: pager, toggles, reroute, customer comms. Test the toggles once.
 

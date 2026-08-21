@@ -12,7 +12,7 @@ description: >
 user-invokable: true
 metadata:
   category: scaling-performance
-  version: "2.1.0"
+  version: "2.2.0"
 ---
 
 # Scaling & Performance
@@ -36,12 +36,14 @@ detected → weight pooling and background-jobs checks up (functions multiply co
 | SCALE-05 | Heavy work in background workers with idempotency keys | P2 (P1 if payments retry) |
 | SCALE-06 | Query tuning driven by the planner (`EXPLAIN ANALYZE` / `pg_stat_statements`), not guesses | P3 |
 | SCALE-07 | Read/write split correct: replicas only for read bottlenecks; writes get queues/batching | P2 |
+| SCALE-08 | Where replicas exist, read-after-write is handled: a user's reads pin to the primary briefly after a write, and replica lag is monitored with a reroute threshold | P1 once replicas serve user-facing reads |
 
 ## When to Use This Skill
 
 - The app is slow, or "fine for me, slow for users", or crashes under load.
 - A sign-up spike froze it, users hit a blank/spinning screen, requests time out.
 - User mentions connection limits/pooling, caching, Redis, background jobs, or queues.
+- User added a read replica, or reports "the save worked but the page shows the old value".
 - User added indexes and it's "still slow", or asks how to find the bottleneck.
 
 ## How It Works — one flow, diagnose then fix
@@ -84,6 +86,23 @@ jobs, write batching**.
      consulted. Every key that holds per-customer data carries the tenant id
      (→ `auth-access` AUTH-11, which sweeps the other shared layers: search indexes, job queues,
      file paths, logs).
+- **Replicas make two versions of the truth (SCALE-08).** Adding a read replica quietly changes
+  your correctness model: the write lands on the primary, the very next read comes off a replica
+  that's a few seconds behind, and the user sees their own change missing. They report it as a bug,
+  and it isn't — the app is telling them something that was true a moment ago. Three fixes, in order
+  of importance:
+  - **Read-after-write routing.** After a user writes, route *that user's* reads to the primary for
+    a short consistency window (a few seconds, keyed on session). Everyone else keeps reading from
+    replicas, so you keep the offload and lose the lie. This alone removes almost all reported
+    "it didn't save" tickets.
+  - **Lag monitoring with a reroute threshold.** Replication lag spikes under load, during large
+    transactions, and during migrations (→ `data-architecture` DATA-09). Instrument it, and when a
+    replica falls past your threshold, send reads to the primary automatically until it catches up.
+    Unmonitored lag is stale data with no alarm attached.
+  - **Decide what happens to concurrent writes** before you run multi-region primaries — two regions
+    both accepting a write to the same record means one silently overwrites the other. Pick
+    last-write-wins with timestamps, or a merge strategy, deliberately (→ `data-architecture`
+    DATA-07).
 - **Background jobs (SCALE-05):** long work inside the request causes timeouts; hand it to workers
   with **idempotency keys** so a retry never runs the job — or the charge — twice. The generated
   anti-pattern is the **synchronous chain**: a 12-second checkout where the user stares at a spinner
@@ -99,6 +118,11 @@ jobs, write batching**.
 ## Fix playbook
 
 ```text
+"It saved but shows the old value" [SCALE-08]:
+ 1. Confirm the read came from a replica and the write from the primary - that's the whole bug.
+ 2. Pin the writer's session to the primary for N seconds after any write (N > observed p99 lag).
+ 3. Export replication lag as a metric; alert on it; auto-route reads to primary above the threshold.
+ 4. Re-check lag during migrations and bulk jobs - that's when it spikes (-> DATA-09).
 Sign-up spike froze the app [SCALE-01]:
  1. Enable pooling (Supavisor/PgBouncer/platform pooler); use the pooled connection string.
  2. Cache the hottest reads (app + query layer).

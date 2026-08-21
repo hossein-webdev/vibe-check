@@ -1,5 +1,36 @@
 # Changelog
 
+## 4.8.0
+
+**Three things that break once the app grows past one of something** — one codebase, one database,
+one uptime number — plus the edge rules nobody writes.
+
+- `data-architecture` (2.2.0): **DATA-10** — serve every tenant from one codebase. The multi-tenant
+  failure people plan for is data leakage; the one that actually happens is divergence. A client
+  wants dark mode, another wants CSV instead of PDF, a third wants onboarding skipped, and a
+  generator cheerfully forks the repository each time. Eleven clients later there are eleven
+  products sharing a name and a security fix has to land eleven times. Per-tenant feature flags
+  instead of branches, a base config with override layers so the base still reaches everyone, and
+  tenant resolution middleware that injects context before any business logic runs.
+- `scaling-performance` (2.2.0): **SCALE-08** — read-after-write consistency. Adding a replica
+  quietly changes your correctness model: the write lands on the primary, the next read comes off a
+  replica a few seconds behind, and the user sees their own change missing. They file a bug; the app
+  isn't broken, it's telling them something that was true a moment ago. Pin a writer's reads to the
+  primary for a short window, monitor replication lag with a threshold that reroutes automatically,
+  and decide the cross-region write conflict strategy deliberately.
+- `observability` (2.2.0): **OBS-15** — price the incident. "The API returned 500 for twelve minutes"
+  says what happened and nothing about what it cost; an outage on the docs page and one on checkout
+  are not the same event. Attach users affected, transactions failed, and revenue at risk to every
+  incident, and derive severity from those numbers — it's what makes `production-readiness` PROD-06's
+  risk-ordered queue possible at all. **OBS-11** also gains the two refinements that separate a real
+  error budget from a number in a doc: budgets **per critical endpoint** rather than one global
+  uptime figure (which averages checkout together with marketing pages — that's how a status page
+  reads "operational" while payments fail), and alerting on **burn rate** rather than on breach.
+- `app-security` (2.3.0): SEC-13 now spells out the edge rules that don't come with the default-on
+  ruleset — per-IP rate limits on login/registration/reset **at the edge** where credential stuffing
+  is rejected before you pay the compute, bot rules on pricing/checkout/docs, and attack-pattern
+  rules for the OWASP classics. A default-on WAF is a wall with no gate.
+
 ## 4.7.0
 
 **Four gates that exist on paper.** This batch is about the difference between having a control
