@@ -1,5 +1,38 @@
 # Changelog
 
+## 4.9.0
+
+**The cost of saying yes**, plus the half of onboarding that happens after the first session.
+
+- `cost-infrastructure` (2.3.0): **COST-08** — price custom work before you agree to it. Eighteen
+  months of saying yes ends with a product that can't ship without regression-testing eleven bespoke
+  features first; every yes felt like retention and collectively they took the roadmap hostage. Cost
+  it fully — build time is the small part next to expanded test surface, maintenance *per release
+  forever*, and what the team isn't building meanwhile — and if annual maintenance exceeds that
+  client's contract value you now have the number to re-scope with. Express it as configuration
+  where you can, and **productize at the third request**: three clients asking the same thing means
+  it stopped being custom.
+- `data-architecture` (2.2.0): **DATA-11** — keep one tenant's shape out of everyone's schema.
+  DATA-10 stopped you forking the code; this stops you forking the data model. A custom column added
+  to a shared table rides along in every query, index, migration, backup, and restore for the
+  clients who never asked for it. Custom attributes belong in a tenant-scoped extension layer,
+  heavy per-tenant workloads on scoped workers, and migration paths split so no single tenant's
+  evolution forces a system-wide deployment.
+- `growth-activation` (1.2.0): **GROW-10** — onboarding doesn't end at the first session. A launch
+  spike converts on the signup page and empties out within the week because nothing after account
+  creation gave anyone a reason to return. Reveal complexity progressively as the user demonstrates
+  readiness rather than showing everything on day one, and fire day-1/day-7 re-engagement that names
+  the thing *they* built — "your project has three tasks due tomorrow" beats "we miss you", and only
+  works because GROW-05 got them to build something. GROW-05 also gains the target in **seconds**:
+  the core action done inside the first minute, via templates and seeded data rather than an empty
+  state and a tutorial.
+- `agent-operations` (1.1.0): AI-09 gains the sharpest version of the tool-surface argument —
+  **don't wrap what already has a command line**. A CLI is already an interface the agent can call;
+  putting a server in front adds schema negotiation, serialization, and a permission handshake to
+  every call and often exposes fewer capabilities than the tool it wraps. Wrappers still earn their
+  place (no CLI, auth negotiation, stateful workflows), but settle it by benchmarking latency and
+  token cost on a real task — and re-check it, because the answer moves as models improve.
+
 ## 4.8.0
 
 **Three things that break once the app grows past one of something** — one codebase, one database,

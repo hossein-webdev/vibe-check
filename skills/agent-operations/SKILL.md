@@ -14,6 +14,7 @@ user-invokable: true
 metadata:
   category: ai-engineering
   role: sub-skill
+  version: "1.1.0"
 ---
 
 # Agent Operations
@@ -91,9 +92,19 @@ failure mode where the agent picks a plausible wrong tool.
   authenticate, construct requests, and handle responses without a pre-built wrapper. When the
   integration is a couple of HTTP calls, having the agent build it for the task is often lighter
   than carrying a permanent connector for it.
-- **Keep the wrapper where it earns its place** — a fiddly auth dance, a stateful protocol, a
-  hand-tuned tool description that measurably improves selection, or a boundary you want enforced in
-  one reviewed place rather than reconstructed ad hoc. This is a budget, not a purge.
+- **Don't wrap what already has a command line.** A tool with a usable CLI is already an interface
+  your agent can call: one command, one response, no protocol overhead. Putting a server in front of
+  it adds schema negotiation, transport serialization, and a permission handshake to every call, and
+  frequently exposes *fewer* capabilities than the CLI it wraps — slower, pricier, and less able.
+  At two hundred tool calls in a session that overhead is the bill.
+- **Keep the wrapper where it earns its place** — a service with no command line, an authentication
+  negotiation you don't want reconstructed ad hoc, a stateful multi-step workflow, a hand-tuned tool
+  description that measurably improves selection, or a boundary you want enforced in one reviewed
+  place. This is a budget, not a purge.
+- **Settle it by measurement, not preference.** Take your ten most-used tools and compare latency
+  and token cost per call, wrapper versus direct invocation, on a task you actually run. Keep
+  whichever wins. The answer moves as models get better at calling things directly, which is why
+  this pairs with AI-10 — a wrapper that earned its place last year may not this year.
 - **Notice the symptom.** Degrading quality as a project accumulates integrations is usually tool
   clutter, not a worse model. Cut the surface and re-measure before changing anything else.
 
@@ -143,6 +154,7 @@ Agent drifts on long jobs [AI-08]:
 Quality degraded as the project grew [AI-09/AI-10]:
  1. List every connected tool and every instruction/skill file the agent loads.
  2. For each: used on this task? justified against the CURRENT model? If no to either, unload it.
+ 2b. Wrapping something that already has a CLI? Benchmark both on a real task (latency + tokens); keep the winner.
  3. Re-run a known-good task and compare. Cut surface first; change models last.
  4. Put the next review on the calendar (~90 days) so it doesn't accumulate again.
 Agent can reach production [AI-11]:

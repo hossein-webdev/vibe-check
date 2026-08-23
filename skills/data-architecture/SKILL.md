@@ -11,7 +11,7 @@ description: >
 user-invokable: true
 metadata:
   category: data-architecture
-  version: "2.1.0"
+  version: "2.2.0"
 ---
 
 # Database & Data Architecture
@@ -38,6 +38,7 @@ Freedom: **medium** — recommend the pattern, adapt to the stack.
 | DATA-08 | Downstream consumers synced via change data capture (events, routed by type, with a DLQ) — not polling | P3 (P2 with search/analytics/notifications) |
 | DATA-09 | Live schema changes are expand-then-contract, with a rollback script written up front and a rehearsal on a current staging mirror | P1 once the database has real users |
 | DATA-10 | Per-tenant differences live in configuration, not in forked code: tenant-scoped flags, base config with overrides, tenant resolved at the boundary | P1 if B2B with per-client customization |
+| DATA-11 | Tenant-specific changes stay out of the shared core: custom fields in an extension layer, heavy tenant workloads on scoped workers, migrations split core vs per-tenant | P1 if B2B with per-client data shapes |
 
 ## When to Use This Skill
 
@@ -111,6 +112,24 @@ Freedom: **medium** — recommend the pattern, adapt to the stack.
    Retrofitting this after the forks exist means merging divergent codebases by hand; it's cheap on
    day one and expensive at client four.
 
+10. **Keep one tenant's shape out of everyone's schema (DATA-11).** DATA-10 stops you forking the
+    *code*; this stops you forking the *data model*. One client wants a custom field on every
+    record, so a column goes into the shared table — and now every query, index, migration, backup,
+    and restore carries a field that no other client asked for or can see. One tenant's request
+    became everyone's tax, and it compounds with each release. Say yes with architecture instead:
+    - **An extension layer for tenant-specific fields.** Custom attributes live in a tenant-scoped
+      metadata table or a `JSONB` column, joined or projected only for the tenant that asked. The
+      core schema stays clean and the extension grows without touching anyone else. Index the
+      extension per tenant where it's actually queried — `JSONB` isn't free, it's just *isolated*.
+    - **Isolated compute for heavy or bespoke workloads.** A tenant running a report that scans
+      millions of rows should not be competing in real time with everyone else's requests. Route
+      expensive per-tenant work to scoped workers or queues so one tenant's heavy Monday can't
+      degrade the rest (the bulkhead argument from `reliability-recovery` REL-08, applied to
+      tenants).
+    - **Split the migration paths.** Changes to the extension layer run per tenant; changes to the
+      core schema stay backwards compatible and expand-then-contract (DATA-09). No single tenant's
+      evolution should force a system-wide deployment or a shared downtime window.
+
 ## Fix playbook
 
 ```text
@@ -126,6 +145,11 @@ Changing a live schema [DATA-09]:
  3. Production sequence: add new column -> backfill in batches -> dual-write -> switch reads ->
     verify -> drop old column in a LATER deploy. Never add and drop in one release.
  4. Postgres: CREATE INDEX CONCURRENTLY; avoid ALTER TABLE forms that rewrite the whole table.
+One client's column in the shared table [DATA-11]:
+ 1. Find them: columns only one tenant writes/reads (nullable + ~100% null is the tell).
+ 2. Move to an extension: tenant_custom_fields(tenant_id, record_id, key, value) or a scoped JSONB column.
+ 3. Backfill that tenant, switch their reads/writes, drop the shared column in a LATER release (DATA-09).
+ 4. Route that tenant's heavy reports to a scoped worker/queue so the shared path stays fast.
 Forked per client [DATA-10]:
  1. Diff the forks; list every real difference. Most are config (copy, flags, branding), not logic.
  2. Add tenant resolution middleware first (subdomain/header/claim -> tenant context on the request).

@@ -10,7 +10,7 @@ description: >
 user-invokable: true
 metadata:
   category: cost-infrastructure
-  version: "2.2.0"
+  version: "2.3.0"
 ---
 
 # Cost & Infrastructure Economics
@@ -32,6 +32,7 @@ Skip while usage is trivial. Model/API spend → `llm-cost-control`. Freedom: **
 | COST-05 | Customer ceiling documented: what size customer the current stack can serve, and what leveling up requires | P3 (P2 when chasing enterprise) |
 | COST-06 | Unit economics instrumented: cost attributed **per feature**, revenue vs cost **per user**, and a monthly P&L reconciled automatically | P2 once charging |
 | COST-07 | Fixed vendor commitments deferred until demand proves them; terms negotiated; every third party behind a swappable boundary | P2 pre-revenue |
+| COST-08 | Custom work costed before it is built (build + test surface + maintenance per release + opportunity cost), expressed as configuration where possible, and productized at the third request | P2 if serving multiple clients |
 
 ## When to Use This Skill
 
@@ -102,7 +103,25 @@ Skip while usage is trivial. Model/API spend → `llm-cost-control`. Freedom: **
      makes `reliability-recovery` REL-03's fallbacks possible; build it once, get both.
    Validate, sell, activate, scale — in that order. Fixed costs come last, not first.
 
-8. **Serverless vs containers is a maturity decision, not a technology one.** Serverless charges a
+8. **Price the custom work before you agree to it (COST-08).** Eighteen months of saying yes to
+   every client request ends with a product that can't ship without regression-testing eleven
+   bespoke features first. Every yes felt like retention; collectively they became a roadmap held
+   hostage. Three rules keep custom work from eating the product:
+   - **Cost it fully, before the first line.** Build time is the small part. Add the expanded test
+     surface, the maintenance burden *per release cycle forever*, and the opportunity cost of what
+     the team isn't building while it maintains this. If annual maintenance exceeds that client's
+     annual contract value, the feature needs different funding or a different scope — and you now
+     have the number to say so with. Your best client should not quietly be your most expensive one;
+     the per-customer model in COST-06 is where you check.
+   - **Configuration over code, always.** A difference expressed as configuration is maintained by
+     the system; the same difference expressed as a code branch is maintained by a person, forever.
+     This is the economic case for `data-architecture` DATA-10/DATA-11 — the architecture is what
+     makes "yes" affordable.
+   - **Productize at the third request.** When three clients ask for the same customization it has
+     stopped being custom: build it once, build it properly, and ship it to everyone. Track requests
+     so you can *see* the third one arrive rather than discovering it after building three variants.
+
+9. **Serverless vs containers is a maturity decision, not a technology one.** Serverless charges a
    per-unit premium to manage *nothing* — the right deal early, when your time is worth more than
    the premium. Containers cost less per unit but someone must monitor, scale, and deploy them; if
    that someone is also the founder/sales/support, the ops burden costs more in lost focus than the
@@ -123,6 +142,11 @@ Unit economics from zero [COST-06]:
  2. Weekly rollup: SELECT feature, sum(cost) ... GROUP BY feature ORDER BY 2 DESC — top 3 is your bill.
  3. Per user: cost_per_user vs price_per_user; list anyone above their price. That list is the tier design.
  4. Monthly: pull processor revenue + hosting spend into one sheet on a cron. Margin by product line.
+Custom feature requested [COST-08] — before agreeing:
+ 1. Estimate: build + test-surface growth + maintenance/release + what it displaces. Annualize it.
+ 2. Compare to that client's ACV. Maintenance > ACV -> re-scope, re-price, or decline with the number.
+ 3. Can it be config instead of a branch? If yes it is not custom work (-> DATA-10).
+ 4. Log the request. Third client asking = build it into the product for everyone.
 Paying minimums with no customers [COST-07]:
  1. List every vendor with a floor/minimum; for each: needed to OPERATE, or only to DEMO?
  2. Demo-only -> move to sandbox/test keys now; ask the vendor for a ramp, pilot terms, or minimums

@@ -12,7 +12,7 @@ description: >
 user-invokable: true
 metadata:
   category: growth-activation
-  version: "1.1.0"
+  version: "1.2.0"
 ---
 
 # Growth & Activation
@@ -43,6 +43,7 @@ tactics are yours.
 | GROW-07 | Retention read from **cohorts** (signups grouped by week), never from total-user counts | P2 |
 | GROW-08 | Core-feature adoption measured; low usage diagnosed as discovery vs value before anything is rebuilt | P2 |
 | GROW-09 | A ~100-day post-launch review is scheduled, treating the launch build as a hypothesis to be revised from behavior | P3 |
+| GROW-10 | Onboarding runs past the first session: complexity revealed as the user demonstrates readiness, and day-1/day-7 re-engagement references what that user actually created | P2 for retention |
 
 ## When to Use This Skill
 
@@ -120,8 +121,24 @@ first session never proved why the product matters:
   teams have never written theirs down.
 - **Track completion within the first 24 hours.** Missing it collapses the odds of a next-day
   return, so this is the single highest-leverage metric before launch and after.
+- **Put the target in seconds, not sessions.** The user should *do* the core action inside the
+  first minute — not watch a tour, not read documentation. Prefilled templates, sample data, and
+  smart defaults are how you get there: a project tracker should have a project with tasks in it
+  before onboarding finishes. Empty-state-then-tutorial is the pattern that loses people.
 - **Nudge when it doesn't happen** — email, in-app prompt, a tooltip on the right screen. Builders
   hesitate here because nudges feel pushy; silence is what actually loses the user.
+
+**Onboarding doesn't end at the first session (GROW-10).** A launch spike converts on the signup
+page and then quietly empties out — thousands of signups, most gone within the week — because
+nothing after account creation gave them a reason to return. Two structures carry the arc:
+- **Progressive disclosure.** Don't show every feature in session one. Gate complexity behind
+  demonstrated readiness: first session the core workflow, second customization, third the
+  integrations. Track the milestones and reveal against them. A full-featured first screen reads as
+  homework, and the feature you buried is one the user will actually find when it's relevant.
+- **Re-engagement that references their own data.** A generic "come back, we miss you" is ignored;
+  "your project has three tasks due tomorrow" is a reason to open the app, because it's about the
+  thing *they* built. Fire event-based triggers at day one and day seven post-signup, keyed to what
+  the user created — which only works if GROW-05 got them to create something in the first place.
 
 ### 5. Survive week three (GROW-06)
 The 48-hour gate has a sequel. Around week three the novelty is gone and the user has to *choose*
@@ -174,6 +191,8 @@ Funnel is a black box [GROW-03/04]:
 Signups don't stick [GROW-05/06/07]:
  1. Write down the core action. Query: % of signups completing it within 24h.
  2. Nudge sequence for non-completers (t+1h in-app, t+24h email, t+72h last touch).
+ 2b. [GROW-10] Seed the empty state: template/sample data so the core action is doable in <60s.
+ 2c. [GROW-10] Day-1 and day-7 triggers that name the user's own object, not the product.
  3. Weekly cohort chart: signup week x weeks-since-signup return %. Find the cliff week.
  4. Per-user baseline alert: this week's actions < 50% of that user's 4-week average -> flag.
 ```

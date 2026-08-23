@@ -6,7 +6,7 @@
 
 **A linter-grade production-readiness audit for vibe-coded (AI-generated) apps — packaged as 23 Claude Code skills.**
 
-[![Version](https://img.shields.io/badge/version-4.8.0-blue)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-4.9.0-blue)](CHANGELOG.md)
 [![Skills](https://img.shields.io/badge/skills-23-8A2BE2)](#-the-skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-plugin-D97757)](https://code.claude.com/docs/en/plugins)
@@ -128,7 +128,7 @@ fix playbook — the audit cites them; you can also invoke any skill directly (`
 | 🔑 [`secrets-management`](skills/secrets-management/SKILL.md) | Client-exposed keys, vaults, rotation, git history, commit-time blocking | `SEC-01..03`, `SEC-12` |
 | 🚪 [`auth-access`](skills/auth-access/SKILL.md) | AuthN ≠ authZ, JWT, sessions, RBAC, tenant isolation, context-aware access | `AUTH` |
 | 📈 [`scaling-performance`](skills/scaling-performance/SKILL.md) | Pooling, caching layers, read replicas + consistency, background jobs, query tuning | `SCALE` |
-| 🗄️ [`data-architecture`](skills/data-architecture/SKILL.md) | Schema, tenancy without forks, zero-downtime migrations, backups, storage, CRDTs | `DATA` |
+| 🗄️ [`data-architecture`](skills/data-architecture/SKILL.md) | Schema, tenancy without forks or schema pollution, zero-downtime migrations, backups, storage | `DATA` |
 | ⚖️ [`database-selection`](skills/database-selection/SKILL.md) | Platform by workload: Neon / PlanetScale / D1 / Supabase / Firebase / Convex | `DBS` |
 | 🤖 [`ai-engineering`](skills/ai-engineering/SKILL.md) | Output validation, evals, non-determinism in CI, RAG permission boundaries | `AI` |
 | 🕹️ [`agent-operations`](skills/agent-operations/SKILL.md) | Agents that act: memory, topology, long runs, tool surface, config freshness, guardrails | `AI-05/06/08..11` |
@@ -140,11 +140,11 @@ fix playbook — the audit cites them; you can also invoke any skill directly (`
 | 🧱 [`api-architecture`](skills/api-architecture/SKILL.md) | Backend boundary, contracts, versioning, layered rate limiting | `API` |
 | ✏️ [`api-design`](skills/api-design/SKILL.md) | The surface: naming, status codes, pagination, error shapes, idempotency | `APID` |
 | 📱 [`frontend-mobile-quality`](skills/frontend-mobile-quality/SKILL.md) | Responsive, WCAG AA a11y (keyboard/screen reader/contrast), hostile-condition testing, deep links | `FE` |
-| 💰 [`cost-infrastructure`](skills/cost-infrastructure/SKILL.md) | Bill attribution, cost per feature/user, unit economics, vendor commitments, hosting by stage | `COST` |
+| 💰 [`cost-infrastructure`](skills/cost-infrastructure/SKILL.md) | Bill attribution, unit economics, custom-work pricing, vendor commitments, hosting by stage | `COST` |
 | 🧾 [`monetization-pricing`](skills/monetization-pricing/SKILL.md) | Hosted checkout, webhook security, silent revenue loss, pricing, ICP, agent buyers | `PAY` |
 | ⛓️ [`solidity-security`](skills/solidity-security/SKILL.md) | Smart-contract audit: reentrancy, oracle manipulation, proxy safety, token integration | `SOL` |
 | 🧪 [`test-quality`](skills/test-quality/SKILL.md) | Tests that catch bugs: anti-fragility, mocking discipline, fixed vectors, coverage as a floor | `TEST` |
-| 📈 [`growth-activation`](skills/growth-activation/SKILL.md) | Audience (and the skill to build one) before launch, validated scope, funnel instrumentation, activation, cohort retention | `GROW` |
+| 📈 [`growth-activation`](skills/growth-activation/SKILL.md) | Audience before launch, validated scope, funnel instrumentation, activation, onboarding arc, cohort retention | `GROW` |
 
 <details>
 <summary><b>Example rules</b> — the kind of thing the audit catches</summary>
@@ -165,6 +165,7 @@ fix playbook — the audit cites them; you can also invoke any skill directly (`
 | `SEC-14` | Your WAF is perfect and your origin IP is in public DNS history — attackers just skip it |
 | `REL-08` | One hung webhook drains the shared connection pool and takes login and checkout with it |
 | `SCALE-08` | The save worked — the read came off a replica three seconds behind and showed the old value |
+| `COST-08` | Eighteen months of yes: annual maintenance on one client's custom feature now exceeds their contract |
 | `AI-11` | A human approving agent actions isn't a guardrail — scoped credentials and deny-by-default gates are |
 
 </details>
