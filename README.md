@@ -6,7 +6,7 @@
 
 **A linter-grade production-readiness audit for vibe-coded (AI-generated) apps — packaged as 23 Claude Code skills.**
 
-[![Version](https://img.shields.io/badge/version-4.9.0-blue)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-4.10.0-blue)](CHANGELOG.md)
 [![Skills](https://img.shields.io/badge/skills-23-8A2BE2)](#-the-skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-plugin-D97757)](https://code.claude.com/docs/en/plugins)
@@ -138,8 +138,8 @@ fix playbook — the audit cites them; you can also invoke any skill directly (`
 | 🧯 [`reliability-recovery`](skills/reliability-recovery/SKILL.md) | Graceful failure, tested restores, circuit breakers, bulkheads, incident comms | `REL` |
 | 📜 [`compliance-legal`](skills/compliance-legal/SKILL.md) | Privacy/terms, GDPR/CCPA, true deletion, SOC 2, AI disclosure, accessibility + jurisdiction | `LEGAL` |
 | 🧱 [`api-architecture`](skills/api-architecture/SKILL.md) | Backend boundary, contracts, versioning, layered rate limiting | `API` |
-| ✏️ [`api-design`](skills/api-design/SKILL.md) | The surface: naming, status codes, pagination, error shapes, idempotency | `APID` |
-| 📱 [`frontend-mobile-quality`](skills/frontend-mobile-quality/SKILL.md) | Responsive, WCAG AA a11y (keyboard/screen reader/contrast), hostile-condition testing, deep links | `FE` |
+| ✏️ [`api-design`](skills/api-design/SKILL.md) | Naming, status codes, errors, pagination, versioning, idempotency, request signing | `APID` |
+| 📱 [`frontend-mobile-quality`](skills/frontend-mobile-quality/SKILL.md) | Responsive, WCAG AA a11y, hostile-condition testing, deep links, native-shell hardening | `FE` |
 | 💰 [`cost-infrastructure`](skills/cost-infrastructure/SKILL.md) | Bill attribution, unit economics, custom-work pricing, vendor commitments, hosting by stage | `COST` |
 | 🧾 [`monetization-pricing`](skills/monetization-pricing/SKILL.md) | Hosted checkout, webhook security, silent revenue loss, pricing, ICP, agent buyers | `PAY` |
 | ⛓️ [`solidity-security`](skills/solidity-security/SKILL.md) | Smart-contract audit: reentrancy, oracle manipulation, proxy safety, token integration | `SOL` |
@@ -166,6 +166,7 @@ fix playbook — the audit cites them; you can also invoke any skill directly (`
 | `REL-08` | One hung webhook drains the shared connection pool and takes login and checkout with it |
 | `SCALE-08` | The save worked — the read came off a replica three seconds behind and showed the old value |
 | `COST-08` | Eighteen months of yes: annual maintenance on one client's custom feature now exceeds their contract |
+| `FE-09` | Wrapping the web app as a native app moved your API keys onto a device you don't control |
 | `AI-11` | A human approving agent actions isn't a guardrail — scoped credentials and deny-by-default gates are |
 
 </details>

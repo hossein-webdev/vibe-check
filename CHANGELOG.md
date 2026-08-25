@@ -1,5 +1,36 @@
 # Changelog
 
+## 4.10.0
+
+**Proving who sent the request**, and what happens when the browser stops protecting you.
+
+- `api-design` (2.11.0): **APID-12** — sign the mutating calls. Session auth answers "is this a
+  logged-in user"; it doesn't answer "did this exact payload arrive unmodified from a client I
+  trust". For server-to-server and partner traffic there's no cookie and no user to challenge, so an
+  endpoint that accepts a well-formed body and returns `200` is a front door with no lock. HMAC over
+  the **raw bytes** (re-serializing the parsed JSON first is the classic bug that lets tampered
+  payloads through), timestamp and nonce inside the signed material so a signature isn't replayable
+  forever, constant-time comparison, one key per consumer. APID-07 also gains deprecation
+  *telemetry*: count calls to the retiring version per consumer so removal is backed by a number
+  rather than a hopeful date. **Global mirror synced.**
+- `frontend-mobile-quality` (2.2.0): **FE-09** — harden the native shell. Wrapping a web app in a
+  native container moves your whole client-side architecture onto a device you don't control:
+  everything the browser sandboxed now sits in the app's data directory. Credentials go to
+  Keychain/Keystore rather than web local storage — and an API key on the device is a published key
+  wherever it's stored, so anything that must stay secret belongs on your server. Pin certificates
+  (with a backup pin and a kill switch, because a pinned app whose cert rotated is a bricked app),
+  and validate deep links before acting on them, since a malicious app can register your scheme and
+  intercept auth callbacks.
+- `monetization-pricing` (2.3.0): PAY-02's section now covers the layer *around* the signature — an
+  unguessable endpoint path and provider IP allowlisting, explicitly as noise reduction on top of
+  verification rather than a substitute for it.
+- `compliance-legal` (2.3.0): LEGAL-12 gains the re-verification rule — a BAA covers named services,
+  not the vendor, so a renamed or superseded service can silently fall outside coverage. "Same
+  vendor" is not "still covered"; re-check on a schedule and before any migration moves data.
+- `cost-infrastructure` (2.4.0): COST-07 gains the quiet deprecation — the signal is rarely a
+  shutdown notice, it's a service moved to "legacy" that still runs and stops getting features.
+  Track it as dated debt; the abstraction boundary is what keeps that plan cheap.
+
 ## 4.9.0
 
 **The cost of saying yes**, plus the half of onboarding that happens after the first session.

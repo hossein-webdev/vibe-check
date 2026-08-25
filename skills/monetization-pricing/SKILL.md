@@ -11,7 +11,7 @@ description: >
 user-invokable: true
 metadata:
   category: monetization-pricing
-  version: "2.2.0"
+  version: "2.3.0"
 ---
 
 # Monetization & Pricing
@@ -63,6 +63,13 @@ Skip if the app is free. Freedom: **low on the webhook path** (money), medium on
       event in a **dead-letter queue** (→ `observability` OBS-08); reconcile against the provider's
       dashboard on a schedule.
 - [ ] **Handle the whole lifecycle**: success, failure, refund, plan change, cancellation.
+- [ ] **Don't advertise the endpoint, and fence it where you can.** Signature verification is the
+      control that matters — but a predictable path like `/webhooks/stripe` invites everyone to try,
+      and the traffic alone costs you. Use an unguessable path segment or token, and restrict inbound
+      requests to the provider's published IP ranges where your host supports it (refresh that list
+      automatically; providers change them). Treat both as noise reduction layered on top of the
+      signature check, never as a substitute for it: an attacker who guesses the URL still can't
+      forge a valid signature, and one who spoofs an allowed IP still can't either.
 
 ### 3. Protect the revenue from disputes (PAY-08)
 Your first chargeback can **freeze the entire payment-processor balance** — rent, payroll, servers —
@@ -166,6 +173,7 @@ set. Three consequences, none of them about design:
 Webhook audit [PAY-02..04] — read the handler and check three lines:
  1. constructEvent(payload, sig, secret) present? → missing = PAY-02 P1.
  2. Fulfilment keyed on event.id (processed-events table / unique constraint)? → no = PAY-03 P1.
+ 2b. Path guessable (/webhooks/stripe)? Rotate to an unguessable path; add provider IP allowlist.
  3. catch block: does it return 200? → yes = PAY-04 P1. Change to 4xx/5xx (provider retries)
     or push the raw event to a DLQ before acking. Then add payments/hour alerting (OBS-06).
 Reconciliation:

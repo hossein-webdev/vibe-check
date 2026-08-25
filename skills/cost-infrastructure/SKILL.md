@@ -10,7 +10,7 @@ description: >
 user-invokable: true
 metadata:
   category: cost-infrastructure
-  version: "2.3.0"
+  version: "2.4.0"
 ---
 
 # Cost & Infrastructure Economics
@@ -101,6 +101,13 @@ Skip while usage is trivial. Model/API spend → `llm-cost-control`. Freedom: **
      interface in front of it, so better economics — or a vendor's outage, or their next price
      change — means replacing a rail rather than rebuilding the product. It's the same seam that
      makes `reliability-recovery` REL-03's fallbacks possible; build it once, get both.
+   - **Watch for the quiet deprecation.** Providers retire and rebrand managed services on their own
+     schedule, and the usual signal isn't a shutdown notice — it's a service moved to "classic" or
+     "legacy" that still runs but stops getting features. Every month on it you drift further from
+     where the vendor is investing, and the migration you postpone gets done under a deadline
+     instead of on your terms. Track it as debt with a dated plan, not as a non-event. The
+     abstraction boundary above is what makes that plan cheap; a compliance-covered stack needs the
+     agreement re-checked too (→ `compliance-legal` LEGAL-12).
    Validate, sell, activate, scale — in that order. Fixed costs come last, not first.
 
 8. **Price the custom work before you agree to it (COST-08).** Eighteen months of saying yes to

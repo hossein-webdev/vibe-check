@@ -12,7 +12,7 @@ description: >
 user-invokable: true
 metadata:
   category: compliance-legal
-  version: "2.2.0"
+  version: "2.3.0"
 ---
 
 # Compliance & Legal
@@ -142,6 +142,13 @@ violation into the millions, and a single complaint can trigger an investigation
 - [ ] **A BAA (business associate agreement) with every third party that can see PHI** — hosting,
       email, analytics, error tracking. Integrating six services and signing zero agreements means
       their breach becomes your liability with no contract defining obligations.
+- [ ] **Re-verify coverage every time a provider changes something.** A BAA covers named services,
+      not the vendor as a whole — so when a service is renamed, superseded, or you're migrated onto
+      its replacement, the agreement does not automatically follow. Cloud providers retire and
+      rebrand managed services regularly, and "we're still with the same vendor" is not the same as
+      "this service is still covered". Keep a list of every service that touches regulated data,
+      check it against the vendor's current covered-services list on a schedule and after any
+      migration, and get the agreement amended *before* the data moves.
 - [ ] Same shape applies to other regulated data (financial, children's, biometric) — identify which
       regime you're under *before* launch, not after the first complaint.
 

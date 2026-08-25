@@ -6,11 +6,12 @@ description: >
   Activates when the user mentions responsive design, accessibility, WCAG, ADA, screen readers,
   keyboard navigation, color contrast, alt text, ARIA, mobile bugs, older Android/Safari, special
   characters breaking input, shared links opening in a browser instead of the app, or "it looks fine
-  on my machine but breaks for users". Applies to any app with a UI, especially mobile.
+  on my machine but breaks for users", or is wrapping a web app in a native shell. Applies to any
+  app with a UI, especially mobile.
 user-invokable: true
 metadata:
   category: frontend-mobile-quality
-  version: "2.1.0"
+  version: "2.2.0"
 ---
 
 # Front-End & Mobile Quality
@@ -34,6 +35,7 @@ Applies to anything with a UI (deep links only if mobile). Freedom: **medium**.
 | FE-06 | Locale-aware formatting (dates, numbers, currency, addresses) + per-user timezone for scheduled messages | P2 if users are international |
 | FE-07 | Every core flow completable by keyboard alone — buttons, forms, dropdowns, modals reachable and operable, focus never trapped | P2 |
 | FE-08 | Text contrast meets WCAG AA (≥ 4.5:1 body, ≥ 3:1 large text and UI boundaries) | P2 |
+| FE-09 | Mobile shell hardened: credentials in the platform keychain/keystore (never web local storage), certificate pinning on API calls, deep links origin-validated before use | P1 if a web app is shipped as a native shell |
 
 ## When to Use This Skill
 
@@ -41,6 +43,7 @@ Applies to anything with a UI (deep links only if mobile). Freedom: **medium**.
 - User reports "fine for me, broken for users" or device-specific bugs.
 - User mentions older Android / older Safari / special characters breaking input.
 - Shared links open in a browser instead of the installed app.
+- A web app is being wrapped as a native app (Capacitor/Cordova/WebView shell).
 
 ## How It Works
 
@@ -81,6 +84,25 @@ Applies to anything with a UI (deep links only if mobile). Freedom: **medium**.
    - **Multi-currency at checkout** → `monetization-pricing` PAY-11; processors support scores of
      currencies, but default to one unless told otherwise.
 
+6. **Harden the native shell (FE-09).** Wrapping a web app in a native container doesn't just
+   change the packaging — it moves your entire client-side architecture onto a device you don't
+   control. Everything the browser used to sandbox (local storage, session tokens, cached responses)
+   now sits in the app's data directory, readable by anyone with a rooted device or a forensic tool.
+   The browser was doing security work you didn't know you were relying on:
+   - **Credentials belong in the platform's secure storage**, never in web local storage: Keychain
+     on iOS, Keystore on Android, via a secure-storage plugin. And an API key on the device is a
+     published API key regardless of where it's stored — anything that must stay secret belongs on
+     your server (→ `secrets-management` SEC-02).
+   - **Pin the certificate.** Without pinning, any proxy on a compromised network intercepts the
+     app's traffic and walks off with session tokens. Pin to your expected certificate or public
+     key, and — this is the part people skip — ship a backup pin and a remote kill switch, because a
+     pinned app whose certificate rotated is a bricked app.
+   - **Validate deep links before acting on them.** Your app registers URL schemes; a malicious app
+     can register the same one and intercept auth callbacks, password-reset links, and payment
+     confirmations. Verify origin and integrity before processing, prefer verified universal/app
+     links over custom schemes (FE-05 sets those up), and never treat a deep-link parameter as
+     trusted input.
+
 ## Fix playbook
 
 ```text
@@ -96,6 +118,11 @@ Accessibility pass [FE-02, FE-07, FE-08] — one hour, three audits:
  3. Contrast: run Lighthouse/axe or a contrast checker over the palette; fix < 4.5:1 body text
     and < 3:1 large text and UI boundaries (placeholders and disabled states usually fail).
  4. Automate the floor: add axe-core to the test suite so regressions fail CI, not customers.
+Web app shipped as a native shell [FE-09]:
+ 1. Grep the bundle for localStorage/sessionStorage holding tokens or keys; move to secure storage.
+ 2. Any secret that must stay secret: move the call server-side. On-device = public.
+ 3. Enable certificate pinning + a backup pin; test the rotation path before you need it.
+ 4. Deep links: validate origin/signature; treat every parameter as untrusted input.
 Links open in browser, not app [FE-05]:
  1. iOS: host /.well-known/apple-app-site-association; add Associated Domains entitlement.
  2. Android: host /.well-known/assetlinks.json; add intent filters with autoVerify.

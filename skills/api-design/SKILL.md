@@ -7,13 +7,14 @@ description: >
   headers, versioning with a deprecation policy, idempotency keys for retried operations, and
   request-id echoing. Activates when the user is designing or reviewing API endpoints, mentions REST
   conventions, resource naming, status codes, pagination, filtering, error responses, API
-  versioning/deprecation, idempotency, or building a public/partner API. Applies to any app that
+  versioning/deprecation, request signing or HMAC verification, idempotency, or building a
+  public/partner API. Applies to any app that
   exposes an API. (For where the API sits — the backend boundary — use api-architecture.)
 user-invokable: true
 metadata:
   category: api-architecture
   parent: api-architecture
-  version: "2.10.0"
+  version: "2.11.0"
 ---
 
 # API Design
@@ -41,6 +42,7 @@ are not optional.
 | APID-09 | Request id accepted/echoed (`X-Request-Id`) for tracing and support | P3 |
 | APID-10 | API is machine-consumable: structured, self-describing, ideally MCP-exposed for AI-assistant integration | P3 (P2 for platform/API products) |
 | APID-11 | Responses minimized: no internal/sequential IDs, no fields the client doesn't need | P1 if PII leaks / P2 otherwise |
+| APID-12 | Mutating requests carry a verifiable signature (HMAC over body + timestamp + nonce) where the caller is a server or partner, not a browser session | P2 for partner/server-to-server APIs (P1 if the call moves money or grants access) |
 
 ## When to Use This Skill
 
@@ -99,7 +101,29 @@ endpoint — consumers write one error handler, not one per route.
   breaking changes** (remove/rename/retype fields, URL or auth changes). Additive changes don't
   version.
 - Keep **at most two live versions**; deprecate with notice + a `Sunset` header, then `410 Gone`.
+- **Instrument the deprecation, don't just announce it.** Count calls to the retiring version per
+  consumer, so removal is a decision backed by a number rather than a hopeful date: chase the two
+  consumers still on `v1` instead of emailing everybody, and drop the endpoint when its usage
+  reaches zero. A sunset date with no usage telemetry is how you either break a paying integration
+  or keep a dead endpoint alive for years.
 - Publish the contract + a changelog per change (`api-architecture` API-03/05).
+
+### 6b. Prove the request came from who it claims (APID-12)
+Session auth answers "is this a logged-in user"; it does not answer "did this exact payload come
+from a client I trust, unmodified". For server-to-server and partner traffic — where there's no
+browser, no cookie, and no user to challenge — an endpoint that accepts a well-formed body and
+returns `200` is a front door with no lock:
+- **Sign the mutating calls.** Every `POST`/`PUT`/`PATCH`/`DELETE` carries an HMAC over the raw body
+  computed with a shared secret; the server recomputes and rejects on mismatch, before any handler
+  runs. Verify against the **raw bytes** — re-serializing the parsed JSON first is the classic bug
+  that makes the check pass for tampered payloads.
+- **Put a timestamp and a nonce in the signed material**, and reject anything outside a small clock
+  window or a nonce you've already seen. A signature alone is replayable forever; this is the same
+  idea as APID-08's idempotency key, doing a security job rather than a correctness one.
+- **Compare in constant time**, keep the secret server-side only, and give each consumer their own
+  key so one leak revokes one integration.
+- You're on the other side of this contract too: when you *receive* provider webhooks, verifying
+  their signature is the same control (→ `monetization-pricing` PAY-02).
 
 ### 7. Return only what the client needs (APID-11)
 Every endpoint is a door, and the generated default leaves it wide open — returning every field,
@@ -176,6 +200,11 @@ Duplicate charges on retry [APID-08]:
 ### Example 2: "Building a public API for partners"
 **Output**:
 ```
+Signing a partner API [APID-12]:
+ 1. Canonical string = timestamp + nonce + method + path + RAW body bytes (never the re-serialized object).
+ 2. HMAC-SHA256 with a per-consumer secret; send as a header alongside the timestamp and nonce.
+ 3. Server: reject clock skew > ~5 min, reject seen nonces, compare digests in constant time.
+ 4. Rotate per-consumer secrets independently; log verification failures (they are an attack signal).
 Day-one surface: /v1 path versioning + deprecation policy [APID-07], cursor pagination [APID-04],
 X-RateLimit-* + 429/Retry-After [APID-06], Idempotency-Key on unsafe ops [APID-08],
 X-Request-Id echo [APID-09], one documented error shape [APID-03]. Partners integrate against
