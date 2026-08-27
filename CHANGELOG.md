@@ -1,5 +1,35 @@
 # Changelog
 
+## 4.11.0
+
+**Three ways the browser and your dependency tree hand your perimeter away.** All security this
+round, and all three are things people believe they've already handled.
+
+- `app-security` (2.4.0): **SEC-15** — cross-origin trust. Your user visits a page they have no
+  reason to distrust, it calls your API, and the browser attaches their session cookie because your
+  server said every origin is welcome. `Access-Control-Allow-Origin: *` *with credentials* is the
+  headline mistake; reflecting whatever `Origin` arrives is the same hole wearing a disguise, and it
+  survives a casual read of the config. Hard-coded allowlist, `SameSite` + `Secure` + `HttpOnly` on
+  auth cookies, anti-forgery tokens on state-changing routes (cookies can't tell your front end from
+  a page that looks like it, and CORS never governed simple form posts), and a preflight surface
+  trimmed to the methods you actually use.
+- `app-security`: **SEC-16** — fetching a URL a user gave you. The moment your server, or an agent
+  with your server's network position, fetches a user-supplied URL it becomes a proxy sitting
+  *inside* your perimeter, able to reach internal databases, admin panels, and cloud metadata. The
+  part people get wrong isn't the allowlist, it's that **validating once and fetching something else
+  is the whole attack**: resolve, pin the validated address, connect to the pin, and re-check on
+  every redirect. Then return one generic error — connection-refused says a host exists, a timeout
+  says something is listening, and an attacker maps your network by reading the differences.
+- `app-security`: SEC-06 gains the supply-chain detail. Check the package name character by
+  character (a typosquat with a plausible download count is the cheapest way in, and a generator
+  will suggest a plausible name without verifying it exists); triage on signals rather than CVEs
+  alone — very low downloads, a recent maintainer handover, install scripts that execute on
+  `npm install`; stop handing every package the whole `process.env`; and verify lockfile integrity in
+  CI so an upstream-altered dependency blocks the deploy.
+- `agent-operations` (1.2.0): AI-11's egress control now points at SEC-16 for the case that matters
+  most — an agent fetching user-supplied URLs is a proxy through your own firewall, so the
+  boundary belongs in the tooling, not in the prompt.
+
 ## 4.10.0
 
 **Proving who sent the request**, and what happens when the browser stops protecting you.

@@ -7,12 +7,13 @@ description: >
   monoculture risk of template-cloned apps, and the AI/prompt supply chain. For keys and credentials
   specifically, routes to the secrets-management skill. Activates when the user mentions security,
   RLS, OWASP/ZAP/Burp, a pen test or security audit, dependency or supply-chain risk, CVEs,
-  CORS/CSP, XSS, prompt injection, a WAF or CDN, origin IP exposure, DDoS or traffic floods, stack
-  traces leaking to users, or asks "is my app secure?". Applies to every app.
+  CORS/CSP, CSRF, cookie SameSite settings, XSS, SSRF or server-side URL fetching, typosquatted or
+  malicious packages, prompt injection, a WAF or CDN, origin IP exposure, DDoS, stack traces leaking
+  to users, or asks "is my app secure?". Applies to every app.
 user-invokable: true
 metadata:
   category: app-security
-  version: "2.2.0"
+  version: "2.3.0"
 ---
 
 # App Security
@@ -42,6 +43,8 @@ Freedom: **low** — run the checks exactly.
 | SEC-11 | Production errors return generic messages; stack traces and internals only in server-side logs; every boundary catches | P2 |
 | SEC-13 | Edge protection in front of the stack: WAF, adaptive rate limiting, and a written DDoS runbook | P2 (P1 once the app carries revenue or an SLA) |
 | SEC-14 | Edge protection can't be walked around: origin IP not discoverable, origin accepts only the CDN's ranges, TLS strict end-to-end | P1 wherever SEC-13 applies — an unenforced edge is no edge |
+| SEC-15 | Cross-origin trust locked down: explicit origin allowlist (never wildcard-or-reflected with credentials), `SameSite` auth cookies, anti-forgery tokens on state-changing routes | P1 once sessions are cookie-based |
+| SEC-16 | Server-side fetches of user-supplied URLs are fenced: destination allowlist, internal ranges blocked, resolved address pinned and revalidated on every redirect, one generic error | P1 wherever the server or an agent fetches a URL a user controls |
 
 ## When to Use This Skill
 
@@ -72,8 +75,27 @@ beats none.
 
 ### Dependencies / supply chain (SEC-06)
 - [ ] Audit the **full tree** — most of what you ship arrived transitively; some has known CVEs now.
+      One application routinely pulls in hundreds of packages from maintainers you have never heard
+      of, each running with the same access your own code has.
 - [ ] Lockfile committed; versions pinned; packages maintained (generators love abandoned libs).
 - [ ] `npm audit` (or equivalent) clean of critical/high.
+- [ ] **Check the name character by character before installing.** A typosquat one letter off the
+      real package, carrying a plausible download count, is the cheapest way into your environment
+      — and a generator will suggest a plausible-looking name without verifying it exists. Confirm
+      the repository link and the publisher, not just the search result.
+- [ ] **Triage the tree on signals, not only CVEs.** Very low weekly downloads, a maintainer handover
+      in the last few months, or an install script that runs on `npm install` each deserve a look
+      before that code executes on your machine and in CI. Install scripts are the mechanism that
+      turns a bad dependency into stolen credentials at build time — disable them by default
+      (`npm config set ignore-scripts true`) and allow only the few that genuinely need them.
+- [ ] **Don't hand every package the whole environment.** Anything in your dependency tree can read
+      `process.env` — all of it, not the part it needs. Pass secrets to the module that needs them
+      instead of leaving the whole set ambient, and keep build-time and runtime secrets separate
+      (→ `secrets-management`).
+- [ ] **Verify lockfile integrity in CI and fail the build on mismatch.** The lockfile pins
+      checksums, so a package altered upstream after you installed it will not match. Use the
+      integrity-checking install (`npm ci`, `pnpm install --frozen-lockfile`) so a changed dependency
+      blocks the deploy instead of shipping.
 
 ### Headers & input (SEC-07, SEC-08)
 - [ ] CORS + CSP configured so the browser's defenses are actually on.
@@ -157,6 +179,45 @@ Cloudflare" has almost never closed it:
 - [ ] Verify rather than assume: from outside your network, request the site by IP with your host
       header and confirm it's refused. If it answers, the edge is decorative.
 
+### Cross-origin trust — the request your user never made (SEC-15)
+Your user visits a page they have no reason to distrust, that page issues a request to your API, and
+the browser attaches their session cookie because your server said every origin is welcome. The
+attacker's page reads the response — account data, payment history, personal details — and your
+user clicked nothing. Three settings close it:
+- [ ] **Replace wildcard or reflected origins with a hard-coded allowlist.** `Access-Control-Allow-Origin: *`
+      *with credentials* is the headline mistake, and reflecting whatever `Origin` arrives is the
+      same hole wearing a disguise — it survives a casual read of the config and trusts everyone.
+      List your own domains; everything else gets nothing.
+- [ ] **Lock the cookie down.** `SameSite=Lax` (or `Strict` for anything sensitive), plus `Secure`
+      and `HttpOnly`, so the browser stops volunteering credentials on cross-site requests. Then add
+      **anti-forgery tokens on every state-changing route** — cookies alone cannot distinguish your
+      front end from a page that merely looks like it, and CORS never governed simple form posts.
+- [ ] **Shrink the preflight surface.** Each endpoint accepts only the methods and headers your own
+      client actually sends and rejects the rest at preflight. Every method left enabled because it
+      was the default is one more shape an attacker gets to try.
+- [ ] Related but distinct: SEC-07 covers the headers themselves (CSP and friends); this is about who
+      your API is willing to *believe*.
+
+### Fetching a URL a user gave you (SEC-16)
+The moment your server — or an agent acting with your server's network position — fetches a URL
+supplied by a user, it becomes a proxy sitting *inside* your perimeter. It can reach internal
+databases, admin panels, and cloud metadata endpoints that the firewall exists to protect, and it has
+no idea whether that URL belongs to you or to someone probing you:
+- [ ] **Allowlist the destinations and block the inside.** Permit the external hosts you actually
+      need; refuse private and link-local ranges, loopback, and the cloud metadata address outright.
+      Deny by default — a blocklist of bad addresses is a list you will always be behind on.
+- [ ] **Validate once, fetch something else is the whole attack.** A URL can pass your host check and
+      then redirect to an internal target, or resolve to a different address on the second lookup.
+      **Resolve the hostname, pin the address you validated, connect to that address, and re-run the
+      check on every redirect** — never let the destination change between the check and the
+      connection.
+- [ ] **Return one generic error.** Distinct failures leak the map: connection-refused says a host
+      exists, a timeout says something is listening, a fast rejection says something answered. Give
+      every failed fetch the same message and roughly the same timing, and keep the detail in your
+      logs (→ SEC-11).
+- [ ] For agents this is the egress half of `agent-operations` AI-11 — the agent inherits your
+      server's reach, so the boundary belongs in the tooling, not in the prompt.
+
 ### Prove it (SEC-09)
 - [ ] **Order matters: audit first, pen test second.** Run the full production audit (→ `audit`),
       fix what it surfaces, *then* pen test to validate the fixes and catch what they missed — and
@@ -212,6 +273,17 @@ npm audit --audit-level=high && npm audit fix
 #  3. TLS: full/strict + provider origin certificate. "Flexible" = plaintext CDN->origin.
 #  4. Verify: curl --resolve yourdomain:443:<origin-ip> https://yourdomain/ -> must be refused.
 
+# SEC-15: cross-origin
+#  1. grep the CORS config for "*", credentials:true, or origin reflection; replace with a domain list.
+#  2. Auth cookies: SameSite=Lax|Strict + Secure + HttpOnly. Add CSRF tokens on POST/PUT/PATCH/DELETE.
+#  3. Per endpoint: allow only the methods/headers your client sends; reject the rest at preflight.
+#  4. Verify: a credentialed fetch from another origin must fail.
+
+# SEC-16: user-supplied URL fetches
+#  1. Allowlist external hosts; deny 10/8, 172.16/12, 192.168/16, 127/8, 169.254/16 + IPv6 equivalents.
+#  2. Resolve -> validate -> pin the IP -> connect to the pin; re-validate on EVERY redirect.
+#  3. One generic error and consistent timing for all failures; detail goes to logs only.
+
 # SEC-09: self pen-test
 docker run -t zaproxy/zap-stable zap-baseline.py -t https://your-app.example
 ```
@@ -240,6 +312,7 @@ Your app likely shares a template with thousands of others — the scan finds th
 - **Do** start with the 30-minute starter; enforce access in the database (RLS).
 - **Do** run at least one ZAP scan — the monoculture means your holes are already catalogued.
 - **Do** put a WAF and adaptive rate limiting in front of the stack before you need them.
+- **Do** treat any user-supplied URL your server fetches as an attempt to reach your internals.
 - **Do** confirm the edge can't be walked around — an origin the internet can still reach makes
   every rule at the edge optional.
 - **Don't** query user data with the service role; don't trust generated input handling.

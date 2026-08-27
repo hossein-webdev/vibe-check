@@ -6,7 +6,7 @@
 
 **A linter-grade production-readiness audit for vibe-coded (AI-generated) apps — packaged as 23 Claude Code skills.**
 
-[![Version](https://img.shields.io/badge/version-4.10.0-blue)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-4.11.0-blue)](CHANGELOG.md)
 [![Skills](https://img.shields.io/badge/skills-23-8A2BE2)](#-the-skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-plugin-D97757)](https://code.claude.com/docs/en/plugins)
@@ -124,7 +124,7 @@ fix playbook — the audit cites them; you can also invoke any skill directly (`
 |---|---|:---:|
 | 🩺 **[`audit`](skills/audit/SKILL.md)** | The scored, adaptive audit — start here | — |
 | 🏁 [`production-readiness`](skills/production-readiness/SKILL.md) | The last mile: 2-of-13-layers gap, owning AI code, docs, feature health, pre-release audit gate | `PROD` |
-| 🛡️ [`app-security`](skills/app-security/SKILL.md) | RLS, service-role bypass, deps, headers, XSS, error leaks, unbypassable WAF/CDN edge, AI supply chain | `SEC` |
+| 🛡️ [`app-security`](skills/app-security/SKILL.md) | RLS, supply chain, headers, XSS, CSRF, SSRF, error leaks, unbypassable WAF/CDN edge | `SEC` |
 | 🔑 [`secrets-management`](skills/secrets-management/SKILL.md) | Client-exposed keys, vaults, rotation, git history, commit-time blocking | `SEC-01..03`, `SEC-12` |
 | 🚪 [`auth-access`](skills/auth-access/SKILL.md) | AuthN ≠ authZ, JWT, sessions, RBAC, tenant isolation, context-aware access | `AUTH` |
 | 📈 [`scaling-performance`](skills/scaling-performance/SKILL.md) | Pooling, caching layers, read replicas + consistency, background jobs, query tuning | `SCALE` |
@@ -167,6 +167,7 @@ fix playbook — the audit cites them; you can also invoke any skill directly (`
 | `SCALE-08` | The save worked — the read came off a replica three seconds behind and showed the old value |
 | `COST-08` | Eighteen months of yes: annual maintenance on one client's custom feature now exceeds their contract |
 | `FE-09` | Wrapping the web app as a native app moved your API keys onto a device you don't control |
+| `SEC-16` | Your agent fetches user URLs from inside the firewall — that's a proxy to your admin panel |
 | `AI-11` | A human approving agent actions isn't a guardrail — scoped credentials and deny-by-default gates are |
 
 </details>

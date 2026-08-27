@@ -14,7 +14,7 @@ user-invokable: true
 metadata:
   category: ai-engineering
   role: sub-skill
-  version: "1.1.0"
+  version: "1.2.0"
 ---
 
 # Agent Operations
@@ -130,7 +130,12 @@ agent can reach at all:
 - **Scoped credentials.** Per-agent, least-privilege, short-lived. An agent that never holds a
   production write credential cannot use one, whatever it decides to do (→ `auth-access` AUTH-09).
 - **Network egress control.** An allowlist of destinations. Exfiltration and surprise third-party
-  calls both stop at a boundary the agent doesn't control.
+  calls both stop at a boundary the agent doesn't control. If the agent fetches URLs a **user**
+  supplies, this is also your server-side request forgery defense and needs the full treatment →
+  `app-security` SEC-16: internal ranges and the cloud metadata address blocked, the resolved address
+  pinned and re-checked on every redirect, and one generic error for all failures so a probe can't
+  map your internal network by reading the differences. The agent inherits your server's network
+  position, so a fetch tool is a proxy through your own firewall.
 - **Deny-by-default gates on dangerous operations** — schema changes, deletes, payments, production
   writes, credential access. Out-of-boundary operations are rejected automatically; the human is
   asked only about the narrow set that genuinely needs judgment, which is the only volume a human
@@ -159,7 +164,8 @@ Quality degraded as the project grew [AI-09/AI-10]:
  4. Put the next review on the calendar (~90 days) so it doesn't accumulate again.
 Agent can reach production [AI-11]:
  1. Issue a dedicated short-lived credential, least privilege. Never the shared service role.
- 2. Egress allowlist; deny by default.
+ 2. Egress allowlist; deny by default. User-supplied URLs? add SSRF handling (SEC-16): block internal
+    ranges + metadata IP, pin the resolved address, re-validate on redirects, one generic error.
  3. Gate list: DROP/ALTER/DELETE, payments, credential reads, prod writes -> auto-reject or explicit approval.
  4. Log every tool call append-only (actor, action, target, timestamp) and alert on gate hits.
 ```
