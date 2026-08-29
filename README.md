@@ -6,7 +6,7 @@
 
 **A linter-grade production-readiness audit for vibe-coded (AI-generated) apps — packaged as 23 Claude Code skills.**
 
-[![Version](https://img.shields.io/badge/version-4.11.0-blue)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-4.12.0-blue)](CHANGELOG.md)
 [![Skills](https://img.shields.io/badge/skills-23-8A2BE2)](#-the-skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-plugin-D97757)](https://code.claude.com/docs/en/plugins)
@@ -124,13 +124,13 @@ fix playbook — the audit cites them; you can also invoke any skill directly (`
 |---|---|:---:|
 | 🩺 **[`audit`](skills/audit/SKILL.md)** | The scored, adaptive audit — start here | — |
 | 🏁 [`production-readiness`](skills/production-readiness/SKILL.md) | The last mile: 2-of-13-layers gap, owning AI code, docs, feature health, pre-release audit gate | `PROD` |
-| 🛡️ [`app-security`](skills/app-security/SKILL.md) | RLS, supply chain, headers, XSS, CSRF, SSRF, error leaks, unbypassable WAF/CDN edge | `SEC` |
+| 🛡️ [`app-security`](skills/app-security/SKILL.md) | RLS, supply chain, headers, XSS, CSRF, SSRF, host hardening, unbypassable WAF/CDN edge | `SEC` |
 | 🔑 [`secrets-management`](skills/secrets-management/SKILL.md) | Client-exposed keys, vaults, rotation, git history, commit-time blocking | `SEC-01..03`, `SEC-12` |
 | 🚪 [`auth-access`](skills/auth-access/SKILL.md) | AuthN ≠ authZ, JWT, sessions, RBAC, tenant isolation, context-aware access | `AUTH` |
 | 📈 [`scaling-performance`](skills/scaling-performance/SKILL.md) | Pooling, caching layers, read replicas + consistency, background jobs, query tuning | `SCALE` |
 | 🗄️ [`data-architecture`](skills/data-architecture/SKILL.md) | Schema, tenancy without forks or schema pollution, zero-downtime migrations, backups, storage | `DATA` |
 | ⚖️ [`database-selection`](skills/database-selection/SKILL.md) | Platform by workload: Neon / PlanetScale / D1 / Supabase / Firebase / Convex | `DBS` |
-| 🤖 [`ai-engineering`](skills/ai-engineering/SKILL.md) | Output validation, evals, non-determinism in CI, RAG permission boundaries | `AI` |
+| 🤖 [`ai-engineering`](skills/ai-engineering/SKILL.md) | Output validation, evals, non-determinism in CI, RAG + AI-feature data boundaries | `AI` |
 | 🕹️ [`agent-operations`](skills/agent-operations/SKILL.md) | Agents that act: memory, topology, long runs, tool surface, config freshness, guardrails | `AI-05/06/08..11` |
 | 💸 [`llm-cost-control`](skills/llm-cost-control/SKILL.md) | Semantic + prompt caching, model routing, spend caps, endpoint lockdown | `LLM` |
 | 📡 [`observability`](skills/observability/SKILL.md) | Structured logs, error tracking, SLOs + burn rate, incident cost, audit trails | `OBS` |
@@ -168,6 +168,7 @@ fix playbook — the audit cites them; you can also invoke any skill directly (`
 | `COST-08` | Eighteen months of yes: annual maintenance on one client's custom feature now exceeds their contract |
 | `FE-09` | Wrapping the web app as a native app moved your API keys onto a device you don't control |
 | `SEC-16` | Your agent fetches user URLs from inside the firewall — that's a proxy to your admin panel |
+| `AI-13` | "Ignore your previous instructions" works because authorization lived in the prompt |
 | `AI-11` | A human approving agent actions isn't a guardrail — scoped credentials and deny-by-default gates are |
 
 </details>

@@ -1,5 +1,29 @@
 # Changelog
 
+## 4.12.0
+
+**Two boundaries that were never where you thought they were** — one that a platform used to hold
+for you, one that was only ever a sentence in a prompt.
+
+- `app-security` (2.5.0): **SEC-17** — the day you leave a managed platform. Moving to your own
+  server buys control and silently transfers a job you never saw being done: the platform was
+  running the firewall, patching the OS, and hardening remote access invisibly, and a bare host does
+  none of it. Harden SSH before anything else runs on the box (key-only, password auth off, root
+  login off — and confirm the key works in a *second* session before you close the first, or you
+  lock yourself out). Default-deny the firewall, and check the one that ends self-hosted moves
+  badly: **a datastore port listening on a public interface**. Then turn on unattended security
+  updates, because the platform patched itself and the host will sit on a known vulnerability until
+  someone remembers. This is the actual content of the self-hosted-vs-managed trade in COST-04.
+- `ai-engineering` (3.2.0): **AI-13** — the model is not an access-control layer. A support
+  assistant that looks up orders will, given the right sentence, look up everyone's orders, because
+  your instructions and the user's message arrive through the same channel and the model has no way
+  to rank one above the other. "Ignore your previous instructions" isn't a clever exploit; it's the
+  interface working as designed. Scope the data connection to the authenticated user **in code** —
+  a session-bound connection, row-level security, or a tool whose user id the model cannot supply —
+  so no phrasing changes what's reachable. Give it the narrowest surface that answers the question
+  rather than the whole schema, and filter responses on the way out for system-prompt content,
+  foreign identifiers, and internal structure. Prompt instructions are a preference, not a boundary.
+
 ## 4.11.0
 
 **Three ways the browser and your dependency tree hand your perimeter away.** All security this

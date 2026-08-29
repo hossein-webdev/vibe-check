@@ -7,12 +7,12 @@ description: >
   topology, long runs, tool surface, guardrails — routes to the agent-operations skill; for the
   model bill (caching, routing, spend caps, rate limits) to llm-cost-control. Activates when the
   user mentions hallucinations, AI output validation, schema-validating model responses, evals,
-  model-as-judge, flaky AI tests in CI, RAG, retrieval permissions, or vector databases. Applies
-  only to apps that call an LLM.
+  model-as-judge, flaky AI tests in CI, RAG, retrieval permissions, prompt injection reaching data,
+  or vector databases. Applies only to apps that call an LLM.
 user-invokable: true
 metadata:
   category: ai-engineering
-  version: "3.1.0"
+  version: "3.2.0"
 ---
 
 # AI / LLM Engineering
@@ -37,6 +37,7 @@ Freedom: **medium** — recommended patterns; adapt to the provider/stack.
 | AI-05, AI-06, AI-08..11 | Agents: memory, topology, long runs, tool surface, config freshness, boundaries | → `agent-operations` |
 | AI-07 | Vector store: pgvector evaluated before a dedicated service | P3 |
 | AI-12 | Retrieval is permission-scoped and ingested content is untrusted: ownership tagged at embed time, injection-scanned on ingest, sources re-checked before the answer ships | P1 if any retrieved corpus is not public to every user |
+| AI-13 | An AI feature's data access is scoped to the authenticated user **in code**, never by instruction, and responses are filtered before they reach the user | P1 if a model can query data belonging to more than one user |
 
 ## When to Use This Skill
 
@@ -84,6 +85,32 @@ Three boundaries, and you need all three:
   cross-tenant test in `auth-access` AUTH-11 — and permission changes must propagate to the index,
   or a revoked user keeps getting answers from documents they lost access to.
 
+### The model is not an access-control layer (AI-13)
+You gave the feature database access so it could answer questions, and it answers whoever asks. A
+support assistant that looks up orders will, given the right sentence, look up everyone's orders {EM}
+because a model receives your instructions and the user's message through the same channel and has
+no way to rank one above the other. "Ignore your previous instructions" is not a clever exploit; it
+is the interface working as designed. Three layers, and the first is the only one that actually
+holds:
+- **Scope the data connection to the authenticated user, in code.** The query the model can run must
+  already be filtered to the session's identity before the model is involved {EM} a per-user
+  connection, a parameterised tool that takes no user id from the model, or row-level security
+  enforced by the database. If the current user is customer 47, the reachable rows are customer 47's
+  rows, and no phrasing changes that. Prompt instructions like "only answer about this user" are a
+  preference, not a boundary.
+- **Give it the narrowest surface that answers the question.** Handing a model your whole schema so
+  it can be helpful is how one prompt reaches every table. Expose specific read tools over specific
+  data, not a general query capability, and keep write operations behind explicit confirmation
+  ({ARR} `agent-operations` AI-11).
+- **Filter on the way out.** Even correctly scoped, a model can echo system instructions, internal
+  identifiers, or schema details in its answer. Screen every response before it reaches the user for
+  system-prompt content, other users' identifiers, and internal structure {EM} this is AI-02's
+  validation doing a confidentiality job rather than a correctness one. Log what you strip; a spike
+  is someone probing.
+- Retrieval corpora have their own version of this (AI-12), and the injection surface is
+  `app-security` SEC-10. The rule that unifies them: authorization belongs in the code path, never
+  in the prompt.
+
 ### Agents → `agent-operations`
 5. Once the model **acts** rather than answers, the problems change shape: memory design (AI-05),
    orchestrator topology (AI-06), long runs that drift (AI-08), a tool surface evaluated on every
@@ -100,6 +127,12 @@ Garbage output reaching users [AI-02]:
 Flaky AI tests [AI-04]:
  1. Replace exact-match asserts with shape/contains checks or a grader model.
  2. Pin model + temperature in CI where the provider allows.
+AI feature can reach other users' data [AI-13]:
+ 1. Find what the model can actually query. If it can pass a user id, it can pass someone else's.
+ 2. Replace with per-user scoping in code: session-bound connection / RLS / a tool with the id fixed.
+ 3. Narrow the surface: specific read tools over specific data, not general query access.
+ 4. Add an output filter (system-prompt text, foreign ids, schema names) and log every strip.
+ 5. Test it adversarially: as user A, ask for user B's records in five different phrasings.
 RAG has no access boundary [AI-12]:
  1. Add owner_id / tenant_id / sensitivity to every vector's metadata; backfill or re-embed.
  2. Filter IN the query (metadata filter), never post-hoc in application code.
@@ -133,6 +166,7 @@ Move to a dedicated store only when scale/latency measurements say so.
 - **Do** keep retrieval boring — pgvector until measurements say otherwise.
 - **Don't** exact-match model output in CI.
 - **Don't** embed everything into one pool and rely on relevance to keep customers apart.
+- **Don't** put authorization in the prompt — the model cannot rank your instructions above the user's.
 - **Don't** ship raw model output to users — or a model call in client code (→ llm-cost-control).
 
 ---

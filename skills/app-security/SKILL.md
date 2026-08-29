@@ -9,11 +9,12 @@ description: >
   RLS, OWASP/ZAP/Burp, a pen test or security audit, dependency or supply-chain risk, CVEs,
   CORS/CSP, CSRF, cookie SameSite settings, XSS, SSRF or server-side URL fetching, typosquatted or
   malicious packages, prompt injection, a WAF or CDN, origin IP exposure, DDoS, stack traces leaking
-  to users, or asks "is my app secure?". Applies to every app.
+  to users, moving to a VPS or self-hosting, SSH or firewall hardening, or asks "is my app secure?".
+  Applies to every app.
 user-invokable: true
 metadata:
   category: app-security
-  version: "2.3.0"
+  version: "2.4.0"
 ---
 
 # App Security
@@ -45,6 +46,7 @@ Freedom: **low** — run the checks exactly.
 | SEC-14 | Edge protection can't be walked around: origin IP not discoverable, origin accepts only the CDN's ranges, TLS strict end-to-end | P1 wherever SEC-13 applies — an unenforced edge is no edge |
 | SEC-15 | Cross-origin trust locked down: explicit origin allowlist (never wildcard-or-reflected with credentials), `SameSite` auth cookies, anti-forgery tokens on state-changing routes | P1 once sessions are cookie-based |
 | SEC-16 | Server-side fetches of user-supplied URLs are fenced: destination allowlist, internal ranges blocked, resolved address pinned and revalidated on every redirect, one generic error | P1 wherever the server or an agent fetches a URL a user controls |
+| SEC-17 | Self-managed hosts hardened: SSH key-only with root login off, default-deny firewall (datastore never publicly reachable), unattended security updates | P1 the day you leave a managed platform |
 
 ## When to Use This Skill
 
@@ -218,6 +220,28 @@ no idea whether that URL belongs to you or to someone probing you:
 - [ ] For agents this is the egress half of `agent-operations` AI-11 — the agent inherits your
       server's reach, so the boundary belongs in the tooling, not in the prompt.
 
+### The day you leave a managed platform (SEC-17)
+Moving to your own server buys control and silently transfers a job you never saw being done. The
+managed platform was running firewall rules, patching the OS, and hardening remote access invisibly;
+a bare host does none of it, and the internet notices within minutes. Three things, in this order:
+- [ ] **Harden SSH first, before anything else runs on the box.** Default port, password
+      authentication, and root login is the combination every credential-stuffing bot on the
+      internet is already trying, around the clock, on every address. Switch to **key-based auth
+      only**, **disable password authentication**, **disable root login**, and move off the default
+      port — that last one is noise reduction rather than security, but it cuts the log volume
+      enormously. Confirm you can log in with the key in a *second* session before closing the first,
+      or you will lock yourself out.
+- [ ] **Default-deny the firewall.** A fresh host has every port reachable. Allow only what the
+      application actually serves — SSH, HTTP, HTTPS — and drop the rest. The specific thing to
+      check is your **datastore port**: a database listening on a public interface is the single most
+      common way a self-hosted move ends badly. Bind it to localhost or a private network, and
+      confirm from outside that it refuses.
+- [ ] **Turn on unattended security updates.** The platform patched itself; the host will sit on a
+      known vulnerability until someone remembers. Enable automatic security patching, and schedule
+      the reboots it will eventually need rather than deferring them indefinitely.
+- [ ] This is the real content of the self-hosted-vs-managed trade (→ `cost-infrastructure`
+      COST-04): the invoice goes down and this list becomes yours, forever.
+
 ### Prove it (SEC-09)
 - [ ] **Order matters: audit first, pen test second.** Run the full production audit (→ `audit`),
       fix what it surfaces, *then* pen test to validate the fixes and catch what they missed — and
@@ -283,6 +307,13 @@ npm audit --audit-level=high && npm audit fix
 #  1. Allowlist external hosts; deny 10/8, 172.16/12, 192.168/16, 127/8, 169.254/16 + IPv6 equivalents.
 #  2. Resolve -> validate -> pin the IP -> connect to the pin; re-validate on EVERY redirect.
 #  3. One generic error and consistent timing for all failures; detail goes to logs only.
+
+# SEC-17: new VPS, first 15 minutes
+#  1. SSH: PubkeyAuthentication yes / PasswordAuthentication no / PermitRootLogin no; then reload.
+#     Verify the key works in a SECOND session before you close the first one.
+#  2. Firewall: default deny inbound; allow 22 (or your chosen port), 80, 443. Nothing else.
+#  3. Datastore: bind to 127.0.0.1 or a private interface; verify from outside that the port refuses.
+#  4. Unattended security upgrades on; plan for the reboots it will need.
 
 # SEC-09: self pen-test
 docker run -t zaproxy/zap-stable zap-baseline.py -t https://your-app.example
