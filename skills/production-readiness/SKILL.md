@@ -13,7 +13,7 @@ description: >
 user-invokable: true
 metadata:
   category: production-readiness
-  version: "2.2.0"
+  version: "2.3.0"
 ---
 
 # Production Readiness — The Last Mile
@@ -42,6 +42,7 @@ Freedom: **high** — principles to adapt, not rigid steps.
 | PROD-06 | Work queued by business risk (money / data / legal) — audit first, then fix in priority order | P2 |
 | PROD-07 | Feature health known before the next feature is built: what's live, what's broken, what has zero adoption — broken-and-used fixed first | P2 |
 | PROD-08 | No customer reaches a build that hasn't passed a structured pre-release audit, with the pass/fail result recorded | P1 before first customer, then per release |
+| PROD-09 | Critical AI-generated code reviewed by a **different** model under adversarial framing, not by the one that wrote it | P2 (P1 for auth, payments, and anything holding user data) |
 
 ## When to Use This Skill
 
@@ -136,7 +137,28 @@ Freedom: **high** — principles to adapt, not rigid steps.
      new requirement as a checklist line; builders who aren't will retrofit under deadline.
    - This is not PROD-06. That one orders the work *after* you know what's broken; this one is the
      gate that stops an uninspected build reaching a customer in the first place.
-10. **Dispatch the specifics.** Run `audit` to see which layers apply; this skill sets the posture,
+10. **Don't let the author mark its own homework (PROD-09).** You asked one model to build
+    authentication, then asked the same model to review it, and it said the code looks good — of
+    course it did, it wrote it. The blind spots that produced the vulnerability are the blind spots
+    that miss it on review: each model has its own default patterns, preferred shortcuts, and edge
+    cases it reliably forgets, and asking it to re-read its own output exercises exactly those
+    habits again. Three moves:
+    - **Review on a different model.** Different training, different defaults, different failure
+      modes — what one writes confidently, another flags immediately. Export the modules that
+      matter (auth, payments, anything touching user data) and run them through a second one.
+      **The disagreements are the finding**: where two models contradict each other is where you
+      should be reading the code yourself.
+    - **Frame it adversarially.** "Does this look good?" produces a confirmation; the review is only
+      useful when it's asked to *break* the code — find every way a user bypasses authentication,
+      reaches data they shouldn't, or forces a failure. Cooperative reviews validate what works;
+      adversarial ones surface what doesn't.
+    - **Rotate who builds and who reviews.** One model writing every feature accumulates one set of
+      blind spots across the whole codebase. Alternate across build cycles so the reviewing model is
+      never the author.
+    This is a cheap second opinion, not a substitute for the structured audit in PROD-08, a real pen
+    test (→ `app-security` SEC-09), or your own reading — a second model is confidently wrong
+    in its own ways too.
+11. **Dispatch the specifics.** Run `audit` to see which layers apply; this skill sets the posture,
     the domain skills do the work.
 
 ## Fix playbook
@@ -154,6 +176,12 @@ Release gate [PROD-08] — before the next customer or release:
  1. Run the structured audit; capture the score + the failing rule IDs into the release notes.
  2. P1s block the release. P2s ship only as a written accepted risk with an owner and a date.
  3. Store the record with the tag (RELEASE_AUDIT.md or the release body) — dated, not remembered.
+Cross-model review [PROD-09]:
+ 1. Pick the modules that matter: auth, payments, anything reading or writing user data.
+ 2. Give a DIFFERENT model the file plus: "find every way to bypass this, reach another user's data,
+    or make it fail. Do not tell me what works."
+ 3. Diff the two verdicts. Read every disagreement yourself - that is where the bug is.
+ 4. Next feature: swap which one builds and which one reviews.
 Feature health audit [PROD-07] — before the next feature, one table:
  | feature | works? | active users (last 30d) | verdict |
  1. Fill "works?" by actually running each flow, not from memory.
@@ -192,6 +220,7 @@ features to work — not for more of them.
 
 - **Do** treat the unglamorous 20% as the main work; make the owner able to explain every file.
 - **Do** match effort to stage (1k features / 10k operations / 100k architecture).
+- **Do** have a second, different model adversarially review the code the first one wrote.
 - **Do** treat the audit as a release gate with a recorded result — inspection before occupancy.
 - **Do** audit feature health before starting the next feature — fix broken-and-used, delete
   broken-and-unused.

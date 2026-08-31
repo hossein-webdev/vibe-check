@@ -12,7 +12,7 @@ description: >
 user-invokable: true
 metadata:
   category: scaling-performance
-  version: "2.2.0"
+  version: "2.3.0"
 ---
 
 # Scaling & Performance
@@ -45,6 +45,7 @@ detected → weight pooling and background-jobs checks up (functions multiply co
 - User mentions connection limits/pooling, caching, Redis, background jobs, or queues.
 - User added a read replica, or reports "the save worked but the page shows the old value".
 - User added indexes and it's "still slow", or asks how to find the bottleneck.
+- The hosting provider flagged or throttled the app for database resource usage.
 
 ## How It Works — one flow, diagnose then fix
 
@@ -57,6 +58,22 @@ the platform limit; on serverless, use a pooled connection string.
 **Branch 2 — query vs volume (SCALE-06).** Read `pg_stat_statements`: the culprit is usually not
 the slowest query but the **most frequent** one — 40 ms × 10,000 runs/day is 400 s of daily DB time.
 `EXPLAIN ANALYZE` the top offenders; one index, one cache, or one rewrite beats new hardware.
+
+**Before the planner, the obvious two (SCALE-06).** Generated queries work and are frequently
+unindexed: at 500 rows a full table scan is milliseconds, at 100,000 it is the database reading
+every row to find one, and the usual way people find out is a hosting provider throttling them for
+resource usage. Two passes cost an afternoon:
+- **Index what you filter and join on.** List the queries the app actually runs, take the columns
+  appearing in `WHERE`, `JOIN`, and `ORDER BY`, and index those — then measure the same query
+  before and after **on realistic data volume**, because on a small table everything looks fast.
+  Indexes are not free (they cost write throughput and storage), so add them for real query
+  patterns rather than on every column.
+- **Select the columns the page uses.** Generated queries return every column of every matching row
+  even when the view renders three fields. That is work the database does, bytes the network moves,
+  and memory the app holds, for nothing.
+- **Turn on slow-query logging with a threshold**, and look at it weekly: which queries crossed it,
+  how often they run, and what they cost. Frequency matters more than worst case — which is
+  exactly what the planner branch below is for.
 
 **Branch 3 — read vs write (SCALE-07).** ~80% of operations are reads, and replicas help **only
 reads**. If writes are the bottleneck, replicas worsen contention — you need **queues, background
@@ -118,6 +135,11 @@ jobs, write batching**.
 ## Fix playbook
 
 ```text
+Slow queries / throttled by the host [SCALE-06]:
+ 1. Enable slow-query logging with a threshold; collect a week (or read pg_stat_statements now).
+ 2. EXPLAIN ANALYZE the most FREQUENT offenders, not just the slowest.
+ 3. Add indexes on the WHERE/JOIN/ORDER BY columns; re-measure on production-sized data.
+ 4. Trim SELECT * down to the fields the page renders.
 "It saved but shows the old value" [SCALE-08]:
  1. Confirm the read came from a replica and the write from the primary - that's the whole bug.
  2. Pin the writer's session to the primary for N seconds after any write (N > observed p99 lag).

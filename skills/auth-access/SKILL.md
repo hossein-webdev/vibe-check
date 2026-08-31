@@ -11,7 +11,7 @@ description: >
 user-invokable: true
 metadata:
   category: auth-access
-  version: "2.3.0"
+  version: "2.4.0"
 ---
 
 # Authentication & Access Control
@@ -40,6 +40,7 @@ every check below at maximum strictness — assume nothing.**
 | AUTH-10 | Enterprise SSO ready (SAML 2.0/OIDC, per-tenant IdP config); provider's own compliance docs available; migration path known | P2 if selling to enterprise |
 | AUTH-11 | Every shared layer above the database is tenant-scoped — cache keys, search indexes, job queues, file paths, logs — and a cross-tenant test proves it | P1 if multi-tenant |
 | AUTH-12 | Authorization evaluates request context, not just a stored role; internal calls re-verify; sessions are scored continuously | P2 with sensitive data (P3 otherwise) — after AUTH-01..08 are solid |
+| AUTH-13 | Admin surfaces require an explicitly role-verified session; obscure paths and rate limits are secondary, and every admin action is audited | P1 if an admin panel exists |
 
 ## When to Use This Skill
 
@@ -48,6 +49,7 @@ every check below at maximum strictness — assume nothing.**
 - User mentions multi-tenant / tenant isolation, or "can user A see user B's data?".
 - A customer reports seeing another customer's data, or you're auditing for that risk.
 - Stolen credentials, suspicious logins, zero trust, or step-up authentication come up.
+- An admin panel, internal dashboard, or back-office route exists.
 - User is choosing or wiring a provider (Clerk, Auth0, BetterAuth, Supabase Auth).
 - The app's auth was hand-written or generated from scratch.
 
@@ -145,7 +147,27 @@ credential theft:
 - [ ] Keep the failure mode kind: a false positive should cost a legitimate user one extra
       verification step, never a lockout with no path back.
 
-### 7. Enterprise SSO — the procurement gate (AUTH-10)
+### 7. The admin panel is on the public internet (AUTH-13)
+A generator builds an admin panel so you can manage users, view orders, and change settings — and
+puts it at `/admin` with no login screen, because it assumed only you would know the URL. Your domain
+is public, the path is the first thing every automated scanner tries, and "nobody knows about it" has
+never been an access control. Assume it has already been found:
+- [ ] **Authenticate every admin route, and check the role, not just the session.** No admin page
+      renders without a verified session belonging to a user with explicit admin privileges. A
+      logged-in *ordinary* user reaching an admin route is the same breach one step later — this
+      is AUTH-06 and AUTH-07 applied to the surface that matters most.
+- [ ] **Treat the path as noise reduction, never protection.** Moving off `/admin`, `/dashboard`,
+      `/manage` cuts the scanner traffic, and rate-limiting the admin login blunts brute force. Both
+      are worth doing and neither is the control; if the only thing between the internet and your
+      user table is an unusual URL, you have no control at all.
+- [ ] **Log every admin action.** Who signed in, when, from where, what they changed, and every
+      failed attempt (→ `observability` OBS-14). Without it, the question after an incident —
+      *what did they see, and what did they change?* — has no answer, and you're guessing at the
+      breach notification.
+- [ ] Consider requiring a second factor and, where it fits your setup, restricting admin routes to
+      a known network or an authenticated proxy. The blast radius here is the whole business.
+
+### 8. Enterprise SSO — the procurement gate (AUTH-10)
 - [ ] If you sell to companies, **SSO is a gate, not a feature request**: line one of the IT
       procurement checklist is "SAML/OIDC support?", and Google sign-in + email/password doesn't
       count. Employees authenticate through the corporate IdP (Okta, Azure AD, Google Workspace) or
@@ -165,7 +187,7 @@ credential theft:
       - **What does leaving cost?** Know the migration path *before* thousands of paying users sit
         on a provider you've outgrown — evaluating it later is exponentially harder.
 
-### 8. Machine-to-machine (AUTH-09)
+### 9. Machine-to-machine (AUTH-09)
 - [ ] Services prove their own identity; a leaked service token is high blast radius — scope
       narrowly and rotate.
 

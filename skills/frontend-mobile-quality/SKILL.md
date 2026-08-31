@@ -11,7 +11,7 @@ description: >
 user-invokable: true
 metadata:
   category: frontend-mobile-quality
-  version: "2.2.0"
+  version: "2.3.0"
 ---
 
 # Front-End & Mobile Quality
@@ -97,6 +97,11 @@ Applies to anything with a UI (deep links only if mobile). Freedom: **medium**.
      app's traffic and walks off with session tokens. Pin to your expected certificate or public
      key, and — this is the part people skip — ship a backup pin and a remote kill switch, because a
      pinned app whose certificate rotated is a bricked app.
+   - **For genuinely sensitive payloads, don't rely on transport alone.** TLS plus pinning is the
+     right baseline and enough for most apps; where you carry credentials or regulated data, encrypt
+     those specific fields at the application layer too, so one proxy misconfiguration or a logging
+     middleware that captures request bodies doesn't expose them. Judge this by data class, not by
+     default — it adds key management you then have to run.
    - **Validate deep links before acting on them.** Your app registers URL schemes; a malicious app
      can register the same one and intercept auth callbacks, password-reset links, and payment
      confirmations. Verify origin and integrity before processing, prefer verified universal/app

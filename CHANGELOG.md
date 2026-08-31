@@ -1,5 +1,35 @@
 # Changelog
 
+## 4.13.0
+
+**Who checks the work, and the door nobody locked.**
+
+- `production-readiness` (2.4.0): **PROD-09** — don't let the author mark its own homework. Ask a
+  model to build authentication, then ask the same model to review it, and it says the code looks
+  good; of course it does, it wrote it. The blind spots that produced the vulnerability are the ones
+  that miss it on review, because each model has its own default patterns and edge cases it reliably
+  forgets. Run critical modules through a **different** model, frame the review adversarially ("find
+  every way to break this", not "does this look good"), and rotate which model builds and which
+  reviews so one set of blind spots doesn't spread across the codebase. **Where the two models
+  disagree is where you should read the code yourself.** It's a cheap second opinion, not a
+  replacement for PROD-08's audit or a real pen test — a second model is confidently wrong in its
+  own ways too.
+- `auth-access` (2.5.0): **AUTH-13** — the admin panel is on the public internet. A generator puts
+  it at `/admin` with no login because it assumed only you would know the URL; that path is the first
+  thing every scanner tries. Authenticate every admin route and check the **role**, not just the
+  session — a logged-in ordinary user reaching an admin route is the same breach one step later.
+  Moving off predictable paths and rate-limiting the login are worth doing and are noise reduction,
+  never the control. Log every admin action, or the post-incident question — what did they see,
+  what did they change — has no answer.
+- `scaling-performance` (2.3.0): SCALE-06 now covers the two passes that come *before* the planner:
+  index the columns you filter and join on (measured on realistic data volume, because on a small
+  table everything looks fast, and noting indexes cost write throughput), and stop returning every
+  column when the page renders three. Plus slow-query logging with a threshold, read weekly.
+- `frontend-mobile-quality` (2.3.0): FE-09 gains a judgement call — TLS plus pinning is the right
+  baseline and enough for most apps, but for credentials or regulated data, encrypt those fields at
+  the application layer too, so one proxy misconfiguration or a body-logging middleware doesn't
+  expose them. Decide by data class; it adds key management you then have to run.
+
 ## 4.12.0
 
 **Two boundaries that were never where you thought they were** — one that a platform used to hold
