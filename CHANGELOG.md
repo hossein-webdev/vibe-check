@@ -1,5 +1,36 @@
 # Changelog
 
+## 4.14.0
+
+**New skill: `business-logic-abuse`** (BIZ-01..10) — the flaws no scanner can find, because
+nothing is broken. No payload is malformed, no exception is thrown; someone used the product in an
+order, at a speed, or with a number you didn't picture, and it did exactly what it was built to do.
+For a pack aimed at apps that take money, this was the largest remaining hole. Pack: 23 — 24 skills.
+
+- **BIZ-01/02** — the client names its own price. Generated checkouts post `{price, currency}` and
+  charge what they're told; editing that takes seconds and leaves nothing in the logs, because
+  nothing failed. Ids in, values out of your own records. Plus the bounds a "is it a number" check
+  misses: negative quantities that turn purchases into refunds, and float money that rounds in the
+  customer's favour until the ledger drifts.
+- **BIZ-03** — one-time benefits enforced against a durable identity. One-per-account is
+  one-per-email-alias when accounts are free. Cap the aggregate too, and alert on redemption rate —
+  farming is a metric before it's a support ticket.
+- **BIZ-04** — read, decide, write is three steps, not one. Two requests interleave and both pass
+  the check: the last credit spent twice, one seat used by two people. It never reproduces manually
+  because you click once. One atomic conditional update where zero rows affected *is* the rejection,
+  and a parallel-request test that asserts the invariant.
+- **BIZ-06..09** — limits that exist only in the UI; workflows entered by URL or self-approved;
+  entitlement that never gets re-derived across delete-and-recreate, restore, or downgrade; and your
+  own export button as the cheapest exfiltration path.
+- **BIZ-10** — the abuse pass itself. Write the invariants down, attack them through the interface,
+  keep the cases as a regression suite. Scanners look for broken code; this looks for broken rules,
+  and only someone who knows the intended behaviour can do it.
+- `audit`: new matrix row routing to `business-logic-abuse`; `BIZ-` added to the namespace table.
+
+Credit: the coverage gap was identified from
+[pre-production-checklist](https://github.com/FarzamHabibi/pre-production-checklist) by Farzam Habibi
+(CC BY 4.0). Rules written from scratch in this pack's format; see the README credits.
+
 ## 4.13.0
 
 **Who checks the work, and the door nobody locked.**

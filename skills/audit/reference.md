@@ -127,6 +127,7 @@ Interpreting output — the scanner reports **facts, not findings**; you judge:
 | LLM- | llm-cost-control | | COST- | cost-infrastructure |
 | SOL- | solidity-security | | PAY- | monetization-pricing |
 | TEST- | test-quality | | GROW- | growth-activation |
+| BIZ- | business-logic-abuse | | | |
 
 Every rule ID is defined exactly once, in a `## Rules` table inside its owning skill. The audit cites
 IDs; the owning skill carries the full check + fix playbook.

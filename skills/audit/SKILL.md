@@ -82,6 +82,7 @@ in a component is not.
 | Frontend & mobile quality | There's a UI (deep links only if mobile) | `frontend-mobile-quality` |
 | Cost & infrastructure | Infra usage is non-trivial | `cost-infrastructure` |
 | Monetization & billing | The app charges money | `monetization-pricing` |
+| Business logic & abuse | Money, credits, quotas, promos, or an approval flow exist | `business-logic-abuse` |
 | Growth & activation | The product has (or wants) users to keep | `growth-activation` |
 
 Skipping is a real result — mark ⚪ N/A with a one-word reason. Never pad.

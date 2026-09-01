@@ -4,10 +4,10 @@
 
 ### Your app runs. But does it survive real users?
 
-**A linter-grade production-readiness audit for vibe-coded (AI-generated) apps — packaged as 23 Claude Code skills.**
+**A linter-grade production-readiness audit for vibe-coded (AI-generated) apps — packaged as 24 Claude Code skills.**
 
-[![Version](https://img.shields.io/badge/version-4.13.0-blue)](CHANGELOG.md)
-[![Skills](https://img.shields.io/badge/skills-23-8A2BE2)](#-the-skills)
+[![Version](https://img.shields.io/badge/version-4.14.0-blue)](CHANGELOG.md)
+[![Skills](https://img.shields.io/badge/skills-24-8A2BE2)](#-the-skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-plugin-D97757)](https://code.claude.com/docs/en/plugins)
 [![Node](https://img.shields.io/badge/scanner-Node%20%E2%89%A518%2C%20zero%20deps-339933)](skills/audit/scripts/scan.mjs)
@@ -117,7 +117,7 @@ flowchart LR
 
 ## 🧰 The skills
 
-The `audit` router + 22 focused skills. Every rule ID is defined once, in its owning skill, with a
+The `audit` router + 23 focused skills. Every rule ID is defined once, in its owning skill, with a
 fix playbook — the audit cites them; you can also invoke any skill directly (`/vibe-check:app-security`).
 
 | Skill | Covers | Rules |
@@ -142,6 +142,7 @@ fix playbook — the audit cites them; you can also invoke any skill directly (`
 | 📱 [`frontend-mobile-quality`](skills/frontend-mobile-quality/SKILL.md) | Responsive, WCAG AA a11y, hostile-condition testing, deep links, native-shell hardening | `FE` |
 | 💰 [`cost-infrastructure`](skills/cost-infrastructure/SKILL.md) | Bill attribution, unit economics, custom-work pricing, vendor commitments, hosting by stage | `COST` |
 | 🧾 [`monetization-pricing`](skills/monetization-pricing/SKILL.md) | Hosted checkout, webhook security, silent revenue loss, pricing, ICP, agent buyers | `PAY` |
+| 🎲 [`business-logic-abuse`](skills/business-logic-abuse/SKILL.md) | Client-set prices, promo farming, quota bypass, races, workflow and ownership edges | `BIZ` |
 | ⛓️ [`solidity-security`](skills/solidity-security/SKILL.md) | Smart-contract audit: reentrancy, oracle manipulation, proxy safety, token integration | `SOL` |
 | 🧪 [`test-quality`](skills/test-quality/SKILL.md) | Tests that catch bugs: anti-fragility, mocking discipline, fixed vectors, coverage as a floor | `TEST` |
 | 📈 [`growth-activation`](skills/growth-activation/SKILL.md) | Audience before launch, validated scope, funnel instrumentation, activation, onboarding arc, cohort retention | `GROW` |
@@ -170,6 +171,7 @@ fix playbook — the audit cites them; you can also invoke any skill directly (`
 | `SEC-16` | Your agent fetches user URLs from inside the firewall — that's a proxy to your admin panel |
 | `AI-13` | "Ignore your previous instructions" works because authorization lived in the prompt |
 | `AUTH-13` | `/admin` has no login because the generator assumed only you would know the URL |
+| `BIZ-04` | Read-then-write on a balance: two requests at once spend the same credit twice |
 | `AI-11` | A human approving agent actions isn't a guardrail — scoped credentials and deny-by-default gates are |
 
 </details>
@@ -191,6 +193,13 @@ The [`test-quality`](skills/test-quality/SKILL.md) rubric is adapted from
 axes beat suites optimized for coverage percentage. Worth reading in full if you care about tests.
 
 `solidity-security` (SOL-01..10) was contributed by [@holistis](https://github.com/holistis).
+
+[`business-logic-abuse`](skills/business-logic-abuse/SKILL.md) exists because
+**[pre-production-checklist](https://github.com/FarzamHabibi/pre-production-checklist)** by
+**Farzam Habibi** ([CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)) mapped the abuse and
+race-condition ground this pack had left uncovered. The rules here are written from scratch in this
+pack's own format; that checklist is where the gap was identified, and it's worth reading directly
+if you want exhaustive item-level coverage rather than diagnosed rules.
 
 ## License
 
