@@ -7,14 +7,14 @@ description: >
   monoculture risk of template-cloned apps, and the AI/prompt supply chain. For keys and credentials
   specifically, routes to the secrets-management skill. Activates when the user mentions security,
   RLS, OWASP/ZAP/Burp, a pen test or security audit, dependency or supply-chain risk, CVEs,
-  CORS/CSP, CSRF, cookie SameSite settings, XSS, SSRF or server-side URL fetching, typosquatted or
+  CORS/CSP, CSRF, cookie SameSite settings, SQL injection, XSS, SSRF or server-side URL fetching, typosquatted or
   malicious packages, prompt injection, a WAF or CDN, origin IP exposure, DDoS, stack traces leaking
   to users, moving to a VPS or self-hosting, SSH or firewall hardening, or asks "is my app secure?".
   Applies to every app.
 user-invokable: true
 metadata:
   category: app-security
-  version: "2.4.0"
+  version: "2.5.0"
 ---
 
 # App Security
@@ -38,7 +38,7 @@ Freedom: **low** — run the checks exactly.
 | SEC-05 | API routes don't bypass RLS with a privileged/service role for user data | P1 |
 | SEC-06 | Dependency tree audited, pinned (lockfile), criticals resolved | P2 |
 | SEC-07 | Security headers configured (CORS, CSP) | P2 |
-| SEC-08 | Input validated/escaped — XSS defended | P1 |
+| SEC-08 | Untrusted input never becomes code: parameterized queries (SQL/NoSQL), escaped output (XSS), no shell or eval on user data | P1 |
 | SEC-09 | At least one self pen-test run (OWASP ZAP / Burp) before launch | P2 |
 | SEC-10 | AI/prompt supply chain triaged by trust tier; nothing unvetted in prod | P2 |
 | SEC-11 | Production errors return generic messages; stack traces and internals only in server-side logs; every boundary catches | P2 |
@@ -110,9 +110,36 @@ beats none.
          what would break;
       3. **Then enforce** — whitelist exactly the domains allowed to load scripts; the browser
          blocks the rest before execution.
-- [ ] All input validated/escaped — assume generated code does **not** defend XSS. Validate **every**
-      endpoint, not just the login form: every form, API parameter, and query string. The generator
-      validates what it expects a user to send; an attacker sends what it never imagined.
+- [ ] **Queries are parameterized — always, everywhere (SEC-08).** The failure is a search box that
+      returns every user's credentials, and the cause is a query assembled by string concatenation
+      or template interpolation with user input in it. Generated code does this readily, because
+      building the string is the obvious way to write the feature:
+      - **Bind values, never interpolate them.** Placeholders (`?`, `$1`, named parameters) or your
+        ORM's typed query builder. A tagged-template SQL helper is fine; `` `...${userInput}...` ``
+        straight into a query string is not, and the same rule covers NoSQL operator injection
+        (a user-supplied object reaching a Mongo-style filter) and ORM `raw`/`literal` escape hatches.
+      - **Identifiers can't be parameterized**, so table and column names that come from input need
+        an **allowlist** — mapping a sort field to a fixed set of known columns, not passing it
+        through. This is where most "we use an ORM so we're fine" apps still get hit.
+      - **Grep for the pattern, don't reason about it**: query calls containing `+`, `${`, `%s`,
+        f-strings, or `.format(`. Each hit is either parameterized or a finding.
+      - Least privilege behind it: the application's database role shouldn't be able to read tables
+        the feature never touches (→ SEC-04/SEC-05), so a missed spot leaks less.
+- [ ] **Escape on output, contextually (SEC-08).** XSS is the same mistake pointed at the browser:
+      untrusted text rendered as markup. Let the framework escape by default and treat every
+      bypass (`dangerouslySetInnerHTML`, `v-html`, `innerHTML`, `|safe`) as a review item; escaping
+      is context-dependent, so HTML, attribute, URL, and JS contexts each need the right one. CSP
+      above is the backstop for what slips through, not the fix.
+- [ ] **Nothing user-supplied reaches a shell, `eval`, a deserializer, or a file path.** Command
+      injection and path traversal are the same class with a different sink: pass arguments as an
+      array rather than a formatted command line, resolve and confine paths, and don't deserialize
+      untrusted data into live objects.
+- [ ] **Validate every endpoint, not just the login form** — every form, API parameter, query string,
+      header, and webhook body. Validate shape and type at the boundary with a schema, and treat the
+      allowlist ("these fields, these types, these ranges") as the rule rather than blocking known-bad
+      strings. The generator validates what it expects a user to send; an attacker sends what it
+      never imagined. Accepting *fields* you didn't intend is its own bug
+      (→ `business-logic-abuse` BIZ-01).
 - [ ] **Errors don't leak internals (SEC-11)** — a production stack trace tells an attacker your
       framework, your database version, your file layout, and often the connection string itself.
       The generator wrote one handler that does both jobs — user-facing and diagnostic — which is a
@@ -315,6 +342,15 @@ npm audit --audit-level=high && npm audit fix
 #  3. Datastore: bind to 127.0.0.1 or a private interface; verify from outside that the port refuses.
 #  4. Unattended security upgrades on; plan for the reboots it will need.
 
+# SEC-08: injection sweep
+#  1. Grep every query call for concatenation/interpolation:
+#     grep -rnE "(query|execute|raw|find|aggregate)\(.*(\+|\$\{|%s|\.format\()" src/
+#     Each hit: bind the value, or justify it in writing.
+#  2. Sort/filter params that name a column: map through an allowlist; identifiers cannot be bound.
+#  3. Output: list every innerHTML / dangerouslySetInnerHTML / v-html / |safe and justify each.
+#  4. Sinks: no user input into shell strings, eval, deserializers, or file paths.
+#  5. Confirm the app's DB role cannot read what the app never touches.
+
 # SEC-09: self pen-test
 docker run -t zaproxy/zap-stable zap-baseline.py -t https://your-app.example
 ```
@@ -343,6 +379,7 @@ Your app likely shares a template with thousands of others — the scan finds th
 - **Do** start with the 30-minute starter; enforce access in the database (RLS).
 - **Do** run at least one ZAP scan — the monoculture means your holes are already catalogued.
 - **Do** put a WAF and adaptive rate limiting in front of the stack before you need them.
+- **Do** parameterize every query and allowlist any identifier that comes from input.
 - **Do** treat any user-supplied URL your server fetches as an attempt to reach your internals.
 - **Do** confirm the edge can't be walked around — an origin the internet can still reach makes
   every rule at the edge optional.

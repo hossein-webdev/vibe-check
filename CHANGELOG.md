@@ -1,5 +1,31 @@
 # Changelog
 
+## 4.15.0
+
+**SEC-08 now actually covers injection.** It read *"Input validated/escaped — XSS defended"*, and
+the words *SQL injection*, *parameterized query*, and *prepared statement* appeared nowhere in the
+pack. For a production-readiness audit aimed at generated code — which builds queries by string
+interpolation because that is the obvious way to write the feature — the most famous injection
+class was missing. This is a fix to shipped content, not a new lesson.
+
+- `app-security` (2.5.0): **SEC-08** rewritten as *untrusted input never becomes code*:
+  - **Parameterized queries, always.** Bind values, never interpolate. Covers NoSQL operator
+    injection and ORM `raw`/`literal` escape hatches, not just classic SQL.
+  - **Identifiers can't be parameterized**, so table/column names taken from input need an
+    **allowlist** — mapping a sort field to a fixed set of known columns. This is where most
+    "we use an ORM so we're fine" apps still get hit.
+  - **Grep for the pattern rather than reasoning about it**: query calls containing `+`, `${`, `%s`,
+    f-strings, or `.format(`. Each hit is either parameterized or a finding. Least-privilege database
+    roles behind it so a missed spot leaks less.
+  - **Contextual output escaping** for XSS, with every framework bypass (`dangerouslySetInnerHTML`,
+    `v-html`, `innerHTML`, `|safe`) treated as a review item, and CSP as the backstop rather than
+    the fix.
+  - **Same class, other sinks**: nothing user-supplied reaches a shell, `eval`, a deserializer, or a
+    file path — command injection and path traversal are one bug with a different ending.
+  - Validation framed as allowlisting shape and type at every endpoint, not blocking known-bad
+    strings, with a pointer to BIZ-01 for accepting fields you didn't intend.
+  - New injection-sweep entry in the fix playbook.
+
 ## 4.14.0
 
 **New skill: `business-logic-abuse`** (BIZ-01..10) — the flaws no scanner can find, because

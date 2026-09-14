@@ -6,7 +6,7 @@
 
 **A linter-grade production-readiness audit for vibe-coded (AI-generated) apps — packaged as 24 Claude Code skills.**
 
-[![Version](https://img.shields.io/badge/version-4.14.0-blue)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-4.15.0-blue)](CHANGELOG.md)
 [![Skills](https://img.shields.io/badge/skills-24-8A2BE2)](#-the-skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-plugin-D97757)](https://code.claude.com/docs/en/plugins)
@@ -124,7 +124,7 @@ fix playbook — the audit cites them; you can also invoke any skill directly (`
 |---|---|:---:|
 | 🩺 **[`audit`](skills/audit/SKILL.md)** | The scored, adaptive audit — start here | — |
 | 🏁 [`production-readiness`](skills/production-readiness/SKILL.md) | The last mile: owning AI code, cross-model review, feature health, pre-release audit gate | `PROD` |
-| 🛡️ [`app-security`](skills/app-security/SKILL.md) | RLS, supply chain, headers, XSS, CSRF, SSRF, host hardening, unbypassable WAF/CDN edge | `SEC` |
+| 🛡️ [`app-security`](skills/app-security/SKILL.md) | RLS, injection (SQL/XSS/shell), supply chain, CSRF, SSRF, host hardening, unbypassable edge | `SEC` |
 | 🔑 [`secrets-management`](skills/secrets-management/SKILL.md) | Client-exposed keys, vaults, rotation, git history, commit-time blocking | `SEC-01..03`, `SEC-12` |
 | 🚪 [`auth-access`](skills/auth-access/SKILL.md) | AuthN ≠ authZ, JWT, sessions, RBAC, tenant isolation, admin surfaces, context-aware access | `AUTH` |
 | 📈 [`scaling-performance`](skills/scaling-performance/SKILL.md) | Pooling, caching layers, read replicas + consistency, background jobs, query tuning | `SCALE` |
@@ -172,6 +172,7 @@ fix playbook — the audit cites them; you can also invoke any skill directly (`
 | `AI-13` | "Ignore your previous instructions" works because authorization lived in the prompt |
 | `AUTH-13` | `/admin` has no login because the generator assumed only you would know the URL |
 | `BIZ-04` | Read-then-write on a balance: two requests at once spend the same credit twice |
+| `SEC-08` | One search box built by string interpolation returns every user's row |
 | `AI-11` | A human approving agent actions isn't a guardrail — scoped credentials and deny-by-default gates are |
 
 </details>
