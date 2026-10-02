@@ -1,5 +1,28 @@
 # Changelog
 
+## 4.21.0
+
+**AUTH-16 — a session the attacker chose.** AUTH-04 rotates sessions over time; this is the other
+rotation, the one that must happen the instant a session changes what it's allowed to do. If the
+identifier survives login unchanged, whoever could set it *before* authentication owns the session
+*after*: they plant a value, the victim logs in with it, and they're already inside. Nothing is stolen
+and nothing is brute-forced — they just knew the id first.
+
+- **Regenerate on login, always** — a new identifier the moment authentication succeeds, with the
+  pre-login one discarded server-side rather than overwritten in the cookie. Frameworks expose exactly
+  one call for this; generated login handlers set a user id on the existing session and never make it.
+- **Regenerate at every other privilege change**: step-up to admin, re-authentication for a sensitive
+  action, starting and ending impersonation. One identifier per privilege level, so a captured
+  low-privilege id isn't waiting when the level rises.
+- **Never accept a session id from a URL or parameter**, and reject one the server didn't issue —
+  URL-borne sessions leak through logs, `Referer` and shared links, and accepting an unknown id is what
+  makes planting one possible at all.
+- **Cookie flags**: `HttpOnly`, `Secure`, `SameSite` (SEC-15), host-only rather than domain-wide if
+  anything untrusted shares a subdomain.
+- **Verify in a minute**: note the cookie, log in, compare. Same value means broken.
+
+`auth-access` 2.7.0.
+
 ## 4.20.0
 
 **APID-13 — accept the fields you meant to accept.** APID-11 keeps extra fields out of the *response*;

@@ -11,7 +11,7 @@ description: >
 user-invokable: true
 metadata:
   category: auth-access
-  version: "2.6.0"
+  version: "2.7.0"
 ---
 
 # Authentication & Access Control
@@ -43,6 +43,7 @@ every check below at maximum strictness — assume nothing.**
 | AUTH-13 | Admin surfaces require an explicitly role-verified session; obscure paths and rate limits are secondary, and every admin action is audited | P1 if an admin panel exists |
 | AUTH-14 | Every redirect target is validated against an allowlist, and the authorization-code flow carries `state` + PKCE | P1 if social/SSO login or any `?next=` redirect exists |
 | AUTH-15 | Emailed credentials are single-use and short-lived: reset links, magic links and invitations expire, burn on use, and are invalidated by a password change | P1 if any login or recovery path runs through email |
+| AUTH-16 | The session identifier is regenerated at every privilege change — login, elevation, impersonation — and never accepted from a URL | P1 if sessions are server-side |
 
 ## When to Use This Skill
 
@@ -219,7 +220,29 @@ long after it should:
 - [ ] Magic links specifically: bind the redemption to the session or device that requested it where
       your UX allows, so an intercepted link alone isn't enough.
 
-### 10. Enterprise SSO — the procurement gate (AUTH-10)
+### 10. A session the attacker chose (AUTH-16)
+AUTH-04 rotates sessions over time. This is the other rotation: the one that must happen the instant a
+session changes what it's allowed to do. If the identifier survives login unchanged, an attacker who can
+set it *before* authentication owns the session *after* {EM} they plant a value, get the victim to log in
+with it, and are already inside. Nothing is stolen and nothing is brute-forced; they just knew the id
+first.
+- [ ] **Regenerate on login, always.** A new identifier is issued the moment authentication succeeds and
+      the pre-login one is discarded server-side, not merely overwritten in the cookie. Most frameworks
+      expose exactly one call for this; generated login handlers routinely set a user id on the existing
+      session instead and never make it.
+- [ ] **Regenerate on every other privilege change too**: stepping up to admin, re-authenticating for a
+      sensitive action, starting or ending an impersonation session. The rule is one identifier per
+      privilege level, so a captured low-privilege id can't be waiting when the level rises.
+- [ ] **Never accept a session identifier from the URL or a request parameter**, and reject one the
+      server didn't issue. URL-borne sessions leak through logs, `Referer` headers, and shared links, and
+      accepting an unknown id is what makes planting one possible in the first place.
+- [ ] **Set the cookie so the browser helps**: `HttpOnly` and `Secure` so script and network can't read
+      it, `SameSite` so it doesn't ride cross-site requests ({ARR} `app-security` SEC-15), and a host-only
+      cookie rather than a domain-wide one if anything untrusted shares a subdomain.
+- [ ] **Verify it in one minute**: note the session cookie before logging in, log in, and compare. If the
+      value is the same, this is broken.
+
+### 11. Enterprise SSO — the procurement gate (AUTH-10)
 - [ ] If you sell to companies, **SSO is a gate, not a feature request**: line one of the IT
       procurement checklist is "SAML/OIDC support?", and Google sign-in + email/password doesn't
       count. Employees authenticate through the corporate IdP (Okta, Azure AD, Google Workspace) or
@@ -239,13 +262,19 @@ long after it should:
       - **What does leaving cost?** Know the migration path *before* thousands of paying users sit
         on a provider you've outgrown — evaluating it later is exponentially harder.
 
-### 11. Machine-to-machine (AUTH-09)
+### 12. Machine-to-machine (AUTH-09)
 - [ ] Services prove their own identity; a leaked service token is high blast radius — scope
       narrowly and rotate.
 
 ## Fix playbook
 
 ```text
+Session fixation [AUTH-16]:
+ 1. In the login handler, call the framework's regenerate/renew before setting user state; destroy the old.
+ 2. Same at every privilege change: step-up to admin, re-auth, impersonation start and end.
+ 3. Reject session ids arriving in query strings or bodies; accept only ones the server issued.
+ 4. Cookie flags: HttpOnly + Secure + SameSite, host-only if subdomains are not fully trusted.
+ 5. Verify: record the cookie, log in, compare. Same value = broken.
 Emailed credentials [AUTH-15]:
  1. TTL <= 15 min on reset/magic/invite tokens. Store a hash, compare, never store the raw value.
  2. Burn on use in the SAME statement that validates (UPDATE ... WHERE token_hash=:h AND used_at IS NULL).
@@ -289,6 +318,7 @@ Own the data / self-host → BetterAuth (you run UI + reliability). Never hand-r
 - **Do** explicitly test cross-user and cross-tenant access.
 - **Don't** reflect a redirect target back to the browser; allowlist it or use your default.
 - **Don't** leave an emailed link working after it has been used, or after the password changed.
+- **Don't** carry a pre-login session identifier into an authenticated session.
 - **Don't** rely on hidden UI as a permission; don't trust generated auth unverified.
 - **Don't** ship never-expiring tokens or client-only logout.
 
