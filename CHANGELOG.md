@@ -1,5 +1,27 @@
 # Changelog
 
+## 4.24.0
+
+**SEC-22 — who is allowed to be you in an inbox.** PAY-10 sets up SPF and DKIM so your receipts arrive;
+that's deliverability, and it's a different goal from stopping other people sending mail that *is* you. A
+phishing message carrying your exact domain is far more effective than a lookalike, because your
+password-reset mail has trained users to trust it.
+
+- **Publish DMARC and actually move it to enforcement.** SPF and DKIM prove a message *can* be
+  authenticated; DMARC tells the receiver to **reject** one that isn't. Start `p=none` with reports, read
+  them to enumerate your real senders, then `p=quarantine`, then `p=reject`. Sitting at `p=none` forever
+  is the common failure — it collects data nobody reads and blocks nothing.
+- **Mind alignment, not just presence.** DMARC passes only when the SPF or DKIM domain matches the visible
+  `From:`. A vendor sending "on behalf of" you with their own envelope domain passes SPF and still fails
+  alignment, which is why mail you thought was covered isn't.
+- **Inventory who sends as you** — transactional provider, marketing tool, CRM, invoicing, helpdesk, the
+  thing someone connected two years ago. Each authorised sender can wear your domain, so that list *is*
+  the attack surface (SEC-18 makes the same argument about scripts).
+- **Lock unused sending subdomains** with their own `p=reject`; that's where attackers go next.
+- **Verify externally** and read one aggregate report to see who's already sending as you.
+
+`app-security` 2.10.0.
+
 ## 4.23.0
 
 **SEC-21 — the services behind the app.** SEC-06 patches your dependencies; SEC-17 hardens a host you

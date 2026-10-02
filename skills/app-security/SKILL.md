@@ -8,13 +8,13 @@ description: >
   OWASP/ZAP/Burp, CVEs or supply-chain and typosquat risk, SQL injection, XSS, CORS/CSP, CSRF,
   SameSite cookies, clickjacking or iframe embedding, third-party scripts or Subresource Integrity, tokens in localStorage, server
   components or server actions leaking data, SSRF, prompt injection, a WAF or CDN, origin IP
-  exposure, DDoS, stack traces reaching users, an exposed or unpatched cache/queue/database,
+  exposure, DDoS, email spoofing or DMARC, an exposed or unpatched cache/queue/database,
   self-hosting or SSH and firewall hardening, or
   "is my app secure?". Applies to every app.
 user-invokable: true
 metadata:
   category: app-security
-  version: "2.9.0"
+  version: "2.10.0"
 ---
 
 # App Security
@@ -51,6 +51,7 @@ Freedom: **low** — run the checks exactly.
 | SEC-19 | The server/client boundary is explicit: server-only modules guarded, nothing secret in a client component's import graph, and only the fields the UI renders cross as props | P1 for any server-component or server-action framework |
 | SEC-20 | Framing controlled: `frame-ancestors` (or `X-Frame-Options`) denies embedding except where you intend it, and sensitive actions need more than one click | P2 (P1 on payment, admin and consent screens) |
 | SEC-21 | Backing services are owned, not assumed: each one unreachable from the internet, authenticated, encrypted in transit, and on a named patch path | P1 once a cache, queue or search node holds session or customer data |
+| SEC-22 | Your domain can't be spoofed: DMARC on an enforcing policy, SPF and DKIM aligned, and only the senders you authorised able to mail as you | P2 (P1 once the domain sends receipts, resets or invoices) |
 
 ## When to Use This Skill
 
@@ -377,6 +378,29 @@ is logging in as anyone.
 - [ ] **Verify from outside your network**: attempt a connection to each service's address and port from
       an unrelated network. Refused is the only acceptable answer; a password prompt means it's reachable.
 
+### Who is allowed to be you in an inbox (SEC-22)
+`monetization-pricing` PAY-10 sets up SPF and DKIM so your receipts arrive. That is deliverability, and it
+is a different goal from this one: stopping other people sending mail that *is* you. Your domain is a
+brand asset with an open door, and a phishing message carrying your exact domain is far more effective
+than a lookalike {EM} your password-reset mail has trained users to trust it.
+- [ ] **Publish DMARC and move it to enforcement.** SPF and DKIM alone prove a message *can* be
+      authenticated; DMARC is what tells the receiving server to **reject** one that isn't. Start at
+      `p=none` with reports, read them for a couple of weeks to find your legitimate senders, then go to
+      `p=quarantine` and on to `p=reject`. Staying at `p=none` indefinitely is the common failure {EM} it
+      collects data nobody reads and blocks nothing.
+- [ ] **Mind alignment, not just presence.** A message passes DMARC only if the SPF or DKIM domain
+      matches the visible `From:`. A vendor sending "on behalf of" you with their own envelope domain can
+      pass SPF and still fail alignment, which is why mail you thought was covered isn't.
+- [ ] **Inventory who sends as you and remove what you don't recognise.** Transactional provider, the
+      marketing tool, the CRM, the invoicing service, the helpdesk, the thing someone connected in 2024.
+      Each one you authorise can send mail wearing your domain, so this list *is* your attack surface
+      ({ARR} SEC-18 for the same argument about scripts, {ARR} `compliance-legal` LEGAL-12 if any of them
+      touch regulated data).
+- [ ] **Lock the subdomains you don't send from.** A DMARC record covers the organisational domain, but
+      an explicit `p=reject` on unused sending subdomains closes the gap attackers reach for next.
+- [ ] **Verify externally**: check the published records, confirm the policy really is enforcing, and read
+      one aggregate report to see who is sending as you. Believing it's configured is the usual state.
+
 ### Prove it (SEC-09)
 - [ ] **Order matters: audit first, pen test second.** Run the full production audit (→ `audit`),
       fix what it surfaces, *then* pen test to validate the fixes and catch what they missed — and
@@ -487,6 +511,13 @@ npm audit --audit-level=high && npm audit fix
 #  3. Auth on, TLS on, provisioning credentials rotated, app credential scoped (not owner/admin).
 #  4. Per service write: who patches it, how you hear about a CVE, which version you are pinned to.
 #  5. Verify from an unrelated network: connection must be refused, not prompt for a password.
+
+# SEC-22: domain spoofing
+#  1. dig +short TXT _dmarc.yourdomain.com   -> if absent or p=none, that is the finding.
+#  2. Publish p=none with rua reporting; read reports ~2 weeks to enumerate legitimate senders.
+#  3. Move to p=quarantine, then p=reject. Staying at p=none blocks nothing.
+#  4. For each sender check ALIGNMENT, not just an SPF pass: does the SPF/DKIM domain match the From?
+#  5. List every service authorised to send as you; remove the unrecognised. Add p=reject on unused subdomains.
 
 # SEC-09: self pen-test
 docker run -t zaproxy/zap-stable zap-baseline.py -t https://your-app.example
