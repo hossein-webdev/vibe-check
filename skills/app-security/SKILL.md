@@ -7,14 +7,15 @@ description: >
   monoculture risk of template-cloned apps, and the AI/prompt supply chain. For keys and credentials
   specifically, routes to the secrets-management skill. Activates when the user mentions security,
   RLS, OWASP/ZAP/Burp, a pen test or security audit, dependency or supply-chain risk, CVEs,
-  CORS/CSP, CSRF, cookie SameSite settings, SQL injection, XSS, SSRF or server-side URL fetching, typosquatted or
+  CORS/CSP, CSRF, cookie SameSite settings, SQL injection, XSS, third-party or vendor scripts,
+  Subresource Integrity, tokens in localStorage, SSRF or server-side URL fetching, typosquatted or
   malicious packages, prompt injection, a WAF or CDN, origin IP exposure, DDoS, stack traces leaking
   to users, moving to a VPS or self-hosting, SSH or firewall hardening, or asks "is my app secure?".
   Applies to every app.
 user-invokable: true
 metadata:
   category: app-security
-  version: "2.5.0"
+  version: "2.6.0"
 ---
 
 # App Security
@@ -47,6 +48,7 @@ Freedom: **low** — run the checks exactly.
 | SEC-15 | Cross-origin trust locked down: explicit origin allowlist (never wildcard-or-reflected with credentials), `SameSite` auth cookies, anti-forgery tokens on state-changing routes | P1 once sessions are cookie-based |
 | SEC-16 | Server-side fetches of user-supplied URLs are fenced: destination allowlist, internal ranges blocked, resolved address pinned and revalidated on every redirect, one generic error | P1 wherever the server or an agent fetches a URL a user controls |
 | SEC-17 | Self-managed hosts hardened: SSH key-only with root login off, default-deny firewall (datastore never publicly reachable), unattended security updates | P1 the day you leave a managed platform |
+| SEC-18 | Third-party page scripts inventoried, pinned with integrity, and CSP-restricted — and auth tokens kept out of storage any script can read | P1 once a payment or login page carries a vendor script |
 
 ## When to Use This Skill
 
@@ -269,6 +271,35 @@ a bare host does none of it, and the internet notices within minutes. Three thin
 - [ ] This is the real content of the self-hosted-vs-managed trade (→ `cost-infrastructure`
       COST-04): the invoice goes down and this list becomes yours, forever.
 
+### Every vendor script runs as you (SEC-18)
+A chat widget, an analytics pixel, a heatmap recorder, a font loader: each is a `<script>` you invited
+onto your page, and each runs with the **same privileges as your own code**. It can read the DOM,
+watch keystrokes in your login form, and read anything in browser storage. You are not trusting the
+vendor's product {EM} you are trusting their build pipeline, their CDN, and whoever acquires them next.
+- [ ] **Inventory what you load, and say why.** List every external script, style, font, iframe and
+      pixel on the pages that matter {EM} login, checkout, account. Anything you can't justify comes
+      off. This is the step people skip, and it's the one that shrinks the problem.
+- [ ] **Pin what you can.** Scripts from a CDN get **Subresource Integrity** plus
+      `crossorigin="anonymous"` so a swapped file fails closed instead of executing. SRI can't cover a
+      tag that's *designed* to mutate (most analytics and widget loaders) {EM} for those, pin the
+      vendor and the version in your own config and review changes deliberately rather than taking
+      whatever `latest` serves today.
+- [ ] **Restrict with CSP so the budget is enforced, not aspirational.** `script-src` lists the hosts
+      you approved and nothing else; avoid `unsafe-inline` and wildcard hosts, which hand the policy
+      back. SEC-07 covers rolling CSP out report-only first; this is what you point it at.
+- [ ] **Keep auth tokens where page scripts cannot reach them.** A token in `localStorage` or
+      `sessionStorage` is readable by every script on the page, including the widget you added last
+      week {EM} one compromised vendor becomes account takeover with no attacker code on your server.
+      Prefer a `Secure` + `HttpOnly` + `SameSite` cookie, which JavaScript cannot read at all. If a
+      token must live in JS (a cross-origin API, a native shell {ARR} `frontend-mobile-quality` FE-09),
+      keep it in memory only, keep it short-lived, and never persist it.
+- [ ] **Isolate the ones that don't need your page.** A widget in a sandboxed iframe on a separate
+      origin cannot read your DOM or your storage; that is the difference between a vendor incident
+      and your incident. Keep third-party scripts off the pages where credentials and card details are
+      typed, which is the only place this trade is genuinely expensive.
+- [ ] The dependency version of this problem is SEC-06 (npm tree); this is the one `npm audit` cannot
+      see, because nothing was installed.
+
 ### Prove it (SEC-09)
 - [ ] **Order matters: audit first, pen test second.** Run the full production audit (→ `audit`),
       fix what it surfaces, *then* pen test to validate the fixes and catch what they missed — and
@@ -351,6 +382,14 @@ npm audit --audit-level=high && npm audit fix
 #  4. Sinks: no user input into shell strings, eval, deserializers, or file paths.
 #  5. Confirm the app's DB role cannot read what the app never touches.
 
+# SEC-18: third-party script sweep
+#  1. List every external script/style/font/iframe/pixel on login, checkout and account pages.
+#     grep -rnE '<script[^>]+src=|<iframe[^>]+src=' --include=*.html --include=*.tsx . | grep -v 'src="/'
+#  2. Unjustified -> remove. Justified -> pin: add integrity + crossorigin, or pin vendor+version in config.
+#  3. CSP script-src: your approved hosts only; no unsafe-inline, no wildcards.
+#  4. grep -rn "localStorage\|sessionStorage" for tokens; move to Secure+HttpOnly+SameSite cookies.
+#  5. Keep vendor scripts off credential and payment pages entirely.
+
 # SEC-09: self pen-test
 docker run -t zaproxy/zap-stable zap-baseline.py -t https://your-app.example
 ```
@@ -379,6 +418,7 @@ Your app likely shares a template with thousands of others — the scan finds th
 - **Do** start with the 30-minute starter; enforce access in the database (RLS).
 - **Do** run at least one ZAP scan — the monoculture means your holes are already catalogued.
 - **Do** put a WAF and adaptive rate limiting in front of the stack before you need them.
+- **Do** treat every vendor script on the page as code running with your privileges.
 - **Do** parameterize every query and allowlist any identifier that comes from input.
 - **Do** treat any user-supplied URL your server fetches as an attempt to reach your internals.
 - **Do** confirm the edge can't be walked around — an origin the internet can still reach makes

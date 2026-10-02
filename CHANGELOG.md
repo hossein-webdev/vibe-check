@@ -1,5 +1,32 @@
 # Changelog
 
+## 4.17.0
+
+**SEC-18 — every vendor script runs as you.** A chat widget, an analytics pixel, a heatmap recorder:
+each runs with the **same privileges as your own code**, able to read the DOM, watch keystrokes in your
+login form, and read browser storage. You aren't trusting the vendor's product — you're trusting their
+build pipeline, their CDN, and whoever acquires them next. `npm audit` cannot see any of it, because
+nothing was installed.
+
+- **Inventory and justify** every external script, style, font, iframe and pixel on login, checkout and
+  account pages. Anything unjustified comes off — this is the step people skip and the one that shrinks
+  the problem.
+- **Pin what you can**: Subresource Integrity plus `crossorigin` so a swapped file fails closed. SRI
+  can't cover a loader *designed* to mutate, so pin vendor and version in your own config instead of
+  taking whatever `latest` serves today.
+- **Restrict with CSP** so the inventory is enforced: `script-src` lists approved hosts, no
+  `unsafe-inline`, no wildcards. SEC-07 covers rolling it out report-only first; this is what to point
+  it at.
+- **Keep auth tokens out of storage every script can read.** A token in `localStorage` is readable by
+  the widget you added last week, which turns one vendor compromise into account takeover with no
+  attacker code on your server. Prefer `Secure` + `HttpOnly` + `SameSite` cookies, which JavaScript
+  cannot read at all; if a token must live in JS, keep it in memory, short-lived, never persisted.
+- **Isolate or exclude**: a widget in a sandboxed iframe on another origin can't read your DOM or
+  storage, and the pages where credentials and card details are typed should carry no vendor scripts at
+  all.
+
+`app-security` 2.6.0.
+
 ## 4.16.0
 
 **AUTH-14 — where you send the user next.** Three failures the corpus kept surfacing turn out to be
