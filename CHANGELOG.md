@@ -1,5 +1,29 @@
 # Changelog
 
+## 4.26.0
+
+**APID-14 — if the endpoint is GraphQL.** APID-01..13 are shaped for REST, because most generated APIs
+are. GraphQL moves the same obligations to different places, and a generator scaffolds schema and resolvers
+while leaving every limit at its permissive default. This is one bounded rule rather than a second
+paradigm's worth of rules — the aim is that a GraphQL app stops getting nothing from this pack.
+
+- **Introspection off in production** — it's a complete machine-readable map of every query, mutation, type
+  and relationship. Keep it locally and in staging; then assume it leaked anyway and don't treat obscurity
+  as a control.
+- **Cap depth and complexity.** One valid query can nest relationships until it asks the database for the
+  product of several tables — denial of service at a volume of one. This is the GraphQL shape of APID-04's
+  pagination and API-06's rate limits, both of which count *requests* and so miss it entirely.
+- **Limit batching and aliasing**, or a rate-limited login mutation is brute-forceable: a thousand attempts,
+  one HTTP request, one counter increment.
+- **Authorize per field and per resolver.** One URL serves everything, so there's no route to protect —
+  AUTH-06 applied resolver by resolver, and nested resolvers are the ones that get missed.
+- **Errors shouldn't narrate the schema** — "did you mean" suggestions rebuild the map introspection would
+  have given away (SEC-11).
+- The rest still applies: idempotency on mutations (APID-08), input field allowlisting (APID-13), minimised
+  payloads (APID-11), request ids (APID-09).
+
+`api-design` 2.13.0. Global mirror synced. README catalog row and example rules refreshed.
+
 ## 4.25.0
 
 **SEC-16 extended — the browser as the tunnel.** SEC-16 already covers the server side of resolve-then-

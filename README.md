@@ -6,7 +6,7 @@
 
 **A linter-grade production-readiness audit for vibe-coded (AI-generated) apps — packaged as 24 Claude Code skills.**
 
-[![Version](https://img.shields.io/badge/version-4.25.0-blue)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-4.26.0-blue)](CHANGELOG.md)
 [![Skills](https://img.shields.io/badge/skills-24-8A2BE2)](#-the-skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-plugin-D97757)](https://code.claude.com/docs/en/plugins)
@@ -138,7 +138,7 @@ fix playbook — the audit cites them; you can also invoke any skill directly (`
 | 🧯 [`reliability-recovery`](skills/reliability-recovery/SKILL.md) | Graceful failure, tested restores, circuit breakers, bulkheads, incident comms | `REL` |
 | 📜 [`compliance-legal`](skills/compliance-legal/SKILL.md) | Privacy/terms, GDPR/CCPA, true deletion, SOC 2, AI disclosure, accessibility + jurisdiction | `LEGAL` |
 | 🧱 [`api-architecture`](skills/api-architecture/SKILL.md) | Backend boundary, contracts, versioning, layered rate limiting | `API` |
-| ✏️ [`api-design`](skills/api-design/SKILL.md) | Naming, status codes, errors, pagination, versioning, idempotency, request signing | `APID` |
+| ✏️ [`api-design`](skills/api-design/SKILL.md) | Naming, status codes, errors, pagination, versioning, idempotency, signing, GraphQL limits | `APID` |
 | 📱 [`frontend-mobile-quality`](skills/frontend-mobile-quality/SKILL.md) | Responsive, WCAG AA a11y, hostile-condition testing, deep links, native-shell hardening | `FE` |
 | 💰 [`cost-infrastructure`](skills/cost-infrastructure/SKILL.md) | Bill attribution, unit economics, custom-work pricing, vendor commitments, hosting by stage | `COST` |
 | 🧾 [`monetization-pricing`](skills/monetization-pricing/SKILL.md) | Hosted checkout, webhook security, silent revenue loss, pricing, ICP, agent buyers | `PAY` |
@@ -173,6 +173,8 @@ fix playbook — the audit cites them; you can also invoke any skill directly (`
 | `AUTH-13` | `/admin` has no login because the generator assumed only you would know the URL |
 | `BIZ-04` | Read-then-write on a balance: two requests at once spend the same credit twice |
 | `SEC-08` | One search box built by string interpolation returns every user's row |
+| `AUTH-14` | Your login page reflects `?next=` — so it will forward your users to a phishing site |
+| `SEC-18` | The chat widget on your login page can read every password typed into it |
 | `AI-11` | A human approving agent actions isn't a guardrail — scoped credentials and deny-by-default gates are |
 
 </details>

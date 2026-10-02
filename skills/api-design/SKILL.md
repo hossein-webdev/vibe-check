@@ -8,13 +8,14 @@ description: >
   request-id echoing. Activates when the user is designing or reviewing API endpoints, mentions REST
   conventions, resource naming, status codes, pagination, filtering, error responses, API
   versioning/deprecation, request signing or HMAC verification, mass assignment or which fields a
-  write accepts, idempotency, or building a public/partner API. Applies to any app that
+  write accepts, idempotency, GraphQL introspection or query-depth limits, or building a public/partner
+  API. Applies to any app that
   exposes an API. (For where the API sits — the backend boundary — use api-architecture.)
 user-invokable: true
 metadata:
   category: api-architecture
   parent: api-architecture
-  version: "2.12.0"
+  version: "2.13.0"
 ---
 
 # API Design
@@ -44,6 +45,7 @@ are not optional.
 | APID-11 | Responses minimized: no internal/sequential IDs, no fields the client doesn't need | P1 if PII leaks / P2 otherwise |
 | APID-12 | Mutating requests carry a verifiable signature (HMAC over body + timestamp + nonce) where the caller is a server or partner, not a browser session | P2 for partner/server-to-server APIs (P1 if the call moves money or grants access) |
 | APID-13 | Writes accept an explicit field allowlist, never the request body spread onto a record — and privilege, ownership and billing fields are never client-writable | P1 |
+| APID-14 | A GraphQL endpoint is bounded: introspection off in production, query depth/complexity capped, batching limited, and per-field authorization — the single endpoint does not make the surface single | P1 if GraphQL is exposed publicly |
 
 ## When to Use This Skill
 
@@ -197,6 +199,30 @@ shortest correct-looking code, and it means the client decides which columns get
 - **Test it directly**: as an ordinary user, send `role: "admin"` (and `plan`, and `owner_id`) to every
   write endpoint you have, then read the record back. Nothing should have changed.
 
+### 10. If the endpoint is GraphQL (APID-14)
+Everything above is shaped for REST, because most generated APIs are. GraphQL moves the same obligations
+to different places, and a generator scaffolds the schema and resolvers while leaving every limit at its
+permissive default:
+- **Turn introspection off in production.** It is a complete, machine-readable map of every query,
+  mutation, type and relationship you expose {EM} useful in development, and a reconnaissance gift in
+  production. Disable it on the public deployment and keep it in your local and staging environments. Then
+  assume it leaked anyway and don't treat obscurity as a control.
+- **Cap depth and complexity.** A single valid query can nest relationships until it asks the database for
+  the product of several tables; one request becomes a denial of service with no volume at all. Set a
+  maximum depth, assign complexity costs to fields, and reject past a ceiling {EM} this is the GraphQL
+  shape of APID-04's pagination requirement and of `api-architecture` API-06's rate limits, both of which
+  count requests and so miss it entirely.
+- **Limit batching and aliasing.** Array-batched operations and repeated aliases multiply work inside one
+  request, which is also how a rate-limited login mutation gets brute-forced: a thousand attempts, one
+  HTTP request, one counter increment.
+- **Authorize per field and per resolver**, not at the endpoint. One URL serves everything, so there is no
+  route to protect {EM} every resolver that returns data someone shouldn't see needs its own check, which is
+  `auth-access` AUTH-06 applied resolver by resolver. Nested resolvers are the ones that get missed.
+- **Errors shouldn't narrate the schema.** Default handlers return "did you mean" suggestions and type
+  details that rebuild the map introspection would have given away ({ARR} `app-security` SEC-11).
+- **The rest still applies**: idempotency on mutations (APID-08), field allowlisting on inputs (APID-13),
+  minimised payloads (APID-11), and request ids (APID-09).
+
 ## Fix playbook
 
 ```text
@@ -225,6 +251,12 @@ Duplicate charges on retry [APID-08]:
 ### Example 2: "Building a public API for partners"
 **Output**:
 ```
+GraphQL hardening [APID-14]:
+ 1. Production config: introspection disabled; verify by sending an __schema query - it must be refused.
+ 2. Add a depth limit and a complexity/cost limit with a ceiling; reject beyond it.
+ 3. Cap batched operations per request and alias repetition, or a rate-limited mutation is brute-forceable.
+ 4. Walk every resolver, nested ones included: who is allowed to see this field?
+ 5. Disable "did you mean" suggestions and type hints in production error responses.
 Mass assignment sweep [APID-13]:
  1. grep for the pattern: req.body / request.data / params passed whole into create/update/save:
     grep -rnE "(update|create|save|insert)\((\{?\s*\.\.\.)?(req\.body|request\.data|params)" src/
