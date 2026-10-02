@@ -1,5 +1,31 @@
 # Changelog
 
+## 4.18.0
+
+**SEC-19 — the boundary the framework drew for you.** Server-component frameworks put both sides in one
+file tree and decide which side a module lands on by how it's imported. That inference is invisible, a
+generator has no model of it, and it fails in two directions at once.
+
+- **Secrets follow the import graph.** A helper reading `process.env` is server-only until a client
+  component imports *anything* from the same module, at which point the bundler pulls it — and the
+  credential — into the browser bundle. Different bug from the classic `NEXT_PUBLIC_` mistake: nothing
+  was prefixed, nothing looked public. Guard server-only modules explicitly so a wrong import fails the
+  **build** rather than shipping quietly.
+- **Props are a wire format, not a function call.** Whatever a server component passes down is
+  serialized into the payload the browser receives, in full. Passing a whole user record because the
+  child renders three fields puts the rest — hashes, internal flags, other people's identifiers — in
+  the page source. Select fields at the boundary; APID-11's discipline, applied where there's no
+  visible API to review.
+- **Server actions are public endpoints.** Reachable by anyone who can form the request, not only by
+  the component that calls them, so each needs its own auth, authorization and validation. "Only my UI
+  calls this" is an assumption about the caller, and the caller is the internet.
+- **Verify by reading what shipped**, not by reasoning about the code: grep the built bundle for a known
+  secret and the server-rendered HTML for a field the UI never displays. Both empty, re-checked after
+  any dependency upgrade that moves the boundary.
+
+`app-security` 2.7.0. Its description was also condensed — the accumulated keyword list had crossed the
+1024-character frontmatter limit.
+
 ## 4.17.0
 
 **SEC-18 — every vendor script runs as you.** A chat widget, an analytics pixel, a heatmap recorder:

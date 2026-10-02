@@ -1,21 +1,19 @@
 ---
 name: app-security
 description: >
-  Hardens an app against the security mistakes AI code generators make by default: database tables
-  left world-readable (no row-level security), authorization undone by privileged service roles,
-  vulnerable or abandoned dependencies, missing security headers, unescaped input (XSS), the
-  monoculture risk of template-cloned apps, and the AI/prompt supply chain. For keys and credentials
-  specifically, routes to the secrets-management skill. Activates when the user mentions security,
-  RLS, OWASP/ZAP/Burp, a pen test or security audit, dependency or supply-chain risk, CVEs,
-  CORS/CSP, CSRF, cookie SameSite settings, SQL injection, XSS, third-party or vendor scripts,
-  Subresource Integrity, tokens in localStorage, SSRF or server-side URL fetching, typosquatted or
-  malicious packages, prompt injection, a WAF or CDN, origin IP exposure, DDoS, stack traces leaking
-  to users, moving to a VPS or self-hosting, SSH or firewall hardening, or asks "is my app secure?".
-  Applies to every app.
+  Hardens an app against the security mistakes AI code generators make by default: world-readable
+  tables, authorization undone by privileged service roles, injection, vulnerable dependencies and
+  vendor scripts, missing or unenforced headers, a bypassable edge, and leaked internals. Keys and
+  credentials route to secrets-management. Activates on security, RLS, a pen test or security audit,
+  OWASP/ZAP/Burp, CVEs or supply-chain and typosquat risk, SQL injection, XSS, CORS/CSP, CSRF,
+  SameSite cookies, third-party scripts or Subresource Integrity, tokens in localStorage, server
+  components or server actions leaking data, SSRF, prompt injection, a WAF or CDN, origin IP
+  exposure, DDoS, stack traces reaching users, self-hosting or SSH and firewall hardening, or
+  "is my app secure?". Applies to every app.
 user-invokable: true
 metadata:
   category: app-security
-  version: "2.6.0"
+  version: "2.7.0"
 ---
 
 # App Security
@@ -49,6 +47,7 @@ Freedom: **low** — run the checks exactly.
 | SEC-16 | Server-side fetches of user-supplied URLs are fenced: destination allowlist, internal ranges blocked, resolved address pinned and revalidated on every redirect, one generic error | P1 wherever the server or an agent fetches a URL a user controls |
 | SEC-17 | Self-managed hosts hardened: SSH key-only with root login off, default-deny firewall (datastore never publicly reachable), unattended security updates | P1 the day you leave a managed platform |
 | SEC-18 | Third-party page scripts inventoried, pinned with integrity, and CSP-restricted — and auth tokens kept out of storage any script can read | P1 once a payment or login page carries a vendor script |
+| SEC-19 | The server/client boundary is explicit: server-only modules guarded, nothing secret in a client component's import graph, and only the fields the UI renders cross as props | P1 for any server-component or server-action framework |
 
 ## When to Use This Skill
 
@@ -300,6 +299,32 @@ vendor's product {EM} you are trusting their build pipeline, their CDN, and whoe
 - [ ] The dependency version of this problem is SEC-06 (npm tree); this is the one `npm audit` cannot
       see, because nothing was installed.
 
+### The boundary the framework drew for you (SEC-19)
+Modern React frameworks put server and client code in the same file tree and decide which side each
+module lands on by how it's imported. That inference is invisible, a generator has no model of it, and
+it fails in two directions at once:
+- [ ] **Secrets follow the import graph.** A helper that reads `process.env` is server-only until some
+      client component imports *anything* from the same module, at which point the bundler pulls it {EM}
+      and your credential {EM} into the browser bundle. This is a different bug from the classic
+      `NEXT_PUBLIC_` mistake ({ARR} `secrets-management` SEC-02): nothing was prefixed, nothing looked
+      public. Put an explicit guard at the top of server-only modules (the `server-only` package, or
+      your framework's equivalent) so a wrong import fails the **build** instead of shipping quietly.
+- [ ] **Props are a wire format, not a function call.** Whatever a server component passes to a client
+      component is serialized into the payload the browser receives, in full. Handing down a whole
+      user or order record because the child renders three fields of it means the rest {EM} password
+      hash, internal flags, other people's identifiers {EM} is sitting in the page source. Select the
+      fields at the boundary, the same discipline as `api-design` APID-11, applied where there is no
+      visible API to review.
+- [ ] **Server actions are public endpoints.** A function marked as a server action is reachable by
+      anyone who can form the request, not only by the component that calls it. It needs its own
+      authentication, authorization and input validation, exactly like a route handler {EM} "only my own
+      UI calls this" is an assumption about the caller, and the caller is the internet
+      ({ARR} `auth-access` AUTH-06, SEC-08 for the validation).
+- [ ] **Verify by reading what shipped**, not by reasoning about the code: search the built client
+      bundle and the server-rendered HTML for a known secret value and for a field the UI never
+      displays. Both searches should come back empty. Repeat after any dependency upgrade that moves
+      the boundary.
+
 ### Prove it (SEC-09)
 - [ ] **Order matters: audit first, pen test second.** Run the full production audit (→ `audit`),
       fix what it surfaces, *then* pen test to validate the fixes and catch what they missed — and
@@ -390,6 +415,13 @@ npm audit --audit-level=high && npm audit fix
 #  4. grep -rn "localStorage\|sessionStorage" for tokens; move to Secure+HttpOnly+SameSite cookies.
 #  5. Keep vendor scripts off credential and payment pages entirely.
 
+# SEC-19: server/client boundary
+#  1. Add a server-only guard to every module that reads process.env or talks to the database.
+#  2. Build, then search the client bundle for a known secret:
+#     grep -r "<a-real-secret-value>" .next/static dist build 2>/dev/null   -> must be empty
+#  3. Search server-rendered HTML for a field the UI never renders (password_hash, internal flags).
+#  4. Every server action: auth check, authorization check, schema validation. It is a public endpoint.
+
 # SEC-09: self pen-test
 docker run -t zaproxy/zap-stable zap-baseline.py -t https://your-app.example
 ```
@@ -419,6 +451,7 @@ Your app likely shares a template with thousands of others — the scan finds th
 - **Do** run at least one ZAP scan — the monoculture means your holes are already catalogued.
 - **Do** put a WAF and adaptive rate limiting in front of the stack before you need them.
 - **Do** treat every vendor script on the page as code running with your privileges.
+- **Do** make the server/client boundary explicit, and verify it by searching the shipped bundle.
 - **Do** parameterize every query and allowlist any identifier that comes from input.
 - **Do** treat any user-supplied URL your server fetches as an attempt to reach your internals.
 - **Do** confirm the edge can't be walked around — an origin the internet can still reach makes
