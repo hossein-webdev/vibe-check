@@ -7,14 +7,14 @@ description: >
   headers, versioning with a deprecation policy, idempotency keys for retried operations, and
   request-id echoing. Activates when the user is designing or reviewing API endpoints, mentions REST
   conventions, resource naming, status codes, pagination, filtering, error responses, API
-  versioning/deprecation, request signing or HMAC verification, idempotency, or building a
-  public/partner API. Applies to any app that
+  versioning/deprecation, request signing or HMAC verification, mass assignment or which fields a
+  write accepts, idempotency, or building a public/partner API. Applies to any app that
   exposes an API. (For where the API sits — the backend boundary — use api-architecture.)
 user-invokable: true
 metadata:
   category: api-architecture
   parent: api-architecture
-  version: "2.11.0"
+  version: "2.12.0"
 ---
 
 # API Design
@@ -43,6 +43,7 @@ are not optional.
 | APID-10 | API is machine-consumable: structured, self-describing, ideally MCP-exposed for AI-assistant integration | P3 (P2 for platform/API products) |
 | APID-11 | Responses minimized: no internal/sequential IDs, no fields the client doesn't need | P1 if PII leaks / P2 otherwise |
 | APID-12 | Mutating requests carry a verifiable signature (HMAC over body + timestamp + nonce) where the caller is a server or partner, not a browser session | P2 for partner/server-to-server APIs (P1 if the call moves money or grants access) |
+| APID-13 | Writes accept an explicit field allowlist, never the request body spread onto a record — and privilege, ownership and billing fields are never client-writable | P1 |
 
 ## When to Use This Skill
 
@@ -172,6 +173,30 @@ page, no demo call, no checkout. Three things that decide whether that path comp
   outcome. A per-seat monthly plan is unbuyable by a consumer that shows up for one call
   (→ `monetization-pricing` PAY-13).
 
+### 9. Accept the fields you meant to accept (APID-13)
+APID-11 keeps extra fields out of the **response**. This is the same discipline on the way in, and it's
+the one with a privilege-escalation ending. The generated handler takes the body and hands it to the
+ORM {EM} `update(id, req.body)`, `Model(**payload)`, `{ ...user, ...req.body }` {EM} because that's the
+shortest correct-looking code, and it means the client decides which columns get written:
+- **Allowlist the writable fields per endpoint**, explicitly. A schema that validates the fields you
+  expect but passes the whole object through is not an allowlist; the validated object must be *built*
+  from named fields, or your validator must be configured to strip what it didn't declare. The
+  profile-update endpoint takes `name` and `avatar_url`; it does not take `role`, however carefully it
+  checks the name.
+- **Name the fields that must never be client-writable** and keep them out of every write path: `role`,
+  `is_admin`, `permissions`, `plan`, `credits`, `balance`, `verified`, `owner_id`, `tenant_id`,
+  `created_at`, and anything your billing reads ({ARR} `business-logic-abuse` BIZ-01 for the money
+  consequence). Setting these is an operation with its own endpoint and its own authorization, not a
+  field on a general update.
+- **Nested objects and arrays are the same hole one level down.** A `PATCH` carrying
+  `{ profile: { ... }, subscription: { plan: "enterprise" } }` needs the allowlist applied at every
+  level you accept, not only the top.
+- **Automated review will pass this**, because nothing is malformed and no rule is violated {EM} the code
+  does exactly what it says. That's why it's a checklist item rather than something you expect a tool to
+  catch ({ARR} `production-readiness` PROD-09).
+- **Test it directly**: as an ordinary user, send `role: "admin"` (and `plan`, and `owner_id`) to every
+  write endpoint you have, then read the record back. Nothing should have changed.
+
 ## Fix playbook
 
 ```text
@@ -200,6 +225,13 @@ Duplicate charges on retry [APID-08]:
 ### Example 2: "Building a public API for partners"
 **Output**:
 ```
+Mass assignment sweep [APID-13]:
+ 1. grep for the pattern: req.body / request.data / params passed whole into create/update/save:
+    grep -rnE "(update|create|save|insert)\((\{?\s*\.\.\.)?(req\.body|request\.data|params)" src/
+ 2. Replace each with named fields, or configure the validator to strip undeclared keys.
+ 3. Deny-list the never-writable set (role, is_admin, permissions, plan, credits, balance, verified,
+    owner_id, tenant_id) and assert it in a test, so a future endpoint cannot reintroduce it.
+ 4. Verify: as a normal user POST role=admin / plan=enterprise to every write route; re-read the record.
 Signing a partner API [APID-12]:
  1. Canonical string = timestamp + nonce + method + path + RAW body bytes (never the re-serialized object).
  2. HMAC-SHA256 with a per-consumer secret; send as a header alongside the timestamp and nonce.

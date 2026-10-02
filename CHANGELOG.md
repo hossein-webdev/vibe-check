@@ -1,5 +1,29 @@
 # Changelog
 
+## 4.20.0
+
+**APID-13 — accept the fields you meant to accept.** APID-11 keeps extra fields out of the *response*;
+this is the same discipline inbound, and it's the one that ends in privilege escalation. The generated
+handler passes the body straight to the ORM — `update(id, req.body)`, `Model(**payload)`,
+`{ ...user, ...req.body }` — because that's the shortest correct-looking code, and it lets the client
+decide which columns get written.
+
+- **Allowlist writable fields per endpoint.** A schema that validates the fields you expect but passes
+  the whole object through is not an allowlist: build the object from named fields, or configure the
+  validator to strip what it didn't declare. The profile endpoint takes `name` and `avatar_url`; it does
+  not take `role`, however carefully it checks the name.
+- **Name the never-writable set** and keep it out of every write path — `role`, `is_admin`,
+  `permissions`, `plan`, `credits`, `balance`, `verified`, `owner_id`, `tenant_id`, and anything billing
+  reads (BIZ-01 for the money consequence). Changing those is an operation with its own endpoint and
+  authorization, not a field on a general update.
+- **Nested objects are the same hole one level down** — apply the allowlist at every level you accept.
+- **Automated review passes this**, because nothing is malformed and the code does exactly what it says.
+  That's why it's a checklist item rather than something to expect a tool to catch (PROD-09).
+- **Test it directly**: as an ordinary user, send `role: "admin"` to every write endpoint, then read the
+  record back. Nothing should have changed.
+
+`api-design` 2.12.0. Global mirror synced.
+
 ## 4.19.0
 
 **AUTH-15 — a link in an inbox is a credential.** Password resets, magic links and invitations all hand
