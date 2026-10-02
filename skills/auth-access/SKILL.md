@@ -11,7 +11,7 @@ description: >
 user-invokable: true
 metadata:
   category: auth-access
-  version: "2.5.0"
+  version: "2.6.0"
 ---
 
 # Authentication & Access Control
@@ -42,6 +42,7 @@ every check below at maximum strictness — assume nothing.**
 | AUTH-12 | Authorization evaluates request context, not just a stored role; internal calls re-verify; sessions are scored continuously | P2 with sensitive data (P3 otherwise) — after AUTH-01..08 are solid |
 | AUTH-13 | Admin surfaces require an explicitly role-verified session; obscure paths and rate limits are secondary, and every admin action is audited | P1 if an admin panel exists |
 | AUTH-14 | Every redirect target is validated against an allowlist, and the authorization-code flow carries `state` + PKCE | P1 if social/SSO login or any `?next=` redirect exists |
+| AUTH-15 | Emailed credentials are single-use and short-lived: reset links, magic links and invitations expire, burn on use, and are invalidated by a password change | P1 if any login or recovery path runs through email |
 
 ## When to Use This Skill
 
@@ -52,6 +53,7 @@ every check below at maximum strictness — assume nothing.**
 - Stolen credentials, suspicious logins, zero trust, or step-up authentication come up.
 - An admin panel, internal dashboard, or back-office route exists.
 - The app has social login, SSO, or any redirect parameter after login or logout.
+- Login or recovery runs through an emailed link (reset, magic link, invitation).
 - User is choosing or wiring a provider (Clerk, Auth0, BetterAuth, Supabase Auth).
 - The app's auth was hand-written or generated from scratch.
 
@@ -192,7 +194,32 @@ generator produces all three because each is the shortest way to write the featu
 - [ ] Test it the way an attacker would: hand your own login an external `next=`, a protocol-relative
       `//host`, and a callback with a `state` you invented. All three should be refused.
 
-### 9. Enterprise SSO — the procurement gate (AUTH-10)
+### 9. A link in an inbox is a credential (AUTH-15)
+Password resets, magic links and invitations all hand someone a URL that logs them in. Generators build
+the happy path {EM} generate, email, accept {EM} and leave out the lifecycle, so the link keeps working
+long after it should:
+- [ ] **Expire it in minutes, not days.** Fifteen minutes for a reset or magic link is generous; the
+      user is reading the email now. A token that still authenticates months later is a permanent
+      password sitting in an inbox that may itself be compromised, forwarded, or archived on a shared
+      machine.
+- [ ] **Burn it on first use, atomically.** Mark it consumed in the same statement that validates it
+      ({ARR} `business-logic-abuse` BIZ-04), so two clicks {EM} or a click and a replay {EM} can't both
+      succeed. Issuing a new link should invalidate the previous one rather than leaving a trail of
+      working keys.
+- [ ] **Invalidate on password change, and change sessions too.** Changing the password must kill
+      outstanding reset tokens, and completing a reset must terminate existing sessions
+      ({ARR} AUTH-04) {EM} otherwise the person you were locking out keeps their session, which is the
+      whole reason the user reset in the first place.
+- [ ] **Survive the things that open links without a human.** Mail scanners and clients prefetch URLs,
+      so a `GET` that consumes the token burns it before the user clicks. Have the link land on a page
+      that requires an explicit action {EM} a `POST` on a button {EM} to redeem.
+- [ ] **Don't leak the token on the way.** Keep it out of logs, out of analytics, and out of the
+      `Referer` sent to third parties; prefer a short random value compared against a stored hash over
+      something guessable or sequential, and don't disclose in the response whether the address exists.
+- [ ] Magic links specifically: bind the redemption to the session or device that requested it where
+      your UX allows, so an intercepted link alone isn't enough.
+
+### 10. Enterprise SSO — the procurement gate (AUTH-10)
 - [ ] If you sell to companies, **SSO is a gate, not a feature request**: line one of the IT
       procurement checklist is "SAML/OIDC support?", and Google sign-in + email/password doesn't
       count. Employees authenticate through the corporate IdP (Okta, Azure AD, Google Workspace) or
@@ -212,13 +239,19 @@ generator produces all three because each is the shortest way to write the featu
       - **What does leaving cost?** Know the migration path *before* thousands of paying users sit
         on a provider you've outgrown — evaluating it later is exponentially harder.
 
-### 10. Machine-to-machine (AUTH-09)
+### 11. Machine-to-machine (AUTH-09)
 - [ ] Services prove their own identity; a leaked service token is high blast radius — scope
       narrowly and rotate.
 
 ## Fix playbook
 
 ```text
+Emailed credentials [AUTH-15]:
+ 1. TTL <= 15 min on reset/magic/invite tokens. Store a hash, compare, never store the raw value.
+ 2. Burn on use in the SAME statement that validates (UPDATE ... WHERE token_hash=:h AND used_at IS NULL).
+ 3. Password change -> delete outstanding reset tokens. Reset completion -> terminate other sessions.
+ 4. Redeem on an explicit POST, not the GET a mail scanner prefetches.
+ 5. Check it is absent from logs, analytics and the Referer header.
 Redirect hardening [AUTH-14]:
  1. grep for next=|returnTo=|redirect=|callbackUrl= ; each one gets an allowlist check, not a reflect.
  2. Parse the URL and compare the HOST (reject //host and yourapp.com.evil.test); default on mismatch.
@@ -255,6 +288,7 @@ Own the data / self-host → BetterAuth (you run UI + reliability). Never hand-r
 - **Do** adopt a provider; verify JWT alg + expiry; enforce on the server.
 - **Do** explicitly test cross-user and cross-tenant access.
 - **Don't** reflect a redirect target back to the browser; allowlist it or use your default.
+- **Don't** leave an emailed link working after it has been used, or after the password changed.
 - **Don't** rely on hidden UI as a permission; don't trust generated auth unverified.
 - **Don't** ship never-expiring tokens or client-only logout.
 

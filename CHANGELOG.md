@@ -1,5 +1,29 @@
 # Changelog
 
+## 4.19.0
+
+**AUTH-15 — a link in an inbox is a credential.** Password resets, magic links and invitations all hand
+someone a URL that logs them in. Generators build generate-email-accept and leave out the lifecycle, so
+the link keeps working long after it should.
+
+- **Expire in minutes, not days.** Fifteen minutes is generous — the user is reading the email now. A
+  token that still authenticates months later is a permanent password sitting in an inbox that may be
+  compromised, forwarded, or archived on a shared machine.
+- **Burn on first use, atomically** — consumed in the same statement that validates it (BIZ-04), so two
+  clicks can't both succeed. Issuing a new link invalidates the previous one rather than leaving a trail
+  of working keys.
+- **Invalidate on password change, and cut sessions.** Changing the password kills outstanding reset
+  tokens; completing a reset terminates existing sessions (AUTH-04) — otherwise the person being locked
+  out keeps their session, which was the whole reason for the reset.
+- **Survive link prefetching.** Mail scanners open URLs without a human, so a `GET` that consumes the
+  token burns it before the user clicks. Redeem on an explicit action — a `POST` on a button.
+- **Don't leak it in transit**: out of logs, analytics and the `Referer`; store a hash and compare, never
+  the raw value; don't disclose whether an address exists.
+- Magic links: bind redemption to the requesting session or device where the UX allows, so an
+  intercepted link alone isn't enough.
+
+`auth-access` 2.6.0.
+
 ## 4.18.0
 
 **SEC-19 — the boundary the framework drew for you.** Server-component frameworks put both sides in one
