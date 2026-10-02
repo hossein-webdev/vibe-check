@@ -6,14 +6,14 @@ description: >
   vendor scripts, missing or unenforced headers, a bypassable edge, and leaked internals. Keys and
   credentials route to secrets-management. Activates on security, RLS, a pen test or security audit,
   OWASP/ZAP/Burp, CVEs or supply-chain and typosquat risk, SQL injection, XSS, CORS/CSP, CSRF,
-  SameSite cookies, third-party scripts or Subresource Integrity, tokens in localStorage, server
+  SameSite cookies, clickjacking or iframe embedding, third-party scripts or Subresource Integrity, tokens in localStorage, server
   components or server actions leaking data, SSRF, prompt injection, a WAF or CDN, origin IP
   exposure, DDoS, stack traces reaching users, self-hosting or SSH and firewall hardening, or
   "is my app secure?". Applies to every app.
 user-invokable: true
 metadata:
   category: app-security
-  version: "2.7.0"
+  version: "2.8.0"
 ---
 
 # App Security
@@ -48,6 +48,7 @@ Freedom: **low** — run the checks exactly.
 | SEC-17 | Self-managed hosts hardened: SSH key-only with root login off, default-deny firewall (datastore never publicly reachable), unattended security updates | P1 the day you leave a managed platform |
 | SEC-18 | Third-party page scripts inventoried, pinned with integrity, and CSP-restricted — and auth tokens kept out of storage any script can read | P1 once a payment or login page carries a vendor script |
 | SEC-19 | The server/client boundary is explicit: server-only modules guarded, nothing secret in a client component's import graph, and only the fields the UI renders cross as props | P1 for any server-component or server-action framework |
+| SEC-20 | Framing controlled: `frame-ancestors` (or `X-Frame-Options`) denies embedding except where you intend it, and sensitive actions need more than one click | P2 (P1 on payment, admin and consent screens) |
 
 ## When to Use This Skill
 
@@ -325,6 +326,30 @@ it fails in two directions at once:
       displays. Both searches should come back empty. Repeat after any dependency upgrade that moves
       the boundary.
 
+### Your app inside someone else's page (SEC-20)
+Nothing stops another site embedding yours in an invisible frame, overlaying their own content, and
+collecting the clicks your users think they're giving you {EM} a transfer confirmed, a permission granted,
+an account deleted. The user is genuinely logged in and genuinely clicking; only the page around your
+buttons is a lie. The fix is one header, which is why it's embarrassing to miss:
+- [ ] **Deny framing by default.** `Content-Security-Policy: frame-ancestors 'none'` on anything nobody
+      should embed, and `frame-ancestors https://partner.example` where embedding is a deliberate
+      product feature. Keep `X-Frame-Options: DENY` alongside it only for the older clients you
+      actually support {EM} `frame-ancestors` is the one that governs modern browsers, and it is the one
+      to get right.
+- [ ] **Cover every origin that serves your UI**, not just the main app: the admin panel, the embedded
+      checkout, the OAuth consent screen, docs and status pages on subdomains. A single unprotected
+      route is the one that ends up in the frame.
+- [ ] **Make destructive and money-moving actions need more than a click.** Framing attacks convert a
+      single click into an action; a typed confirmation, a re-authentication, or a two-step flow doesn't
+      convert. This also happens to be the defence against the ordinary mis-click
+      ({ARR} `business-logic-abuse` BIZ-07 for the workflow version).
+- [ ] **Verify it**: load your own page in a local `<iframe>` and confirm the browser refuses. A header
+      you believe is set and isn't is the normal state of affairs
+      ({ARR} SEC-07 for rolling headers out safely).
+- [ ] Note for maintainers: the bundled scanner counts `X-Frame-Options` mentions as part of its
+      header signal, so a project with no framing protection shows up in the scan before any rule
+      explains why it matters. That is this rule.
+
 ### Prove it (SEC-09)
 - [ ] **Order matters: audit first, pen test second.** Run the full production audit (→ `audit`),
       fix what it surfaces, *then* pen test to validate the fixes and catch what they missed — and
@@ -421,6 +446,13 @@ npm audit --audit-level=high && npm audit fix
 #     grep -r "<a-real-secret-value>" .next/static dist build 2>/dev/null   -> must be empty
 #  3. Search server-rendered HTML for a field the UI never renders (password_hash, internal flags).
 #  4. Every server action: auth check, authorization check, schema validation. It is a public endpoint.
+
+# SEC-20: framing
+#  1. Add to every origin that serves UI: Content-Security-Policy: frame-ancestors 'none'
+#     (or frame-ancestors https://partner.example where embedding is intended).
+#  2. Include the admin panel, embedded checkout, consent screen, docs and status subdomains.
+#  3. Destructive/money actions: typed confirmation or re-auth, so one click cannot complete them.
+#  4. Verify: put your page in a local <iframe>; the browser must refuse to render it.
 
 # SEC-09: self pen-test
 docker run -t zaproxy/zap-stable zap-baseline.py -t https://your-app.example

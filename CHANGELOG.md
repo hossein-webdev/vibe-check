@@ -1,5 +1,30 @@
 # Changelog
 
+## 4.22.0
+
+**SEC-20 — your app inside someone else's page.** Nothing stops another site embedding yours in an
+invisible frame, overlaying their content, and collecting the clicks your users think they're giving
+you: a transfer confirmed, a permission granted, an account deleted. The user is genuinely logged in and
+genuinely clicking; only the page around your buttons is a lie. The fix is one header, which is what
+makes it embarrassing to miss.
+
+- **Deny framing by default** — `frame-ancestors 'none'`, or a named origin where embedding is a
+  deliberate feature. Keep `X-Frame-Options: DENY` alongside only for older clients you actually
+  support; `frame-ancestors` governs modern browsers.
+- **Cover every origin that serves UI**, not just the main app: admin panel, embedded checkout, OAuth
+  consent screen, docs and status subdomains. The one unprotected route is the one that ends up framed.
+- **Make destructive and money-moving actions need more than a click.** Framing converts a single click
+  into an action; a typed confirmation or re-authentication doesn't convert — and it's also the defence
+  against an ordinary mis-click (BIZ-07 for the workflow version).
+- **Verify it** by loading your own page in a local `<iframe>` and confirming the browser refuses. A
+  header you believe is set and isn't is the normal state of affairs.
+
+This also closes an inconsistency inside the pack: the bundled scanner counts `X-Frame-Options` as part
+of its header signal, so a project with no framing protection has always shown up in the scan with no
+rule explaining why it mattered. Now there's a rule.
+
+`app-security` 2.8.0.
+
 ## 4.21.0
 
 **AUTH-16 — a session the attacker chose.** AUTH-04 rotates sessions over time; this is the other
