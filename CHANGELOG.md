@@ -1,5 +1,28 @@
 # Changelog
 
+## v4.16.0
+
+**AUTH-14 — where you send the user next.** Three failures the corpus kept surfacing turn out to be
+one root cause: a redirect target nobody validated. A generator writes all three because each is the
+shortest way to get the feature working.
+
+- **Allowlist the target, don't reflect it.** `?next=`, `?returnTo=`, `?redirect=` get compared
+  against permitted paths or hosts. Reflecting whatever arrived turns your own login page into a
+  credible phishing hop — the domain in the address bar is yours, the destination is theirs. Match on
+  the parsed host, because `yourapp.com.evil.test` and `//evil.test` both pass a naive prefix check.
+- **Register exact `redirect_uri` values** with the identity provider, no wildcards, and re-check the
+  value in your own callback — provider-side registration is the control that holds, app-side checking
+  catches the provider you configured loosely two years ago.
+- **Carry `state` and verify it**: random, session-bound, single-use, discarded after. Without it a
+  callback can be replayed at your endpoint to complete a login the user never started, and the same
+  value is the CSRF defence for the login flow.
+- **Use PKCE on the authorization-code flow**, including confidential server-side clients where it
+  costs nothing. An intercepted code is worthless without the verifier.
+- Test it adversarially: an external `next=`, a protocol-relative `//host`, and an invented `state`
+  should all three be refused.
+
+`auth-access` 2.5.0.
+
 ## 4.15.0
 
 **SEC-08 now actually covers injection.** It read *"Input validated/escaped — XSS defended"*, and

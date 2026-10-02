@@ -11,7 +11,7 @@ description: >
 user-invokable: true
 metadata:
   category: auth-access
-  version: "2.4.0"
+  version: "2.5.0"
 ---
 
 # Authentication & Access Control
@@ -41,6 +41,7 @@ every check below at maximum strictness — assume nothing.**
 | AUTH-11 | Every shared layer above the database is tenant-scoped — cache keys, search indexes, job queues, file paths, logs — and a cross-tenant test proves it | P1 if multi-tenant |
 | AUTH-12 | Authorization evaluates request context, not just a stored role; internal calls re-verify; sessions are scored continuously | P2 with sensitive data (P3 otherwise) — after AUTH-01..08 are solid |
 | AUTH-13 | Admin surfaces require an explicitly role-verified session; obscure paths and rate limits are secondary, and every admin action is audited | P1 if an admin panel exists |
+| AUTH-14 | Every redirect target is validated against an allowlist, and the authorization-code flow carries `state` + PKCE | P1 if social/SSO login or any `?next=` redirect exists |
 
 ## When to Use This Skill
 
@@ -50,6 +51,7 @@ every check below at maximum strictness — assume nothing.**
 - A customer reports seeing another customer's data, or you're auditing for that risk.
 - Stolen credentials, suspicious logins, zero trust, or step-up authentication come up.
 - An admin panel, internal dashboard, or back-office route exists.
+- The app has social login, SSO, or any redirect parameter after login or logout.
 - User is choosing or wiring a provider (Clerk, Auth0, BetterAuth, Supabase Auth).
 - The app's auth was hand-written or generated from scratch.
 
@@ -167,7 +169,30 @@ never been an access control. Assume it has already been found:
 - [ ] Consider requiring a second factor and, where it fits your setup, restricting admin routes to
       a known network or an authenticated proxy. The blast radius here is the whole business.
 
-### 8. Enterprise SSO — the procurement gate (AUTH-10)
+### 8. Where you send the user next (AUTH-14)
+Three separate failures share one root cause {EM} a redirect target nobody validated {EM} and a
+generator produces all three because each is the shortest way to write the feature:
+- [ ] **Allowlist the redirect target, don't reflect it.** `?next=`, `?returnTo=`, `?redirect=` on
+      login and logout get compared against a list of permitted paths or hosts; anything else goes to
+      your default. Reflecting whatever arrived turns your own login page into a credible phishing
+      hop {EM} the domain in the address bar is yours, the destination is theirs. Match on the parsed
+      host, not a prefix: `yourapp.com.evil.test` and `//evil.test` both pass a naive
+      `startsWith` check.
+- [ ] **Register exact `redirect_uri` values with the identity provider**, full strings with no
+      wildcards and no open subpaths, and have your own callback re-check the one it was handed.
+      Provider-side registration is the control that actually holds; app-side checking catches the
+      provider you configured loosely two years ago.
+- [ ] **Carry `state` and verify it on return.** A random, single-use value bound to the user's
+      session, compared on the callback and then discarded. Without it anyone can replay a callback
+      at your endpoint and have you complete a login the user never started {EM} and the same value is
+      your CSRF defence for the login flow itself (pairs with `app-security` SEC-15).
+- [ ] **Use PKCE for the authorization-code flow**, including on confidential server-side clients
+      where it costs nothing. An intercepted code is worthless without the verifier, which is what
+      turns code interception on a hostile network from a login into a failure.
+- [ ] Test it the way an attacker would: hand your own login an external `next=`, a protocol-relative
+      `//host`, and a callback with a `state` you invented. All three should be refused.
+
+### 9. Enterprise SSO — the procurement gate (AUTH-10)
 - [ ] If you sell to companies, **SSO is a gate, not a feature request**: line one of the IT
       procurement checklist is "SAML/OIDC support?", and Google sign-in + email/password doesn't
       count. Employees authenticate through the corporate IdP (Okta, Azure AD, Google Workspace) or
@@ -187,13 +212,19 @@ never been an access control. Assume it has already been found:
       - **What does leaving cost?** Know the migration path *before* thousands of paying users sit
         on a provider you've outgrown — evaluating it later is exponentially harder.
 
-### 9. Machine-to-machine (AUTH-09)
+### 10. Machine-to-machine (AUTH-09)
 - [ ] Services prove their own identity; a leaked service token is high blast radius — scope
       narrowly and rotate.
 
 ## Fix playbook
 
 ```text
+Redirect hardening [AUTH-14]:
+ 1. grep for next=|returnTo=|redirect=|callbackUrl= ; each one gets an allowlist check, not a reflect.
+ 2. Parse the URL and compare the HOST (reject //host and yourapp.com.evil.test); default on mismatch.
+ 3. Provider console: exact redirect_uri strings, no wildcards. Re-check the value in your callback.
+ 4. Add state (random, session-bound, single-use, verified then discarded) + PKCE on the code flow.
+ 5. Try to break it: external next=, protocol-relative //host, invented state. All three must fail.
 Hand-rolled auth found [AUTH-01 strict]:
  1. Verify hashing (bcrypt/argon2, salted) — plain text = stop-ship, force resets after fix.
  2. JWT config: reject none, pin alg, set exp + rotation.
@@ -223,6 +254,7 @@ Own the data / self-host → BetterAuth (you run UI + reliability). Never hand-r
 
 - **Do** adopt a provider; verify JWT alg + expiry; enforce on the server.
 - **Do** explicitly test cross-user and cross-tenant access.
+- **Don't** reflect a redirect target back to the browser; allowlist it or use your default.
 - **Don't** rely on hidden UI as a permission; don't trust generated auth unverified.
 - **Don't** ship never-expiring tokens or client-only logout.
 
