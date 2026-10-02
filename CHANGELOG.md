@@ -1,6 +1,6 @@
 # Changelog
 
-## v4.16.0
+## 4.16.0
 
 **AUTH-14 — where you send the user next.** Three failures the corpus kept surfacing turn out to be
 one root cause: a redirect target nobody validated. A generator writes all three because each is the
