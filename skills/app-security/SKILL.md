@@ -7,14 +7,14 @@ description: >
   credentials route to secrets-management. Activates on security, RLS, a pen test or security audit,
   OWASP/ZAP/Burp, CVEs or supply-chain and typosquat risk, SQL injection, XSS, CORS/CSP, CSRF,
   SameSite cookies, clickjacking or iframe embedding, third-party scripts or Subresource Integrity, tokens in localStorage, server
-  components or server actions leaking data, SSRF, prompt injection, a WAF or CDN, origin IP
+  components or server actions leaking data, SSRF or DNS rebinding, prompt injection, a WAF or CDN, origin IP
   exposure, DDoS, email spoofing or DMARC, an exposed or unpatched cache/queue/database,
   self-hosting or SSH and firewall hardening, or
   "is my app secure?". Applies to every app.
 user-invokable: true
 metadata:
   category: app-security
-  version: "2.10.0"
+  version: "2.11.0"
 ---
 
 # App Security
@@ -249,6 +249,18 @@ no idea whether that URL belongs to you or to someone probing you:
       exists, a timeout says something is listening, a fast rejection says something answered. Give
       every failed fetch the same message and roughly the same timing, and keep the detail in your
       logs (→ SEC-11).
+- [ ] **The browser can be the attacker's tunnel, too.** The same resolve-then-change trick works from
+      the other direction: a page the user visits resolves a hostname to a public address, passes your
+      origin check, then re-resolves to `127.0.0.1` or a private range and talks to whatever is listening
+      there. That is DNS rebinding, and it turns a dev server, admin console, debug endpoint or local
+      agent into something a web page can reach — no malware, no network access, just a visited link.
+      Two defences, and you want both:
+      - **Validate the `Host` header** on anything that listens locally, accepting only the hostnames you
+        expect. A rebinding request arrives with the attacker's hostname, so this rejects it even though
+        the address resolved correctly.
+      - **Require authentication on local services anyway.** "It only listens on localhost" is a network
+        assumption, not an authorization check, and it is the assumption rebinding breaks. Bind to the
+        loopback interface *and* require a token.
 - [ ] For agents this is the egress half of `agent-operations` AI-11 — the agent inherits your
       server's reach, so the boundary belongs in the tooling, not in the prompt.
 
@@ -466,6 +478,8 @@ npm audit --audit-level=high && npm audit fix
 #  1. Allowlist external hosts; deny 10/8, 172.16/12, 192.168/16, 127/8, 169.254/16 + IPv6 equivalents.
 #  2. Resolve -> validate -> pin the IP -> connect to the pin; re-validate on EVERY redirect.
 #  3. One generic error and consistent timing for all failures; detail goes to logs only.
+#  4. Local/dev services: validate the Host header against expected names AND require a token.
+#     Binding to localhost is a network assumption, not authorization - DNS rebinding breaks it.
 
 # SEC-17: new VPS, first 15 minutes
 #  1. SSH: PubkeyAuthentication yes / PasswordAuthentication no / PermitRootLogin no; then reload.

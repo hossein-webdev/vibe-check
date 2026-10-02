@@ -1,5 +1,27 @@
 # Changelog
 
+## 4.25.0
+
+**SEC-16 extended — the browser as the tunnel.** SEC-16 already covers the server side of resolve-then-
+change: pin the validated address and re-check on redirect. The same trick runs in the other direction and
+the pack said nothing about it.
+
+A page the user merely visits resolves a hostname to a public address, passes your origin check, then
+re-resolves to `127.0.0.1` or a private range and talks to whatever is listening. That's DNS rebinding,
+and it turns a dev server, admin console, debug endpoint or local agent into something a web page can
+reach — no malware, no network access, just a visited link.
+
+Two defences, and you want both:
+
+- **Validate the `Host` header** on anything listening locally, accepting only expected hostnames. A
+  rebinding request arrives carrying the attacker's hostname, so this rejects it even though the address
+  resolved correctly.
+- **Require authentication on local services anyway.** "It only listens on localhost" is a network
+  assumption, not an authorization check, and it's precisely the assumption rebinding breaks. Bind to
+  loopback *and* require a token.
+
+`app-security` 2.11.0.
+
 ## 4.24.0
 
 **SEC-22 — who is allowed to be you in an inbox.** PAY-10 sets up SPF and DKIM so your receipts arrive;
