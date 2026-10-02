@@ -8,12 +8,13 @@ description: >
   OWASP/ZAP/Burp, CVEs or supply-chain and typosquat risk, SQL injection, XSS, CORS/CSP, CSRF,
   SameSite cookies, clickjacking or iframe embedding, third-party scripts or Subresource Integrity, tokens in localStorage, server
   components or server actions leaking data, SSRF, prompt injection, a WAF or CDN, origin IP
-  exposure, DDoS, stack traces reaching users, self-hosting or SSH and firewall hardening, or
+  exposure, DDoS, stack traces reaching users, an exposed or unpatched cache/queue/database,
+  self-hosting or SSH and firewall hardening, or
   "is my app secure?". Applies to every app.
 user-invokable: true
 metadata:
   category: app-security
-  version: "2.8.0"
+  version: "2.9.0"
 ---
 
 # App Security
@@ -49,6 +50,7 @@ Freedom: **low** — run the checks exactly.
 | SEC-18 | Third-party page scripts inventoried, pinned with integrity, and CSP-restricted — and auth tokens kept out of storage any script can read | P1 once a payment or login page carries a vendor script |
 | SEC-19 | The server/client boundary is explicit: server-only modules guarded, nothing secret in a client component's import graph, and only the fields the UI renders cross as props | P1 for any server-component or server-action framework |
 | SEC-20 | Framing controlled: `frame-ancestors` (or `X-Frame-Options`) denies embedding except where you intend it, and sensitive actions need more than one click | P2 (P1 on payment, admin and consent screens) |
+| SEC-21 | Backing services are owned, not assumed: each one unreachable from the internet, authenticated, encrypted in transit, and on a named patch path | P1 once a cache, queue or search node holds session or customer data |
 
 ## When to Use This Skill
 
@@ -350,6 +352,31 @@ buttons is a lie. The fix is one header, which is why it's embarrassing to miss:
       header signal, so a project with no framing protection shows up in the scan before any rule
       explains why it matters. That is this rule.
 
+### The services behind the app (SEC-21)
+SEC-06 patches your application's dependencies. SEC-17 hardens a host you administer. Between them sit
+the things the app actually runs on {EM} cache, queue, search index, database {EM} and they are nobody's
+job by default. A generator provisions them, the app connects, it works, and no one ever asks who owns
+their network exposure or their version. A cache is not a detail: it holds session tokens, so reading it
+is logging in as anyone.
+- [ ] **Make each one unreachable from the internet.** Private networking or a VPC peer where the
+      provider offers it; otherwise bind to a private interface and allowlist only your application's
+      addresses. The managed-service version of this failure is a public endpoint left on because it was
+      the quickest way to connect from a laptop during setup.
+- [ ] **Require real authentication and encryption in transit**, not the default. Several popular
+      datastores ship with no password and no TLS when self-hosted, and the quickstart that got you
+      running is not the configuration you keep. Rotate the credentials the provisioning step generated.
+- [ ] **Give every service a named patch path.** Write down, per service, who applies security updates
+      and how you learn one exists {EM} the provider's maintenance window, your own upgrade cadence, or a
+      watched release feed. A known vulnerability with a published patch is the easiest possible breach,
+      and "the cache" is exactly the component nobody has a plan for. Pin the version you run so an
+      upgrade is a decision rather than a surprise ({ARR} `cost-infrastructure` COST-07 on providers
+      quietly moving services to legacy).
+- [ ] **Scope the credential the app uses.** The application's database role shouldn't be the owner, and
+      its cache credential shouldn't be able to flush or reconfigure ({ARR} SEC-05 for the privileged-role
+      version).
+- [ ] **Verify from outside your network**: attempt a connection to each service's address and port from
+      an unrelated network. Refused is the only acceptable answer; a password prompt means it's reachable.
+
 ### Prove it (SEC-09)
 - [ ] **Order matters: audit first, pen test second.** Run the full production audit (→ `audit`),
       fix what it surfaces, *then* pen test to validate the fixes and catch what they missed — and
@@ -453,6 +480,13 @@ npm audit --audit-level=high && npm audit fix
 #  2. Include the admin panel, embedded checkout, consent screen, docs and status subdomains.
 #  3. Destructive/money actions: typed confirmation or re-auth, so one click cannot complete them.
 #  4. Verify: put your page in a local <iframe>; the browser must refuse to render it.
+
+# SEC-21: backing services
+#  1. List every backing service (cache, queue, search, db) with its endpoint and whether it is public.
+#  2. Private networking / VPC peer where available; otherwise private bind + allowlist your app's IPs.
+#  3. Auth on, TLS on, provisioning credentials rotated, app credential scoped (not owner/admin).
+#  4. Per service write: who patches it, how you hear about a CVE, which version you are pinned to.
+#  5. Verify from an unrelated network: connection must be refused, not prompt for a password.
 
 # SEC-09: self pen-test
 docker run -t zaproxy/zap-stable zap-baseline.py -t https://your-app.example

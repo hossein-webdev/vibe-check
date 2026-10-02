@@ -1,5 +1,30 @@
 # Changelog
 
+## 4.23.0
+
+**SEC-21 — the services behind the app.** SEC-06 patches your dependencies; SEC-17 hardens a host you
+administer. Between them sit the things the app actually runs on — cache, queue, search index, database —
+and by default they are nobody's job. A generator provisions them, the app connects, it works, and nobody
+asks who owns their network exposure or their version. A cache is not a detail: it holds session tokens,
+so reading it is logging in as anyone.
+
+- **Unreachable from the internet** — private networking or a VPC peer where the provider offers it,
+  otherwise a private bind plus an allowlist of your app's addresses. The managed-service version of this
+  failure is a public endpoint left enabled because it was the quickest way to connect from a laptop
+  during setup.
+- **Real authentication and TLS, not the default.** Several popular datastores self-host with no password
+  and no encryption; the quickstart that got you running is not the configuration you keep. Rotate
+  whatever the provisioning step generated.
+- **A named patch path per service** — who applies security updates and how you learn one exists. A known
+  vulnerability with a published patch is the easiest possible breach, and the cache is exactly the
+  component nobody has a plan for. Pin versions so upgrades are decisions, not surprises (COST-07 on
+  providers quietly moving services to legacy).
+- **Scope the app's credential**: not the database owner, and not able to flush or reconfigure the cache.
+- **Verify from an unrelated network**: refused is the only acceptable answer — a password prompt means
+  it's reachable.
+
+`app-security` 2.9.0.
+
 ## 4.22.0
 
 **SEC-20 — your app inside someone else's page.** Nothing stops another site embedding yours in an
