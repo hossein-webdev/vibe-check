@@ -1,5 +1,29 @@
 # Changelog
 
+## 4.27.0
+
+**DATA-03 now covers the permissions, not just the placement.** The rule said *files and blobs go to
+object storage, served via CDN* and stopped there — silent on the one setting that decides whether
+everyone can read them. "Public bucket", "signed URL" and "presigned" appeared nowhere in the pack. Same
+shape as the SEC-08 defect: the rule actively directs you to the thing and omits the control, which is
+worse than not mentioning it.
+
+- **The bucket is private.** A generator sets it public because that's the fastest way to make an upload
+  render, and then every file is one URL from anyone — contracts, identity documents, scans, exports.
+  Some providers also leave *listing* public, turning one bucket into a downloadable index of everything
+  you hold.
+- **Serve through short-lived signed URLs**, minted per request after your own authorization check
+  (AUTH-05). Minutes, not days: they get pasted into chats, cached by proxies, and logged.
+- **Unguessable object keys.** `uploads/invoice-1041.pdf` lets someone walk the namespace without any
+  listing permission — the enumeration problem from APID-11, in a bucket. Random keys, real filename in a
+  database column.
+- **Validate uploads**: content type and size server-side, no user-controlled path segments in the key,
+  and don't serve user uploads from your own origin where HTML or SVG would execute as your site.
+- **Check from outside**, signed out and on another network: a direct object fetch and a bucket listing
+  must both be refused. The console usually shows intent rather than effective policy.
+
+Graded P2 for placement, **P1 for permissions**. `data-architecture` 2.3.0.
+
 ## 4.26.0
 
 **APID-14 — if the endpoint is GraphQL.** APID-01..13 are shaped for REST, because most generated APIs

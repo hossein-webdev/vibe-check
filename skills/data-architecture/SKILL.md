@@ -11,7 +11,7 @@ description: >
 user-invokable: true
 metadata:
   category: data-architecture
-  version: "2.2.0"
+  version: "2.3.0"
 ---
 
 # Database & Data Architecture
@@ -30,7 +30,7 @@ Freedom: **medium** — recommend the pattern, adapt to the stack.
 |---|---|---|
 | DATA-01 | Schema models entities/relations (no catch-all mega-table) | P2 |
 | DATA-02 | Multi-tenancy decided up front (`tenant_id` everywhere + RLS) when multiple customers share | P1 if B2B |
-| DATA-03 | Files/blobs in object storage + CDN, not database rows | P2 |
+| DATA-03 | Files/blobs in object storage + CDN, not database rows — and the bucket is private, served through signed URLs, with unguessable keys | P2 for the placement, **P1 for the permissions** |
 | DATA-04 | Versioned migrations exist; no schema edits directly in production | P1 |
 | DATA-05 | Backups exist (restore testing → reliability-recovery REL-02) | P1 |
 | DATA-06 | Platform fits the workload | → `database-selection` (DBS-01..04) |
@@ -47,6 +47,7 @@ Freedom: **medium** — recommend the pattern, adapt to the stack.
 - User mentions migrations, backups, or schema changes in production.
 - User needs to add, rename, or restructure a column/table on a database that already has users.
 - User is choosing an ORM (Prisma/Drizzle) or storing images/files.
+- Uploads are served from a storage bucket, or a bucket's permissions have never been checked.
 - (Which platform/provider → `database-selection`.)
 
 ## How It Works
@@ -57,7 +58,25 @@ Freedom: **medium** — recommend the pattern, adapt to the stack.
    table**, enforced by **row-level security** (see `app-security` SEC-04). Retrofitting isolation
    after launch is the expensive road.
 3. **Blobs out of the database (DATA-03).** Images/files go to **object storage**, served via
-   **CDN**; rows hold references. Cheaper, faster, and backups stay small.
+   **CDN**; rows hold references. Cheaper, faster, and backups stay small. **Then get the permissions
+   right, because this rule is what put your users' files there:**
+   - **The bucket is private.** A generator sets it public because that is the fastest way to make an
+     upload render in the browser, and the result is every file one URL away from anyone {EM} contracts,
+     identity documents, medical scans, exports. Some providers also make the *listing* public, which
+     turns one bucket into a downloadable index of everything you hold.
+   - **Serve through short-lived signed URLs** generated per request after your own authorization check
+     (→ `auth-access` AUTH-05), not a permanent public link. Expire them in minutes; they get
+     pasted into chats, cached by proxies, and logged.
+   - **Make object keys unguessable.** Sequential or predictable names (`uploads/invoice-1041.pdf`,
+     `avatars/<sequential-user-id>.jpg`) let someone walk the namespace even without listing permission
+     — the same enumeration problem as sequential ids in `api-design` APID-11. Use random keys and
+     keep the real filename in a database column.
+   - **Validate what you accept**: content type and size limits server-side, no user-controlled path
+     segments in the key (path traversal via filename), and no serving user uploads from your own
+     origin where an HTML or SVG file would execute as your site.
+   - **Check it from outside**, signed out and from another network: fetch a known object URL directly
+     and attempt to list the bucket. Both must be refused. This takes a minute and is the only way to
+     know, since the console often shows the intent rather than the effective policy.
 4. **Migrations + backups, non-negotiable (DATA-04/05).** Versioned migrations for every schema
    change; scheduled backups whose restores get *tested* (→ `reliability-recovery`). Editing schema
    live in prod is a slow-motion outage.
@@ -133,6 +152,12 @@ Freedom: **medium** — recommend the pattern, adapt to the stack.
 ## Fix playbook
 
 ```text
+Object storage permissions [DATA-03]:
+ 1. For each bucket: is public read on? is public LISTING on? Turn both off; default deny.
+ 2. Replace public links with signed URLs minted per request after your own authz check; minutes-long TTL.
+ 3. Re-key predictable objects to random names; keep the display filename in a DB column.
+ 4. Enforce content-type + size server-side; never take a path segment from a user-supplied filename.
+ 5. Verify signed out from another network: direct object fetch AND bucket listing must both be refused.
 Mega-table found [DATA-01]:
  1. Identify entities (users, orders, items…) → one table each, FKs between.
  2. Migrate with a versioned migration; backfill; add indexes on the new join keys.
