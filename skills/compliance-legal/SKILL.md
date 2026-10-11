@@ -12,7 +12,7 @@ description: >
 user-invokable: true
 metadata:
   category: compliance-legal
-  version: "2.3.0"
+  version: "2.4.0"
 ---
 
 # Compliance & Legal
@@ -42,6 +42,7 @@ these are requirements, not preferences.
 | LEGAL-13 | Accessibility conformance documented (WCAG 2.1 AA target, dated audit, remediation plan) | P2 for public-facing products; P1 for government, education, healthcare, and public-accommodation sectors |
 | LEGAL-14 | AI-generated output disclosed: visible labels/watermarks, affirmative opt-in before user input reaches a model, immutable generation log | P1 if the product ships model-generated content to users |
 | LEGAL-15 | Obligations scoped from where **users** are, not where the company is — user jurisdictions mapped from real signals | P1 once anyone outside your home jurisdiction can sign up |
+| LEGAL-16 | Customer data is used only for what it was collected for: training, fine-tuning or evaluating on it is a separate purpose needing its own basis, and a model that memorised it cannot honour a deletion request | P1 before any customer data reaches training |
 
 ## When to Use This Skill
 
@@ -51,6 +52,7 @@ these are requirements, not preferences.
 - An enterprise prospect asked for **SOC 2** or sent a security questionnaire.
 - An app-store submission was (or might be) rejected for privacy.
 - The product generates content with a model and ships it to users.
+- Customer data, support transcripts or uploads are about to be used for training or evals.
 - The user says compliance doesn't apply because the company isn't in that market.
 
 ## Checklist
@@ -210,6 +212,34 @@ extraterritorial reach. The obligations follow **where your users are**:
 - [ ] **Map where your users actually are** — payment country, billing address, IP at signup — and
       treat that map as the scope of your obligations. Re-run it quarterly; the map moves.
 
+### The data you already have was collected for something else (LEGAL-16)
+Your support transcripts, tickets, uploads and call recordings are the obvious training set — you own
+the systems, the data is already there, and nobody has to buy anything. The problem is that the customer
+gave it to you to *get support*, and training a model is a different purpose. Most data-protection
+regimes treat purpose as part of the permission, so "we have it" is not "we may use it":
+- [ ] **Name the purpose and check it covers training.** Re-read what your privacy policy actually
+      promised (LEGAL-01) — if it says the data is used to provide and support the service, training a
+      model sits outside that. Fix the policy *before* the training run, not in the release notes after,
+      and give customers a real opt-out where the regime requires one.
+- [ ] **Check your own contracts before your customers'.** If you process data on behalf of business
+      customers, your DPA (LEGAL-08) almost certainly restricts you to processing on their instructions.
+      Training a shared model on one tenant's data is the clearest version of that breach, and it is also
+      a cross-tenant leak waiting to happen (→ `auth-access` AUTH-11): a model trained on everyone
+      answers everyone.
+- [ ] **A trained model cannot forget on request.** Deletion duties (LEGAL-03) assume you can remove a
+      person's data; weights that memorised it are not a row you can delete, and retraining to excise one
+      customer is rarely practical. Decide this *before* training: exclude regulated and
+      deletable-on-request categories from the corpus, keep a record of what went into which model
+      version, and prefer retrieval over fine-tuning when the data is personal — a document you can
+      delete from an index is a document you can actually delete (→ `ai-engineering` AI-12).
+- [ ] **Minimise and de-identify first.** Strip direct identifiers, drop the fields the task does not
+      need, and look for the pasted secrets and personal details that live in real support
+      conversations. Models memorise and reproduce rare strings, so a credential in a ticket can
+      resurface in someone else's answer.
+- [ ] **Health, financial, children's and biometric data stay out** unless you have specifically
+      established a basis and the agreements to match (LEGAL-12), and the same goes for anything a third
+      party licensed to you under terms that say nothing about model training.
+
 ### Sales tax / VAT (LEGAL-11)
 Selling a digital subscription to a customer in another state or country can create a tax obligation
 *there* — in the US it's called economic **nexus**, and the generator never raises it because it
@@ -258,6 +288,13 @@ Jurisdiction scope [LEGAL-15]:
  1. SELECT DISTINCT country FROM customers (or pull it from the payment processor) — that's your real map.
  2. For each market: check data-protection duties, AI disclosure duties, and tax nexus (LEGAL-11).
  3. Blocking a market only counts if signup, payment, and stored data all stop — otherwise scope it in.
+Training on your own customer data [LEGAL-16]:
+ 1. Read the privacy policy you published. Does it permit model training, in those words? Usually not.
+ 2. Read your DPAs. Processing on a customer's instructions does not cover training a shared model.
+ 3. List the corpus sources; exclude regulated categories and anything deletable on request.
+ 4. Record what went into which model version, so a later deletion request has an answer.
+ 5. Prefer retrieval over fine-tuning for personal data - an index entry can actually be deleted.
+ 6. De-identify, drop unneeded fields, strip secrets pasted into tickets before training on them.
 Accessibility exposure [LEGAL-13]:
  1. State the target: WCAG 2.1 AA. 2. Audit against it (→ frontend-mobile-quality FE-02/07/08); keep the dated report.
  3. Publish an accessibility statement: target, known gaps, timeline, contact route.
@@ -286,6 +323,7 @@ logging, change management) and give the prospect a timeline — scrambling read
 - **Do** treat deletion as a cross-table cascade with a tested proof.
 - **Don't** soft-delete and call it "deleted".
 - **Don't** wait for the deal to start SOC 2 evidence — by then it's too late.
+- **Do** check the purpose you collected data for before training anything on it.
 - **Do** disclose AI-generated content and log every generation — the rules are live and the
   generator has never heard of them.
 - **Don't** assume your location sets your obligations; your users' locations do.

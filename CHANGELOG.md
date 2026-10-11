@@ -1,5 +1,34 @@
 # Changelog
 
+## 4.29.0
+
+**LEGAL-16 — the data you already have was collected for something else.** Your support transcripts,
+tickets, uploads and call recordings are the obvious training set: you own the systems, the data is
+there, nothing has to be bought. But the customer gave it to you to *get support*, and training a model
+is a different purpose — and most data-protection regimes treat purpose as part of the permission. "We
+have it" is not "we may use it."
+
+- **Name the purpose and check it covers training.** Re-read what your privacy policy promised
+  (LEGAL-01): if it says the data provides and supports the service, training sits outside that. Fix the
+  policy *before* the run, not in release notes afterwards, and give a real opt-out where the regime
+  requires one.
+- **Check your own contracts before your customers'.** If you process on behalf of business customers,
+  your DPA (LEGAL-08) restricts you to their instructions. Training a shared model on one tenant's data
+  is the clearest version of that breach — and a cross-tenant leak waiting to happen (AUTH-11): a model
+  trained on everyone answers everyone.
+- **A trained model cannot forget on request.** Deletion duties (LEGAL-03) assume you can remove a
+  person's data; weights that memorised it are not a row you can delete, and retraining to excise one
+  customer is rarely practical. Decide before training: exclude deletable and regulated categories,
+  record what went into which model version, and prefer retrieval over fine-tuning for personal data —
+  a document you can delete from an index is a document you can actually delete (AI-12).
+- **Minimise and de-identify first**, and look for the secrets and personal details that live in real
+  support conversations. Models memorise rare strings, so a credential in a ticket can resurface in
+  someone else's answer.
+- **Health, financial, children's and biometric data stay out** absent a specific basis and matching
+  agreements (LEGAL-12) — same for third-party data licensed under terms silent on model training.
+
+`compliance-legal` 2.4.0.
+
 ## 4.28.0
 
 **SEC-03 — scanners read text, and your repo contains more than text.** The rule asserted that git
