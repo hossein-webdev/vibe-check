@@ -12,7 +12,7 @@ user-invokable: true
 metadata:
   category: app-security
   parent: app-security
-  version: "2.1.0"
+  version: "2.2.0"
 ---
 
 # Secrets Management
@@ -30,7 +30,7 @@ Freedom: **low** — run the checks exactly.
 |---|---|---|
 | SEC-01 | No secret is hard-coded or git-tracked (`.env*` untracked; only `.env.example` in git) | P1 |
 | SEC-02 | No secret reachable from the client (bundle, component code, `NEXT_PUBLIC_*`) | P1 |
-| SEC-03 | Git history is clean or rotated; secret scanning enabled; rotation path exists | P2 |
+| SEC-03 | Git history is clean or rotated — scanners for text secrets, eyes for the artifacts they cannot read (screenshots, captures, dumps, fixtures); rotation path exists | P2 (P1 if the repo is or ever was public) |
 | SEC-12 | A pre-commit hook (or push protection) blocks secrets before they ever reach the remote | P2 — the only control that makes the fix permanent |
 
 ## When to Use This Skill
@@ -60,6 +60,30 @@ Freedom: **low** — run the checks exactly.
 - [ ] Scan the **entire git history**, not just HEAD — a deleted key still lives in old commits
       (`gitleaks detect` or GitHub secret scanning). Anything that ever touched a commit: rotate.
 - [ ] Enable secret scanning on the repo/platform. Bots find fresh keys in public repos in minutes.
+- [ ] **Scanners read text. Your repo contains more than text.** A secret scanner matches patterns in
+      source, so it is blind to the artifacts people commit while debugging — and those carry
+      credentials and customer data just as effectively:
+      - **Screenshots and screen recordings.** A dashboard grab pasted into a bug report or a README
+        shows live customer records, internal URLs, and often a token in a visible address bar or
+        header. Nothing in a scanner reads pixels.
+      - **Network and session captures** — `.har` files, Postman or Insomnia collections, saved
+        request dumps. A `.har` from a logged-in session contains every header, which means it
+        contains the session cookie and the bearer token.
+      - **Database dumps and seed data taken from production**, plus "test" fixtures built by copying
+        real rows. The file is named `seed.sql` and holds real people.
+      - **Logs, crash dumps and `.env.backup`-style leftovers** committed to "keep a copy".
+- [ ] **Audit the file types, not just the diffs.** List what has ever been committed by extension and
+      look at anything that isn't source: `git log --all --name-only --pretty=format: | sort -u`, then
+      scan for `.png`, `.jpg`, `.gif`, `.mp4`, `.har`, `.sql`, `.csv`, `.json` dumps, `.log`, `.zip`.
+      Open the suspicious ones. This is a one-off hour that a tool will not do for you.
+- [ ] **Removing them means rewriting history, and rotating anyway.** Deleting the file in a new commit
+      leaves it in every clone and every fork. Purge with a history rewrite if the repo is private and
+      small, but treat anything that was ever pushed to a public repo as disclosed: rotate the
+      credentials, and for customer data in a screenshot, treat it as the incident it is
+      (→ `compliance-legal` LEGAL-02 for the notification question).
+- [ ] **Add the extensions to `.gitignore` before you need them** — `*.har`, `*.sql`, `*.dump`,
+      screenshot folders — so the next debugging session can't commit one, and pair it with the
+      commit-time block in SEC-12.
 - [ ] Have a **dual-key rotation** path (issue new key → deploy → revoke old) so rotating never
       causes downtime — then actually rotate on a schedule and immediately after any suspicion.
 
@@ -96,6 +120,13 @@ git check-ignore -v .env    # must print a matching .gitignore rule
 # Untrack a committed env file (SEC-01)
 git rm --cached .env.local && echo ".env.local" >> .gitignore && git commit -m "untrack env"
 # then ROTATE every value it contained — untracking does not un-leak history
+
+# SEC-03: the artifacts a scanner cannot read
+#  1. Every path ever committed, by type:
+#     git log --all --name-only --pretty=format: | sort -u | grep -Ei '\.(png|jpg|gif|mp4|har|sql|csv|log|zip|dump)$'
+#  2. Open each one. Screenshots of dashboards, .har captures and production seed dumps are the usual finds.
+#  3. Ever public? Treat as disclosed: rotate credentials, and handle customer data as an incident.
+#  4. Add the extensions to .gitignore now so the next debugging session cannot commit one.
 
 # Scan full history for secrets (SEC-03)
 gitleaks detect --source . --log-opts="--all"

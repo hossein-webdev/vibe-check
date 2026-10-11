@@ -1,5 +1,30 @@
 # Changelog
 
+## 4.28.0
+
+**SEC-03 — scanners read text, and your repo contains more than text.** The rule asserted that git
+history is clean and offered secret scanning as the method. Secret scanners match patterns in source, so
+they are blind to everything people commit while debugging — and those artifacts carry credentials and
+customer data just as effectively. The rule claimed a property its own method couldn't deliver.
+
+What a scanner cannot see:
+
+- **Screenshots and screen recordings** — a dashboard grab in a bug report or README shows live customer
+  records, internal URLs, and often a token in a visible address bar. Nothing reads pixels.
+- **Network and session captures** — `.har` files, API-client collections, saved request dumps. A `.har`
+  from a logged-in session contains every header, so it contains the session cookie and bearer token.
+- **Database dumps and production-derived seed data**, including "test" fixtures built by copying real
+  rows. The file is called `seed.sql` and holds real people.
+- **Logs, crash dumps and `.env.backup` leftovers** committed to keep a copy.
+
+So: **audit by file type, not by diff** — list every path ever committed and open anything that isn't
+source. Removing them means rewriting history *and* rotating anyway, because a delete-commit leaves the
+file in every clone and fork; anything ever pushed publicly is disclosed, and customer data in a
+screenshot is an incident (LEGAL-02 for the notification question). Then add the extensions to
+`.gitignore` and pair it with SEC-12's commit-time block.
+
+Graded P1 if the repo is or ever was public. `secrets-management` 2.2.0.
+
 ## 4.27.0
 
 **DATA-03 now covers the permissions, not just the placement.** The rule said *files and blobs go to
