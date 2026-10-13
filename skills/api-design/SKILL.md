@@ -178,7 +178,7 @@ page, no demo call, no checkout. Three things that decide whether that path comp
 ### 9. Accept the fields you meant to accept (APID-13)
 APID-11 keeps extra fields out of the **response**. This is the same discipline on the way in, and it's
 the one with a privilege-escalation ending. The generated handler takes the body and hands it to the
-ORM {EM} `update(id, req.body)`, `Model(**payload)`, `{ ...user, ...req.body }` {EM} because that's the
+ORM — `update(id, req.body)`, `Model(**payload)`, `{ ...user, ...req.body }` — because that's the
 shortest correct-looking code, and it means the client decides which columns get written:
 - **Allowlist the writable fields per endpoint**, explicitly. A schema that validates the fields you
   expect but passes the whole object through is not an allowlist; the validated object must be *built*
@@ -187,15 +187,15 @@ shortest correct-looking code, and it means the client decides which columns get
   checks the name.
 - **Name the fields that must never be client-writable** and keep them out of every write path: `role`,
   `is_admin`, `permissions`, `plan`, `credits`, `balance`, `verified`, `owner_id`, `tenant_id`,
-  `created_at`, and anything your billing reads ({ARR} `business-logic-abuse` BIZ-01 for the money
+  `created_at`, and anything your billing reads (→ `business-logic-abuse` BIZ-01 for the money
   consequence). Setting these is an operation with its own endpoint and its own authorization, not a
   field on a general update.
 - **Nested objects and arrays are the same hole one level down.** A `PATCH` carrying
   `{ profile: { ... }, subscription: { plan: "enterprise" } }` needs the allowlist applied at every
   level you accept, not only the top.
-- **Automated review will pass this**, because nothing is malformed and no rule is violated {EM} the code
+- **Automated review will pass this**, because nothing is malformed and no rule is violated — the code
   does exactly what it says. That's why it's a checklist item rather than something you expect a tool to
-  catch ({ARR} `production-readiness` PROD-09).
+  catch (→ `production-readiness` PROD-09).
 - **Test it directly**: as an ordinary user, send `role: "admin"` (and `plan`, and `owner_id`) to every
   write endpoint you have, then read the record back. Nothing should have changed.
 
@@ -204,22 +204,22 @@ Everything above is shaped for REST, because most generated APIs are. GraphQL mo
 to different places, and a generator scaffolds the schema and resolvers while leaving every limit at its
 permissive default:
 - **Turn introspection off in production.** It is a complete, machine-readable map of every query,
-  mutation, type and relationship you expose {EM} useful in development, and a reconnaissance gift in
+  mutation, type and relationship you expose — useful in development, and a reconnaissance gift in
   production. Disable it on the public deployment and keep it in your local and staging environments. Then
   assume it leaked anyway and don't treat obscurity as a control.
 - **Cap depth and complexity.** A single valid query can nest relationships until it asks the database for
   the product of several tables; one request becomes a denial of service with no volume at all. Set a
-  maximum depth, assign complexity costs to fields, and reject past a ceiling {EM} this is the GraphQL
+  maximum depth, assign complexity costs to fields, and reject past a ceiling — this is the GraphQL
   shape of APID-04's pagination requirement and of `api-architecture` API-06's rate limits, both of which
   count requests and so miss it entirely.
 - **Limit batching and aliasing.** Array-batched operations and repeated aliases multiply work inside one
   request, which is also how a rate-limited login mutation gets brute-forced: a thousand attempts, one
   HTTP request, one counter increment.
 - **Authorize per field and per resolver**, not at the endpoint. One URL serves everything, so there is no
-  route to protect {EM} every resolver that returns data someone shouldn't see needs its own check, which is
+  route to protect — every resolver that returns data someone shouldn't see needs its own check, which is
   `auth-access` AUTH-06 applied resolver by resolver. Nested resolvers are the ones that get missed.
 - **Errors shouldn't narrate the schema.** Default handlers return "did you mean" suggestions and type
-  details that rebuild the map introspection would have given away ({ARR} `app-security` SEC-11).
+  details that rebuild the map introspection would have given away (→ `app-security` SEC-11).
 - **The rest still applies**: idempotency on mutations (APID-08), field allowlisting on inputs (APID-13),
   minimised payloads (APID-11), and request ids (APID-09).
 

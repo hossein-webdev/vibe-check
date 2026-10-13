@@ -290,13 +290,13 @@ a bare host does none of it, and the internet notices within minutes. Three thin
 A chat widget, an analytics pixel, a heatmap recorder, a font loader: each is a `<script>` you invited
 onto your page, and each runs with the **same privileges as your own code**. It can read the DOM,
 watch keystrokes in your login form, and read anything in browser storage. You are not trusting the
-vendor's product {EM} you are trusting their build pipeline, their CDN, and whoever acquires them next.
+vendor's product — you are trusting their build pipeline, their CDN, and whoever acquires them next.
 - [ ] **Inventory what you load, and say why.** List every external script, style, font, iframe and
-      pixel on the pages that matter {EM} login, checkout, account. Anything you can't justify comes
+      pixel on the pages that matter — login, checkout, account. Anything you can't justify comes
       off. This is the step people skip, and it's the one that shrinks the problem.
 - [ ] **Pin what you can.** Scripts from a CDN get **Subresource Integrity** plus
       `crossorigin="anonymous"` so a swapped file fails closed instead of executing. SRI can't cover a
-      tag that's *designed* to mutate (most analytics and widget loaders) {EM} for those, pin the
+      tag that's *designed* to mutate (most analytics and widget loaders) — for those, pin the
       vendor and the version in your own config and review changes deliberately rather than taking
       whatever `latest` serves today.
 - [ ] **Restrict with CSP so the budget is enforced, not aspirational.** `script-src` lists the hosts
@@ -304,9 +304,9 @@ vendor's product {EM} you are trusting their build pipeline, their CDN, and whoe
       back. SEC-07 covers rolling CSP out report-only first; this is what you point it at.
 - [ ] **Keep auth tokens where page scripts cannot reach them.** A token in `localStorage` or
       `sessionStorage` is readable by every script on the page, including the widget you added last
-      week {EM} one compromised vendor becomes account takeover with no attacker code on your server.
+      week — one compromised vendor becomes account takeover with no attacker code on your server.
       Prefer a `Secure` + `HttpOnly` + `SameSite` cookie, which JavaScript cannot read at all. If a
-      token must live in JS (a cross-origin API, a native shell {ARR} `frontend-mobile-quality` FE-09),
+      token must live in JS (a cross-origin API, a native shell → `frontend-mobile-quality` FE-09),
       keep it in memory only, keep it short-lived, and never persist it.
 - [ ] **Isolate the ones that don't need your page.** A widget in a sandboxed iframe on a separate
       origin cannot read your DOM or your storage; that is the difference between a vendor incident
@@ -320,22 +320,22 @@ Modern React frameworks put server and client code in the same file tree and dec
 module lands on by how it's imported. That inference is invisible, a generator has no model of it, and
 it fails in two directions at once:
 - [ ] **Secrets follow the import graph.** A helper that reads `process.env` is server-only until some
-      client component imports *anything* from the same module, at which point the bundler pulls it {EM}
-      and your credential {EM} into the browser bundle. This is a different bug from the classic
-      `NEXT_PUBLIC_` mistake ({ARR} `secrets-management` SEC-02): nothing was prefixed, nothing looked
+      client component imports *anything* from the same module, at which point the bundler pulls it —
+      and your credential — into the browser bundle. This is a different bug from the classic
+      `NEXT_PUBLIC_` mistake (→ `secrets-management` SEC-02): nothing was prefixed, nothing looked
       public. Put an explicit guard at the top of server-only modules (the `server-only` package, or
       your framework's equivalent) so a wrong import fails the **build** instead of shipping quietly.
 - [ ] **Props are a wire format, not a function call.** Whatever a server component passes to a client
       component is serialized into the payload the browser receives, in full. Handing down a whole
-      user or order record because the child renders three fields of it means the rest {EM} password
-      hash, internal flags, other people's identifiers {EM} is sitting in the page source. Select the
+      user or order record because the child renders three fields of it means the rest — password
+      hash, internal flags, other people's identifiers — is sitting in the page source. Select the
       fields at the boundary, the same discipline as `api-design` APID-11, applied where there is no
       visible API to review.
 - [ ] **Server actions are public endpoints.** A function marked as a server action is reachable by
       anyone who can form the request, not only by the component that calls it. It needs its own
-      authentication, authorization and input validation, exactly like a route handler {EM} "only my own
+      authentication, authorization and input validation, exactly like a route handler — "only my own
       UI calls this" is an assumption about the caller, and the caller is the internet
-      ({ARR} `auth-access` AUTH-06, SEC-08 for the validation).
+      (→ `auth-access` AUTH-06, SEC-08 for the validation).
 - [ ] **Verify by reading what shipped**, not by reasoning about the code: search the built client
       bundle and the server-rendered HTML for a known secret value and for a field the UI never
       displays. Both searches should come back empty. Repeat after any dependency upgrade that moves
@@ -343,13 +343,13 @@ it fails in two directions at once:
 
 ### Your app inside someone else's page (SEC-20)
 Nothing stops another site embedding yours in an invisible frame, overlaying their own content, and
-collecting the clicks your users think they're giving you {EM} a transfer confirmed, a permission granted,
+collecting the clicks your users think they're giving you — a transfer confirmed, a permission granted,
 an account deleted. The user is genuinely logged in and genuinely clicking; only the page around your
 buttons is a lie. The fix is one header, which is why it's embarrassing to miss:
 - [ ] **Deny framing by default.** `Content-Security-Policy: frame-ancestors 'none'` on anything nobody
       should embed, and `frame-ancestors https://partner.example` where embedding is a deliberate
       product feature. Keep `X-Frame-Options: DENY` alongside it only for the older clients you
-      actually support {EM} `frame-ancestors` is the one that governs modern browsers, and it is the one
+      actually support — `frame-ancestors` is the one that governs modern browsers, and it is the one
       to get right.
 - [ ] **Cover every origin that serves your UI**, not just the main app: the admin panel, the embedded
       checkout, the OAuth consent screen, docs and status pages on subdomains. A single unprotected
@@ -357,17 +357,17 @@ buttons is a lie. The fix is one header, which is why it's embarrassing to miss:
 - [ ] **Make destructive and money-moving actions need more than a click.** Framing attacks convert a
       single click into an action; a typed confirmation, a re-authentication, or a two-step flow doesn't
       convert. This also happens to be the defence against the ordinary mis-click
-      ({ARR} `business-logic-abuse` BIZ-07 for the workflow version).
+      (→ `business-logic-abuse` BIZ-07 for the workflow version).
 - [ ] **Verify it**: load your own page in a local `<iframe>` and confirm the browser refuses. A header
       you believe is set and isn't is the normal state of affairs
-      ({ARR} SEC-07 for rolling headers out safely).
+      (→ SEC-07 for rolling headers out safely).
 - [ ] Note for maintainers: the bundled scanner counts `X-Frame-Options` mentions as part of its
       header signal, so a project with no framing protection shows up in the scan before any rule
       explains why it matters. That is this rule.
 
 ### The services behind the app (SEC-21)
 SEC-06 patches your application's dependencies. SEC-17 hardens a host you administer. Between them sit
-the things the app actually runs on {EM} cache, queue, search index, database {EM} and they are nobody's
+the things the app actually runs on — cache, queue, search index, database — and they are nobody's
 job by default. A generator provisions them, the app connects, it works, and no one ever asks who owns
 their network exposure or their version. A cache is not a detail: it holds session tokens, so reading it
 is logging in as anyone.
@@ -379,13 +379,13 @@ is logging in as anyone.
       datastores ship with no password and no TLS when self-hosted, and the quickstart that got you
       running is not the configuration you keep. Rotate the credentials the provisioning step generated.
 - [ ] **Give every service a named patch path.** Write down, per service, who applies security updates
-      and how you learn one exists {EM} the provider's maintenance window, your own upgrade cadence, or a
+      and how you learn one exists — the provider's maintenance window, your own upgrade cadence, or a
       watched release feed. A known vulnerability with a published patch is the easiest possible breach,
       and "the cache" is exactly the component nobody has a plan for. Pin the version you run so an
-      upgrade is a decision rather than a surprise ({ARR} `cost-infrastructure` COST-07 on providers
+      upgrade is a decision rather than a surprise (→ `cost-infrastructure` COST-07 on providers
       quietly moving services to legacy).
 - [ ] **Scope the credential the app uses.** The application's database role shouldn't be the owner, and
-      its cache credential shouldn't be able to flush or reconfigure ({ARR} SEC-05 for the privileged-role
+      its cache credential shouldn't be able to flush or reconfigure (→ SEC-05 for the privileged-role
       version).
 - [ ] **Verify from outside your network**: attempt a connection to each service's address and port from
       an unrelated network. Refused is the only acceptable answer; a password prompt means it's reachable.
@@ -394,11 +394,11 @@ is logging in as anyone.
 `monetization-pricing` PAY-10 sets up SPF and DKIM so your receipts arrive. That is deliverability, and it
 is a different goal from this one: stopping other people sending mail that *is* you. Your domain is a
 brand asset with an open door, and a phishing message carrying your exact domain is far more effective
-than a lookalike {EM} your password-reset mail has trained users to trust it.
+than a lookalike — your password-reset mail has trained users to trust it.
 - [ ] **Publish DMARC and move it to enforcement.** SPF and DKIM alone prove a message *can* be
       authenticated; DMARC is what tells the receiving server to **reject** one that isn't. Start at
       `p=none` with reports, read them for a couple of weeks to find your legitimate senders, then go to
-      `p=quarantine` and on to `p=reject`. Staying at `p=none` indefinitely is the common failure {EM} it
+      `p=quarantine` and on to `p=reject`. Staying at `p=none` indefinitely is the common failure — it
       collects data nobody reads and blocks nothing.
 - [ ] **Mind alignment, not just presence.** A message passes DMARC only if the SPF or DKIM domain
       matches the visible `From:`. A vendor sending "on behalf of" you with their own envelope domain can
@@ -406,7 +406,7 @@ than a lookalike {EM} your password-reset mail has trained users to trust it.
 - [ ] **Inventory who sends as you and remove what you don't recognise.** Transactional provider, the
       marketing tool, the CRM, the invoicing service, the helpdesk, the thing someone connected in 2024.
       Each one you authorise can send mail wearing your domain, so this list *is* your attack surface
-      ({ARR} SEC-18 for the same argument about scripts, {ARR} `compliance-legal` LEGAL-12 if any of them
+      (→ SEC-18 for the same argument about scripts, → `compliance-legal` LEGAL-12 if any of them
       touch regulated data).
 - [ ] **Lock the subdomains you don't send from.** A DMARC record covers the organisational domain, but
       an explicit `p=reject` on unused sending subdomains closes the gap attackers reach for next.

@@ -61,7 +61,7 @@ Freedom: **medium** — recommend the pattern, adapt to the stack.
    **CDN**; rows hold references. Cheaper, faster, and backups stay small. **Then get the permissions
    right, because this rule is what put your users' files there:**
    - **The bucket is private.** A generator sets it public because that is the fastest way to make an
-     upload render in the browser, and the result is every file one URL away from anyone {EM} contracts,
+     upload render in the browser, and the result is every file one URL away from anyone — contracts,
      identity documents, medical scans, exports. Some providers also make the *listing* public, which
      turns one bucket into a downloadable index of everything you hold.
    - **Serve through short-lived signed URLs** generated per request after your own authorization check

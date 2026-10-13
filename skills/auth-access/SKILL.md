@@ -173,12 +173,12 @@ never been an access control. Assume it has already been found:
       a known network or an authenticated proxy. The blast radius here is the whole business.
 
 ### 8. Where you send the user next (AUTH-14)
-Three separate failures share one root cause {EM} a redirect target nobody validated {EM} and a
+Three separate failures share one root cause — a redirect target nobody validated — and a
 generator produces all three because each is the shortest way to write the feature:
 - [ ] **Allowlist the redirect target, don't reflect it.** `?next=`, `?returnTo=`, `?redirect=` on
       login and logout get compared against a list of permitted paths or hosts; anything else goes to
       your default. Reflecting whatever arrived turns your own login page into a credible phishing
-      hop {EM} the domain in the address bar is yours, the destination is theirs. Match on the parsed
+      hop — the domain in the address bar is yours, the destination is theirs. Match on the parsed
       host, not a prefix: `yourapp.com.evil.test` and `//evil.test` both pass a naive
       `startsWith` check.
 - [ ] **Register exact `redirect_uri` values with the identity provider**, full strings with no
@@ -187,7 +187,7 @@ generator produces all three because each is the shortest way to write the featu
       provider you configured loosely two years ago.
 - [ ] **Carry `state` and verify it on return.** A random, single-use value bound to the user's
       session, compared on the callback and then discarded. Without it anyone can replay a callback
-      at your endpoint and have you complete a login the user never started {EM} and the same value is
+      at your endpoint and have you complete a login the user never started — and the same value is
       your CSRF defence for the login flow itself (pairs with `app-security` SEC-15).
 - [ ] **Use PKCE for the authorization-code flow**, including on confidential server-side clients
       where it costs nothing. An intercepted code is worthless without the verifier, which is what
@@ -197,23 +197,23 @@ generator produces all three because each is the shortest way to write the featu
 
 ### 9. A link in an inbox is a credential (AUTH-15)
 Password resets, magic links and invitations all hand someone a URL that logs them in. Generators build
-the happy path {EM} generate, email, accept {EM} and leave out the lifecycle, so the link keeps working
+the happy path — generate, email, accept — and leave out the lifecycle, so the link keeps working
 long after it should:
 - [ ] **Expire it in minutes, not days.** Fifteen minutes for a reset or magic link is generous; the
       user is reading the email now. A token that still authenticates months later is a permanent
       password sitting in an inbox that may itself be compromised, forwarded, or archived on a shared
       machine.
 - [ ] **Burn it on first use, atomically.** Mark it consumed in the same statement that validates it
-      ({ARR} `business-logic-abuse` BIZ-04), so two clicks {EM} or a click and a replay {EM} can't both
+      (→ `business-logic-abuse` BIZ-04), so two clicks — or a click and a replay — can't both
       succeed. Issuing a new link should invalidate the previous one rather than leaving a trail of
       working keys.
 - [ ] **Invalidate on password change, and change sessions too.** Changing the password must kill
       outstanding reset tokens, and completing a reset must terminate existing sessions
-      ({ARR} AUTH-04) {EM} otherwise the person you were locking out keeps their session, which is the
+      (→ AUTH-04) — otherwise the person you were locking out keeps their session, which is the
       whole reason the user reset in the first place.
 - [ ] **Survive the things that open links without a human.** Mail scanners and clients prefetch URLs,
       so a `GET` that consumes the token burns it before the user clicks. Have the link land on a page
-      that requires an explicit action {EM} a `POST` on a button {EM} to redeem.
+      that requires an explicit action — a `POST` on a button — to redeem.
 - [ ] **Don't leak the token on the way.** Keep it out of logs, out of analytics, and out of the
       `Referer` sent to third parties; prefer a short random value compared against a stored hash over
       something guessable or sequential, and don't disclose in the response whether the address exists.
@@ -223,7 +223,7 @@ long after it should:
 ### 10. A session the attacker chose (AUTH-16)
 AUTH-04 rotates sessions over time. This is the other rotation: the one that must happen the instant a
 session changes what it's allowed to do. If the identifier survives login unchanged, an attacker who can
-set it *before* authentication owns the session *after* {EM} they plant a value, get the victim to log in
+set it *before* authentication owns the session *after* — they plant a value, get the victim to log in
 with it, and are already inside. Nothing is stolen and nothing is brute-forced; they just knew the id
 first.
 - [ ] **Regenerate on login, always.** A new identifier is issued the moment authentication succeeds and
@@ -237,7 +237,7 @@ first.
       server didn't issue. URL-borne sessions leak through logs, `Referer` headers, and shared links, and
       accepting an unknown id is what makes planting one possible in the first place.
 - [ ] **Set the cookie so the browser helps**: `HttpOnly` and `Secure` so script and network can't read
-      it, `SameSite` so it doesn't ride cross-site requests ({ARR} `app-security` SEC-15), and a host-only
+      it, `SameSite` so it doesn't ride cross-site requests (→ `app-security` SEC-15), and a host-only
       cookie rather than a domain-wide one if anything untrusted shares a subdomain.
 - [ ] **Verify it in one minute**: note the session cookie before logging in, log in, and compare. If the
       value is the same, this is broken.

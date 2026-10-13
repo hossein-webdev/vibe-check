@@ -1,5 +1,28 @@
 # Changelog
 
+## 4.29.1
+
+**Fix: literal placeholder tokens in shipped skill text.** Releases v4.16.0 through v4.29.0 contained
+unreplaced `{EM}` and `{ARR}` tokens where em-dashes and arrows were intended — 54 occurrences across
+five skills:
+
+| skill | occurrences |
+|---|---:|
+| `app-security` | 25 |
+| `auth-access` | 15 |
+| `api-design` | 9 |
+| `ai-engineering` | 4 |
+| `data-architecture` | 1 |
+
+Content and meaning were unaffected; the rules themselves were correct, but the prose read with
+`{EM}` sitting in it. All replaced, and the global `api-design` mirror re-synced.
+
+**Release validation now rejects any unreplaced `{TOKEN}` placeholder**, so this class of defect
+cannot ship again. The check was verified by planting a token and confirming the validator fails, then
+confirming it passes when clean.
+
+No rule text, rule IDs, or gradings changed. 24 skills, 231 rule IDs.
+
 ## 4.29.0
 
 **LEGAL-16 — the data you already have was collected for something else.** Your support transcripts,

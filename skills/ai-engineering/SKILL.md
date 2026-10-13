@@ -87,13 +87,13 @@ Three boundaries, and you need all three:
 
 ### The model is not an access-control layer (AI-13)
 You gave the feature database access so it could answer questions, and it answers whoever asks. A
-support assistant that looks up orders will, given the right sentence, look up everyone's orders {EM}
+support assistant that looks up orders will, given the right sentence, look up everyone's orders —
 because a model receives your instructions and the user's message through the same channel and has
 no way to rank one above the other. "Ignore your previous instructions" is not a clever exploit; it
 is the interface working as designed. Three layers, and the first is the only one that actually
 holds:
 - **Scope the data connection to the authenticated user, in code.** The query the model can run must
-  already be filtered to the session's identity before the model is involved {EM} a per-user
+  already be filtered to the session's identity before the model is involved — a per-user
   connection, a parameterised tool that takes no user id from the model, or row-level security
   enforced by the database. If the current user is customer 47, the reachable rows are customer 47's
   rows, and no phrasing changes that. Prompt instructions like "only answer about this user" are a
@@ -101,10 +101,10 @@ holds:
 - **Give it the narrowest surface that answers the question.** Handing a model your whole schema so
   it can be helpful is how one prompt reaches every table. Expose specific read tools over specific
   data, not a general query capability, and keep write operations behind explicit confirmation
-  ({ARR} `agent-operations` AI-11).
+  (→ `agent-operations` AI-11).
 - **Filter on the way out.** Even correctly scoped, a model can echo system instructions, internal
   identifiers, or schema details in its answer. Screen every response before it reaches the user for
-  system-prompt content, other users' identifiers, and internal structure {EM} this is AI-02's
+  system-prompt content, other users' identifiers, and internal structure — this is AI-02's
   validation doing a confidentiality job rather than a correctness one. Log what you strip; a spike
   is someone probing.
 - Retrieval corpora have their own version of this (AI-12), and the injection surface is
